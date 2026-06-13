@@ -1,0 +1,33 @@
+name: Publiser til Cloudflare
+
+# Automatisk publisering av LME Content Studio.
+# Hver gang noe pushes til main, deployer denne workflow-en de statiske
+# filene til Cloudflare-worker-en "lme-innholdsstudio-no" (se wrangler.jsonc).
+#
+# Krever to GitHub-hemmeligheter (Settings -> Secrets and variables -> Actions):
+#   CLOUDFLARE_API_TOKEN   - API-token med rettigheten "Edit Cloudflare Workers"
+#   CLOUDFLARE_ACCOUNT_ID  - Cloudflare-konto-ID-en
+#
+# Kan også kjøres manuelt fra Actions-fanen ("Run workflow").
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hent koden
+        uses: actions/checkout@v4
+
+      - name: Deploy til Cloudflare
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy

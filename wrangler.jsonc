@@ -1,0 +1,13 @@
+{
+  // Cloudflare Worker (static assets) for LME Content Studio.
+  // Same worker som er live i dag: "lme-innholdsstudio-no".
+  // Publiseres automatisk av GitHub Actions ved push til main
+  // (se .github/workflows/deploy.yml).
+  "name": "lme-innholdsstudio-no",
+  "compatibility_date": "2026-06-13",
+  "assets": {
+    // Hele repoet serveres som statiske filer. Filer vi ikke vil
+    // publisere er listet i .assetsignore.
+    "directory": "."
+  }
+}
