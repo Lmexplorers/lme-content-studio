@@ -1,7 +1,0 @@
-# Filer som IKKE skal publiseres som en del av nettsiden.
-# Gitignore-syntaks. Alt annet i repoet serveres av worker-en.
-.git
-.github
-.assetsignore
-wrangler.jsonc
-README.txt
