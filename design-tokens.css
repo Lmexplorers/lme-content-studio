@@ -1,0 +1,327 @@
+/* =====================================================================
+   LME Innholdsstudio — design-tokens.css
+   Autoritativ kilde: LME-CONTENT-STUDIO-DESIGN-SPEC.md (v1.0)
+
+   Inneholder: brand-palett, typografi, spacing, radius/skygger,
+   knapp-, kort-, header-, nav- og tilstands-stiler.
+   Last inn FØR sidens egen CSS i hver HTML-fil (NO og EN).
+
+   FONT-REGEL (låst): kun Playpen Sans (overskrifter) og
+   Sasson Montessori (brødtekst), begge lastet lokalt. Aldri fallback
+   til system-ui, Arial, Inter, cursive eller sans-serif.
+   ===================================================================== */
+
+/* --------------------------------------------------------------------
+   Fonter — lastes lokalt, aldri fra Google Fonts
+   -------------------------------------------------------------------- */
+@font-face {
+  font-family: 'Playpen Sans';
+  src: url('/fonts/PlaypenSans-Variable.woff2') format('woff2-variations');
+  font-weight: 400 800;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Sassoon Montessori';
+  src: url('/fonts/SassoonMontessori.woff2') format('woff2'),
+       url('/fonts/SassoonMontessori.ttf') format('truetype');
+  font-weight: 400;
+  font-display: swap;
+}
+
+/* --------------------------------------------------------------------
+   :root — alle tokens
+   -------------------------------------------------------------------- */
+:root {
+  /* Hovedfarger (fra LME-bokstavene) */
+  --lme-cerise:       #F02478;  /* Primær — handlinger, lenker, aktive tilstander */
+  --lme-lime:         #9CC000;  /* Suksess — "Lagret", "Publisert", hake-bekreftelser */
+  --lme-himmelblaa:   #0084E4;  /* Info — info-bokser, sekundære lenker */
+  --lme-sol:          #FCC000;  /* CTA — store handlings-knapper ("Generer") */
+
+  /* Støttefarger */
+  --lme-lyserosa:     #FFDDDE;  /* Mykhet — subtile bakgrunner, hover-tilstander */
+  --lme-mint:         #B4D870;  /* Fremgang — progresjon, "kommer snart"-merker */
+  --lme-svart:        #1A1A1A;  /* Tekst, kontrast */
+  --lme-hvit:         #FFFFFF;  /* Kort, paneler, input-felt */
+
+  /* Avledede toner (bruk disse, ikke andre varianter) */
+  --lme-cerise-dyp:   #C81860;  /* Hover/active for primær */
+  --lme-cerise-myk:   #FCE4EE;  /* Bakgrunner med cerise-undertone */
+  --lme-sol-dyp:      #D9A500;  /* Hover for CTA */
+  --lme-graa-tekst:   #6B6470;  /* Sekundær tekst, hjelpetekst */
+  --lme-graa-kant:    #E8E0E5;  /* Borders, dividere */
+  --lme-bakgrunn:     #FFFAFA;  /* Hovedside-bakgrunn (varm hvit, ikke ren) */
+  --lme-overflate:    #FFFFFF;  /* Kort, paneler */
+
+  /* Fontfamilier */
+  --font-overskrift:  'Playpen Sans';
+  --font-brod:        'Sassoon Montessori';
+
+  /* Spacing-skala (ingen andre verdier) */
+  --rom-1:  4px;
+  --rom-2:  8px;
+  --rom-3:  12px;
+  --rom-4:  16px;
+  --rom-5:  24px;
+  --rom-6:  32px;
+  --rom-7:  48px;
+  --rom-8:  64px;
+
+  /* Border-radius */
+  --radius-liten:  8px;      /* Input-felt, små knapper */
+  --radius-medium: 14px;     /* Knapper, kort */
+  --radius-stor:   22px;     /* Hovedkort, paneler */
+  --radius-pille:  9999px;   /* Tag-er, badges */
+
+  /* Skygger */
+  --skygge-myk:    0 2px 8px rgba(26,26,26,0.06);
+  --skygge-medium: 0 6px 20px rgba(26,26,26,0.08);
+  --skygge-stor:   0 14px 40px rgba(240,36,120,0.18);  /* Cerise-tonet for CTA */
+  --skygge-cta:    0 10px 30px rgba(252,192,0,0.32);   /* Solgul-tonet for den store knappen */
+}
+
+/* --------------------------------------------------------------------
+   Base / reset
+   -------------------------------------------------------------------- */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--lme-bakgrunn);
+  color: var(--lme-svart);
+  font-family: var(--font-brod);
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+/* --------------------------------------------------------------------
+   Typografi-skala
+   -------------------------------------------------------------------- */
+h1 { font-family: var(--font-overskrift); font-weight: 800; font-size: 2.25rem;  line-height: 1.15; letter-spacing: -0.01em; color: var(--lme-svart); margin: 0 0 var(--rom-3); }
+h2 { font-family: var(--font-overskrift); font-weight: 700; font-size: 1.625rem; line-height: 1.2;  color: var(--lme-svart); margin: 0 0 var(--rom-2); }
+h3 { font-family: var(--font-overskrift); font-weight: 700; font-size: 1.25rem;  line-height: 1.25; color: var(--lme-svart); margin: 0 0 var(--rom-2); }
+h4 { font-family: var(--font-overskrift); font-weight: 600; font-size: 1.05rem;  line-height: 1.3;  color: var(--lme-svart); margin: 0 0 var(--rom-2); }
+
+p, li, input, button, select, textarea, label, a {
+  font-family: var(--font-brod);
+}
+
+p, li { color: var(--lme-svart); }
+
+.tekst-stor  { font-size: 1.125rem; }
+.tekst-liten { font-size: 0.875rem; color: var(--lme-graa-tekst); }
+.tekst-bitte { font-size: 0.75rem;  color: var(--lme-graa-tekst); letter-spacing: 0.02em; }
+.tekst-pro   { font-size: 0.7rem;   font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--lme-cerise); }
+
+/* --------------------------------------------------------------------
+   Knapp-system — maks én .btn-cta synlig per skjerm
+   -------------------------------------------------------------------- */
+.btn-primaer,
+.btn-cta,
+.btn-sekundaer,
+.btn-tertiaer {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rom-2);
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+/* Primær (cerise) */
+.btn-primaer {
+  background: var(--lme-cerise);
+  color: var(--lme-hvit);
+  font-family: var(--font-brod);
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 12px 22px;
+  border: none;
+  border-radius: var(--radius-medium);
+  box-shadow: var(--skygge-myk);
+}
+.btn-primaer:hover  { background: var(--lme-cerise-dyp); box-shadow: var(--skygge-stor); transform: translateY(-1px); }
+.btn-primaer:active { transform: translateY(0); }
+.btn-primaer:disabled {
+  background: var(--lme-graa-kant);
+  color: var(--lme-graa-tekst);
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+/* CTA (solgul — kun ÉN per skjerm) */
+.btn-cta {
+  background: linear-gradient(135deg, var(--lme-sol) 0%, #FFD840 100%);
+  color: var(--lme-svart);
+  font-family: var(--font-overskrift);
+  font-weight: 800;
+  font-size: 1.1rem;
+  padding: 16px 32px;
+  border: none;
+  border-radius: var(--radius-stor);
+  box-shadow: var(--skygge-cta);
+}
+.btn-cta:hover { transform: translateY(-2px); box-shadow: 0 16px 40px rgba(252,192,0,0.42); }
+.btn-cta:disabled {
+  background: var(--lme-graa-kant);
+  color: var(--lme-graa-tekst);
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+/* Sekundær (hvit med cerise-kant) */
+.btn-sekundaer {
+  background: var(--lme-hvit);
+  color: var(--lme-cerise);
+  font-family: var(--font-brod);
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 11px 21px;
+  border: 1.5px solid var(--lme-cerise);
+  border-radius: var(--radius-medium);
+}
+.btn-sekundaer:hover { background: var(--lme-cerise-myk); }
+
+/* Tertiær (lenkeknapp) */
+.btn-tertiaer {
+  background: transparent;
+  color: var(--lme-cerise);
+  font-family: var(--font-brod);
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 8px 14px;
+  border: none;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.btn-tertiaer:hover { color: var(--lme-cerise-dyp); }
+
+/* --------------------------------------------------------------------
+   Kort og paneler
+   -------------------------------------------------------------------- */
+.kort {
+  background: var(--lme-overflate);
+  border-radius: var(--radius-stor);
+  padding: var(--rom-5);
+  box-shadow: var(--skygge-myk);
+  border: 1px solid var(--lme-graa-kant);
+}
+.kort-fremhevet {
+  background: var(--lme-overflate);
+  border-radius: var(--radius-stor);
+  padding: var(--rom-5);
+  box-shadow: var(--skygge-medium);
+  border: 2px solid var(--lme-cerise);
+}
+.kort-myk {
+  background: var(--lme-lyserosa);
+  border-radius: var(--radius-stor);
+  padding: var(--rom-5);
+}
+
+/* --------------------------------------------------------------------
+   Header med logo (sticky, blur)
+   -------------------------------------------------------------------- */
+.lme-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid var(--lme-graa-kant);
+  background: rgba(255,255,255,0.94);
+  backdrop-filter: blur(10px);
+}
+.lme-header-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: var(--rom-3) var(--rom-5);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--rom-5);
+}
+.lme-logo {
+  display: flex;
+  align-items: center;
+  gap: var(--rom-3);
+  text-decoration: none;
+}
+.lme-logo img { border-radius: 50%; }
+.lme-logo-tekst { display: flex; flex-direction: column; }
+.lme-logo-tittel {
+  font-family: var(--font-overskrift);
+  font-weight: 800;
+  font-size: 1.05rem;
+  color: var(--lme-svart);
+  line-height: 1;
+}
+.lme-logo-undertittel {
+  font-family: var(--font-brod);
+  font-size: 0.72rem;
+  color: var(--lme-graa-tekst);
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+}
+
+/* --------------------------------------------------------------------
+   Navigasjon (faner) — tekst, ikke emoji
+   -------------------------------------------------------------------- */
+.lme-nav { display: flex; gap: var(--rom-2); flex-wrap: wrap; }
+.lme-nav a {
+  font-family: var(--font-brod);
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--lme-graa-tekst);
+  padding: var(--rom-2) var(--rom-3);
+  border-radius: var(--radius-medium);
+  text-decoration: none;
+  transition: all 0.15s;
+}
+.lme-nav a:hover { color: var(--lme-svart); background: var(--lme-lyserosa); }
+.lme-nav a.aktiv { color: var(--lme-cerise); background: var(--lme-cerise-myk); }
+
+/* --------------------------------------------------------------------
+   Tilstander
+   -------------------------------------------------------------------- */
+@media (hover: hover) {
+  /* hover-effekter er allerede definert per komponent;
+     denne blokken finnes for å markere at hover kun gjelder desktop */
+}
+
+*:focus-visible {
+  outline: 2px solid var(--lme-sol);
+  outline-offset: 2px;
+}
+
+.tilstand-suksess { color: var(--lme-lime); }
+.tilstand-feil    { color: var(--lme-cerise); }
+
+.spinner {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: lme-spin 0.7s linear infinite;
+}
+@keyframes lme-spin { to { transform: rotate(360deg); } }
+
+/* --------------------------------------------------------------------
+   Lucide-ikoner — størrelse/farge for inline UI-ikoner
+   -------------------------------------------------------------------- */
+[data-lucide] {
+  width: 1.1em;
+  height: 1.1em;
+  vertical-align: -0.15em;
+}
+
+/* --------------------------------------------------------------------
+   Mobil — touch-targets, full-bredde CTA
+   -------------------------------------------------------------------- */
+@media (max-width: 640px) {
+  h1 { font-size: 1.875rem; }
+  .lme-header-inner { padding: var(--rom-3) var(--rom-4); }
+  .btn-cta { width: 100%; justify-content: center; }
+  .btn-primaer, .btn-sekundaer { min-height: 44px; }
+}
