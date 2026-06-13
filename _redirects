@@ -1,4 +1,0 @@
-# Cloudflare Pages redirects for LME Studio
-# Catch any old URL patterns and route to language landing
-/index    /    301
-/home     /    301
