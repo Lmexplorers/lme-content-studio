@@ -769,8 +769,13 @@ input[type=range]{width:100%;accent-color:var(--rose);}
     <!-- ════ IMAGE + PUBLISH (shown for non-Reel formats) ════ -->
     <div id="image-publish-section" class="publish-section">
       <div class="card-title" id="pub-section-title">🎨 Generer forsidebilde</div>
-      <div style="font-size:11px;color:var(--text-s);margin-bottom:12px;line-height:1.6;">
-        DALL-E 3 lager et forsidebilde med hook — <strong>9:16 for Story</strong>, 1:1 for karusell og feed. Du ser bildet og godkjenner før det publiseres.
+      <div style="font-size:11px;color:var(--text-s);margin-bottom:10px;line-height:1.6;">
+        Velg bildemodell og lag et forsidebilde med hook. <strong>9:16 for Story</strong>, 1:1 for karusell og feed. Du ser bildet og godkjenner før du bruker det.
+      </div>
+      <div class="chip-wrap" id="img-model-chips" style="margin-bottom:12px;">
+        <button type="button" class="chip active" data-imgmodel="dalle3" onclick="selectImgModel('dalle3')">DALL-E 3</button>
+        <button type="button" class="chip" data-imgmodel="nano" onclick="selectImgModel('nano')">🍌 Nano Banana</button>
+        <button type="button" class="chip" data-imgmodel="nano-pro" onclick="selectImgModel('nano-pro')">🍌 Nano Banana Pro</button>
       </div>
       <button class="gen-btn purple" id="pub-btn" style="margin-bottom:0;font-size:13px;padding:13px;" onclick="genererBilde()">
         🎨 Generer forsidebilde
@@ -1020,7 +1025,13 @@ input[type=range]{width:100%;accent-color:var(--rose);}
   <div class="card">
     <div class="card-title">🤖 OpenAI API-nøkkel (DALL-E 3)</div>
     <input type="password" id="s-openai-key" placeholder="sk-proj-..." oninput="saveSettings()"/>
-    <div style="font-size:10px;color:var(--text-s);margin-top:6px;">Brukes til automatisk AI-bildegenerering. Hent på platform.openai.com</div>
+    <div style="font-size:10px;color:var(--text-s);margin-top:6px;">Brukes til bildegenerering med DALL-E 3. Hent på platform.openai.com</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🍌 Google Gemini API-nøkkel (Nano Banana)</div>
+    <input type="password" id="s-gemini-key" placeholder="AIza..." oninput="saveSettings()"/>
+    <div style="font-size:10px;color:var(--text-s);margin-top:6px;">Brukes til bildegenerering med Nano Banana og Nano Banana Pro. Hent gratis på aistudio.google.com</div>
   </div>
 
     <div class="card">
@@ -1700,6 +1711,8 @@ const DEFAULTS = {
   charPreset:'miateo', charNames:'', charDesc:'',
   apiKey:'',
   openaiKey:'',
+  geminiKey:'',
+  imgModel:'dalle3',
   socialbuKey:'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiMDY4NTIzNDJjYWE3ZWY5NjI3MDdkOWE2ZjViM2FjZTVhZGY3YjE5MzEyMjM4ZDUxNDlmOWRhN2E2NmFhMjUyYmQ3MGYwNTY0Yjc1NjFkZDIiLCJpYXQiOjE3NzYzNTM4OTAuODYyNTAyLCJuYmYiOjE3NzYzNTM4OTAuODYyNTA2LCJleHAiOjE4MDc4ODk4OTAuODM2NDg5LCJzdWIiOiIxNjQ2NDgiLCJzY29wZXMiOltdfQ.j_u84vOrZs0wlgxDHjr_hOLh1PjH_RkZfkOw9hValFMT5FzwPwP32f8S8m0tAR3rkXdcC9XvYSWpWuuSHiKUVM3hKgz8z9ZfGoVRbmz6eMi3QIs_3Gx9vqWhwn7VWikKYeNJ6C0QRaLb4T9Wn-AL_bMoAogqEAdbmLNCB1rKxyMJx6OCCpemAYcxf9Ry6eAp4GJ-G3S6CW9FzRMcbjmWuxwDYciSfBsqoKbIV6fKK6B7AXY509kJ9Elsmwt7tJ6JIWKmTnTLE32xZ7sMFQmvW0El5Z_0Jcc2aovY68PQvdVyI_6X2Zqi5AE1kxDwU8uiEtlBd_jCp9e5hdh3tfN2Jz0-PAygxmhAoyK5yHrx33nfam2k2KYvHoEiXObEpptEy3dJge2Ci7GAlPMr-MwZd4l-gzYhMPbwKHOdUVP_l2QHhuHeFDaOmecM2hCloZQgRA_mBYsh0Li6LgVecyxqwWhSz2ze95MsRnh19t4I3U1LxjA-VJ1XorspIpPMbULnskh7TcOI3mCDqKr8IFtyCjZGId-gtwScG6rsf2McOomWSgWLXFdMbIklCRBUD_YMuG8cc05I4xyA1WqOn0F2Gm0rBP0XntuJzSpG1yfJm9z0RYyKfkx1Pda49v1FzIvhR2lyANh8GbNwOui8I8zaFVT4PRUmt-DgmTcjJNhMye8',
   socialbuAccounts:[178202,178203],
   makeWebhook:'https://lme-proxy.renateshobby.workers.dev',
@@ -2185,20 +2198,38 @@ function fileToBase64(file){
   });
 }
 
+// ══ BILDEMODELL-VELGER ══
+const IMG_MODEL_NAMES={'dalle3':'DALL-E 3','nano':'Nano Banana','nano-pro':'Nano Banana Pro'};
+function selectImgModel(model,skipSave){
+  cfg.imgModel=model;
+  document.querySelectorAll('#img-model-chips .chip').forEach(c=>{
+    c.classList.toggle('active', c.dataset.imgmodel===model);
+  });
+  if(!skipSave) saveSettings();
+}
+
 // ══ IMAGE + AUTO-PUBLISH (non-Reel) ══
 async function genererBilde(){
   if(!state.result){alert('Generer innhold først!');return;}
   const btn=document.getElementById('pub-btn');
   const statusEl=document.getElementById('pub-status');
+  const imgModel=cfg.imgModel||'dalle3';
 
-  if(!cfg.openaiKey||cfg.openaiKey.length<10){
-    statusEl.innerHTML=`<div class="pub-status error" style="margin-top:10px;">❌ OpenAI API-nøkkel mangler. Legg den inn i ⚙️ Innstillinger.</div>`;
-    return;
+  if(imgModel==='dalle3'){
+    if(!cfg.openaiKey||cfg.openaiKey.length<10){
+      statusEl.innerHTML=`<div class="pub-status error" style="margin-top:10px;">❌ OpenAI API-nøkkel mangler. Legg den inn i ⚙️ Innstillinger.</div>`;
+      return;
+    }
+  }else{
+    if(!cfg.geminiKey||cfg.geminiKey.length<10){
+      statusEl.innerHTML=`<div class="pub-status error" style="margin-top:10px;">❌ Google Gemini API-nøkkel mangler (for Nano Banana). Legg den inn i ⚙️ Innstillinger.</div>`;
+      return;
+    }
   }
 
   btn.disabled=true; btn.textContent='🤖 Genererer bilde…';
   document.getElementById('bilde-preview-seksjon').style.display='none';
-  statusEl.innerHTML=`<div class="pub-status loading" style="margin-top:10px;">🤖 DALL-E 3 lager bilde… (15-30 sek) <span class="loading-dots"><span></span><span></span><span></span></span></div>`;
+  statusEl.innerHTML=`<div class="pub-status loading" style="margin-top:10px;">🤖 ${IMG_MODEL_NAMES[imgModel]} lager bilde… (15-30 sek) <span class="loading-dots"><span></span><span></span><span></span></span></div>`;
 
   try{
     const topic=state.topic==='Eget tema...'?state.customTopic:state.topic;
@@ -2223,15 +2254,33 @@ Consistency keywords: same character design, identical characters, no variation,
 SCENE: ${topic}. ${hookPart}Outdoor nature setting, soft sunlight, warm playful atmosphere. ${sizePart} No text in image.`
       :`Soft children\'s book illustration, semi-realistic cartoon, clean outlines, soft shading, bright natural colors. Scene: "${topic}". ${hookPart}Little Montessori Explorers brand. Outdoor nature setting, soft sunlight, warm playful atmosphere. No text in image. ${sizePart}`;
 
-    const res=await fetch('https://api.openai.com/v1/images/generations',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+cfg.openaiKey},
-      body:JSON.stringify({model:'dall-e-3',prompt,n:1,size,quality:'standard'})
-    });
-    if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'OpenAI feil '+res.status);}
-    const data=await res.json();
-    const imageUrl=data.data?.[0]?.url;
-    if(!imageUrl)throw new Error('Ingen bilde-URL i svaret');
+    let imageUrl;
+    if(imgModel==='dalle3'){
+      const res=await fetch('https://api.openai.com/v1/images/generations',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+cfg.openaiKey},
+        body:JSON.stringify({model:'dall-e-3',prompt,n:1,size,quality:'standard'})
+      });
+      if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'OpenAI feil '+res.status);}
+      const data=await res.json();
+      imageUrl=data.data?.[0]?.url;
+    }else{
+      // Nano Banana / Nano Banana Pro via Google Gemini
+      const gModel=imgModel==='nano-pro'?'gemini-3-pro-image-preview':'gemini-2.5-flash-image';
+      const aspectRatio=is916?'9:16':'1:1';
+      const res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+gModel+':generateContent',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','x-goog-api-key':cfg.geminiKey},
+        body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{responseModalities:['TEXT','IMAGE'],imageConfig:{aspectRatio}}})
+      });
+      if(!res.ok){let m;try{m=(await res.json()).error?.message;}catch(_){m=null;}throw new Error(m||'Gemini feil '+res.status);}
+      const data=await res.json();
+      const parts=data.candidates?.[0]?.content?.parts||[];
+      const imgPart=parts.find(p=>p.inlineData||p.inline_data);
+      const inline=imgPart&&(imgPart.inlineData||imgPart.inline_data);
+      if(inline&&inline.data){imageUrl='data:'+(inline.mimeType||inline.mime_type||'image/png')+';base64,'+inline.data;}
+    }
+    if(!imageUrl)throw new Error('Ingen bilde i svaret');
 
     state.imageUrl=imageUrl;
     if(state.history[0])state.history[0].imageUrl=imageUrl;
@@ -2536,7 +2585,8 @@ function applySettingsToUI(){
   s('s-email',cfg.email);
   s('s-greeting',cfg.greeting); s('s-signature',cfg.signature);
   visProfiler();
-  s('s-api-key',cfg.apiKey); s('s-openai-key',cfg.openaiKey);
+  s('s-api-key',cfg.apiKey); s('s-openai-key',cfg.openaiKey); s('s-gemini-key',cfg.geminiKey);
+  selectImgModel(cfg.imgModel||'dalle3', true);
   s('s-socialbu-key',cfg.socialbuKey);
   s('s-socialbu-accounts',(cfg.socialbuAccounts||[]).join(', '));
   s('s-make-webhook',cfg.makeWebhook);
@@ -2551,6 +2601,7 @@ function saveSettings(){
   cfg.greeting=g('s-greeting'); cfg.signature=g('s-signature');
   if(g('s-api-key'))cfg.apiKey=g('s-api-key');
   cfg.openaiKey=g('s-openai-key');
+  cfg.geminiKey=g('s-gemini-key');
   cfg.socialbuKey=g('s-socialbu-key');
   const accStr=g('s-socialbu-accounts');
   cfg.socialbuAccounts=accStr?accStr.split(',').map(s=>s.trim()).filter(Boolean).map(Number):[];
