@@ -31,7 +31,8 @@ body{font-family:'Sasson Montessori';background:var(--cream);color:var(--text);m
 .app-header{background:linear-gradient(120deg,var(--rose) 0%,var(--rose-d) 100%);padding:14px 12px 0;box-shadow:0 4px 24px rgba(240,36,120,.35);}
 .app-header-inner{max-width:580px;margin:0 auto;}
 .app-brand{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
-.app-logo{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:18px;border:2px solid rgba(255,255,255,.5);}
+.app-logo{width:42px;height:42px;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;border:2px solid rgba(255,255,255,.6);padding:3px;}
+.app-logo img{width:100%;height:100%;object-fit:contain;display:block;}
 .app-brand-text{color:white;}
 .app-brand-name{font-family:'Sasson Montessori';font-size:15px;font-weight:700;line-height:1.1;}
 .app-brand-tag{font-size:11px;opacity:.88;}
@@ -662,7 +663,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 <div class="app-header">
   <div class="app-header-inner">
     <div class="app-brand">
-      <div class="app-logo">🌿</div>
+      <div class="app-logo"><img src="/images/lme-logo.png" alt="LME"></div>
       <div class="app-brand-text">
         <div class="app-brand-name">LME Content Studio</div>
         <div class="app-brand-tag">Create Montessori content with Mia & Teo ✨</div>
