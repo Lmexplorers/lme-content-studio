@@ -228,6 +228,17 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 .canva-status.err{background:rgba(220,38,38,.3);color:#fca5a5;}
 
 @media(max-width:480px){.app-body{padding:16px 12px 80px;}.row{flex-direction:column;}.row>.card{margin-bottom:0;}}
+/* Desktop / platform view: fill the width instead of a narrow mobile column */
+@media(min-width:820px){
+  .app-header{padding-left:24px;padding-right:24px;}
+  .app-header-inner,.app-body{max-width:1180px;}
+  .app-body{padding:30px 30px 90px;}
+  #tab-create{display:grid;grid-template-columns:1fr 1fr;gap:16px 18px;align-items:start;}
+  #tab-create>.card,#tab-create>.row{margin-bottom:0;}
+  #tab-create>.error-box,#tab-create>#gen-btn,#tab-create>#result-box{grid-column:1 / -1;}
+  #lme-ob.show{display:flex;align-items:center;justify-content:center;background:radial-gradient(130% 90% at 50% -10%,#FCE4EE,#FFF6E9 55%,#FFFAFA);}
+  #lme-ob .obapp{height:min(100dvh,860px);border-radius:40px;box-shadow:0 40px 100px -40px rgba(240,36,120,.55);overflow:hidden;}
+}
 
 
 /* ── Emoji picker ── */
