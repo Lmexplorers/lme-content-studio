@@ -232,18 +232,16 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 /* Desktop / plattform-visning: fyll bredden i stedet for en smal mobil-kolonne */
 @media(min-width:820px){
   .app-header{padding-left:24px;padding-right:24px;}
-  .app-header-inner,.app-body{max-width:1180px;}
-  .app-body{padding:30px 30px 90px;}
+  body{background:radial-gradient(120% 55% at 50% 0,#FCE4EE 0,rgba(252,228,238,0) 50%),#FFF7FB;}
+  .app-header-inner{max-width:720px;}
+  .app-body{max-width:720px;padding:30px 22px 100px;}
   .app-brand{margin-bottom:14px;}
-  .app-logo{width:72px;height:72px;}
-  .app-brand-name{font-size:32px;}
+  .app-logo{width:64px;height:64px;}
+  .app-brand-name{font-size:30px;}
   .app-brand-tag{font-size:15px;}
   .tabs{gap:4px;}
-  .tab-btn{font-size:13px;padding:10px 18px;}
-  .nav-menu-btn{margin-left:auto;font-size:14px;padding:10px 18px;}
-  #tab-create{display:grid;grid-template-columns:1fr 1fr;gap:16px 18px;align-items:start;}
-  #tab-create>.card,#tab-create>.row{margin-bottom:0;}
-  #tab-create>.error-box,#tab-create>#gen-btn,#tab-create>#result-box{grid-column:1 / -1;}
+  .tab-btn{font-size:14px;padding:11px 18px;}
+  .nav-menu-btn{margin-left:auto;font-size:14px;padding:11px 18px;}
   #lme-ob.show{display:flex;align-items:center;justify-content:center;background:radial-gradient(130% 90% at 50% -10%,#FCE4EE,#FFF6E9 55%,#FFFAFA);}
   #lme-ob .obapp{height:min(100dvh,860px);border-radius:40px;box-shadow:0 40px 100px -40px rgba(240,36,120,.55);overflow:hidden;}
 }
