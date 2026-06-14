@@ -911,12 +911,34 @@ input[type=range]{width:100%;accent-color:var(--rose);}
     #tab-variants .var-text{white-space:pre-wrap;font-size:13.5px;line-height:1.6;background:#FFFAFA;border:1px solid var(--border);border-radius:12px;padding:12px;min-height:40px;}
     #tab-variants .var-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
     #tab-variants .var-img{width:100%;border-radius:12px;margin-top:10px;border:1.5px solid var(--rose-m);}
+    #tab-variants .vmode-row{display:flex;gap:8px;margin-bottom:12px;}
+    #tab-variants .vmode{flex:1;font-family:'Playpen Sans';font-weight:700;font-size:13px;border:1.5px solid var(--border);background:#fff;color:var(--text-s);border-radius:13px;padding:11px;cursor:pointer;}
+    #tab-variants .vmode.on{border-color:var(--rose);background:#FFF0F5;color:var(--rose-d);}
+    #tab-variants .vstyle-row{display:block;font-size:12.5px;color:var(--text-s);margin-bottom:12px;}
+    #tab-variants .vfmt{font-family:'Sasson Montessori';font-size:13px;border:1.5px solid var(--border);border-radius:10px;padding:7px 10px;background:#fff;color:var(--text);margin-left:6px;}
+    #tab-variants .vfmt-lab{font-size:12px;color:var(--text-s);}
     #tab-variants .var-err{color:#c0392b;font-size:12px;margin-top:8px;}
   </style>
   <div class="card">
     <div class="card-title">Varianter per kanal</div>
     <div class="var-intro">Skriv ett tema, velg kanaler, og få ferdig tekst og bilde tilpasset hver kanal, i riktig format fra start (9:16 til Story/Reel/TikTok, 1:1 til feed, 16:9 til YouTube osv.). Da blir ikke posten avvist på grunn av feil format.</div>
     <input class="var-topic" id="var-topic" type="text" placeholder="Hva skal innholdet handle om? F.eks. «Telling med naturmateriale ute»"/>
+    <div class="vmode-row">
+      <button type="button" class="vmode on" data-mode="ai">✨ La AI skrive teksten</button>
+      <button type="button" class="vmode" data-mode="own">✍️ Jeg skriver selv</button>
+    </div>
+    <textarea class="var-topic" id="var-owntext" style="display:none;min-height:90px;" placeholder="Skriv eller lim inn teksten din her. Den brukes på alle valgte kanaler, og du kan finpusse per kanal etterpå."></textarea>
+    <label class="vstyle-row">Bildestil:
+      <select id="var-style" class="vfmt">
+        <option value="pixar">3D Pixar / Disney</option>
+        <option value="photo">Fotorealistisk</option>
+        <option value="watercolor">Akvarell</option>
+        <option value="flat">Flat illustrasjon</option>
+        <option value="anime">Anime</option>
+        <option value="custom">Egen (beskriv under)</option>
+      </select>
+    </label>
+    <input class="var-topic" id="var-style-custom" type="text" style="display:none;" placeholder="Beskriv din egen stil, f.eks. myk pastell, håndtegnet"/>
     <div class="var-channels" id="var-channels"></div>
     <button class="gen-btn" id="var-gen-btn" type="button">✨ Generer varianter</button>
     <div id="var-status" style="font-size:12px;color:var(--text-s);margin-top:8px;"></div>
@@ -946,6 +968,15 @@ input[type=range]{width:100%;accent-color:var(--rose);}
   ];
 
   var STYLE_NO='NORSKE SKRIVEREGLER (følg alltid): Bruk rette anførselstegn, aldri « ». Bruk ALDRI lange bindestreker (— eller –), bruk heller komma, kolon, punktum eller "og". Stor forbokstav etter kolon KUN når en hel setning følger, ellers liten forbokstav (oppramsinger, undertitler, fragmenter). Liten forbokstav etter semikolon. Komma foran "men", "for" og "så" når de binder to helsetninger, komma etter en innledende leddsetning, komma rundt innskutte setninger, og ikke komma foran siste "og" i en oppramsing.';
+  var VFORMATS=[
+    {id:'feed',     label:'Feed 1:1',            dalle:'1024x1024', gem:'1:1'},
+    {id:'portrait', label:'Story / Reel 9:16',   dalle:'1024x1792', gem:'9:16'},
+    {id:'karusell', label:'Karusell 4:5',        dalle:'1024x1024', gem:'4:5'},
+    {id:'landscape',label:'Landskap / YouTube 16:9', dalle:'1792x1024', gem:'16:9'},
+    {id:'pin',      label:'Pinterest 2:3',       dalle:'1024x1792', gem:'3:4'}
+  ];
+  var DEFFMT={facebook:'feed',instagram:'feed',threads:'feed',tiktok:'portrait',youtube:'landscape',pinterest:'pin',linkedin:'landscape',x:'landscape'};
+  var varMode='ai';
   function cfgGet(){ try{ return cfg||{}; }catch(e){ return {}; } }
   function brandBase(topic){
     var c=cfgGet();
@@ -957,17 +988,29 @@ input[type=range]{width:100%;accent-color:var(--rose);}
            'Merkestemme: '+(c.voice||'Varm, pedagogisk, naturbasert')+'. '+(chars?('Karakterer: '+chars+'. '):'')+
            'Språk: norsk bokmål. Tema: "'+topic+'".';
   }
-  function imgPrompt(topic){
-    var c=cfgGet();
-    var mt=(c.charPreset||'miateo')==='miateo';
-    if(mt){
-      return 'Two fixed identical children book characters, identical in every image. '+
-        'Mia: 6-year-old girl, fair skin, large round blue eyes, blonde hair in a high ponytail with a pink hair tie, simple pink knee-length dress, white socks, pink sandals, holding a small light brown woven basket. '+
-        'Teo: 6-year-old boy, fair skin, large brown eyes, short messy brown hair, yellow t-shirt with horizontal stripes, blue shorts, brown shoes, small brown backpack. '+
-        'Style: soft children book illustration, semi-realistic cartoon, clean outlines, soft shading, bright natural colors. '+
-        'Scene: '+topic+'. Outdoor nature setting, soft sunlight, warm playful atmosphere. No text in image.';
+  function styleText(key,custom){
+    switch(key){
+      case 'photo': return 'Style: clean professional photorealistic photography, natural lighting, sharp detail.';
+      case 'watercolor': return 'Style: soft watercolor illustration, gentle washes, artistic, hand-painted.';
+      case 'flat': return 'Style: modern flat vector illustration, bold simple shapes, clean and minimal.';
+      case 'anime': return 'Style: anime illustration, expressive characters, clean linework, vibrant colors.';
+      case 'custom': return 'Style: '+(custom||'high quality, detailed')+'.';
+      default: return 'Style: high-quality 3D animated render in modern Disney Pixar style, polished, soft cinematic lighting, vibrant saturated colors, rich detail, depth of field. NOT watercolor, NOT pale or washed out.';
     }
-    return 'Soft children book illustration, semi-realistic cartoon, clean outlines, bright natural colors. Scene: '+topic+'. Little Montessori Explorers brand. Warm playful atmosphere. No text in image.';
+  }
+  function imgPrompt(topic,styleKey,styleCustom){
+    var c=cfgGet();
+    var st=styleText(styleKey||'pixar',styleCustom);
+    // Mia og Teo er KUN for LME-eieren (miateo-forhandsvalget). Andre brukere far aldri disse.
+    if((c.charPreset||'miateo')==='miateo'){
+      return 'Two fixed identical characters, identical in every image. '+
+        'Mia: 6-year-old girl, fair skin, large round blue eyes, blonde hair in a high ponytail with a pink hair tie, simple pink knee-length dress, white socks and closed pink shoes (never sandals, feet fully covered, no bare toes), holding a small light brown woven basket. '+
+        'Teo: 6-year-old boy, fair skin, large brown eyes, short messy brown hair, yellow t-shirt with horizontal stripes, blue shorts, brown shoes, small brown backpack. '+
+        st+' Scene: '+topic+'. Outdoor nature setting, warm golden light, cozy and magical atmosphere. No text in image.';
+    }
+    var chars=(c.charPreset==='custom'&&c.charNames)?('Featuring '+c.charNames+(c.charDesc?' ('+c.charDesc+')':'')+'. '):'';
+    var brand=c.brand?(c.brand+'. '):'';
+    return st+' '+chars+brand+'Scene: '+topic+'. No text in image.';
   }
 
   async function genImageRaw(prompt,dalleSize,gemAspect){
@@ -999,13 +1042,19 @@ input[type=range]{width:100%;accent-color:var(--rose);}
   async function run(){
     var topic=(document.getElementById('var-topic').value||'').trim();
     var status=document.getElementById('var-status');
-    if(!topic){ status.textContent='Skriv inn et tema først.'; return; }
+    var ownText=(document.getElementById('var-owntext').value||'').trim();
+    if(varMode==='ai' && !topic){ status.textContent='Skriv inn et tema først.'; return; }
+    if(varMode==='own' && !ownText){ status.textContent='Skriv eller lim inn teksten din.'; return; }
+    if(!topic) topic=ownText.slice(0,60);
     var chosen=CHANNELS.filter(function(ch){
       var l=document.querySelector('.vch[data-ch="'+ch.id+'"]'); return l&&l.querySelector('input').checked;
     });
     if(!chosen.length){ status.textContent='Velg minst én kanal.'; return; }
-    var key; try{ key=getApiKey(); }catch(e){ key=null; }
-    if(!key||key.length<20){ status.textContent='Claude API-nøkkel mangler. Legg den inn i Innstillinger.'; return; }
+    var key=null;
+    if(varMode==='ai'){
+      try{ key=getApiKey(); }catch(e){ key=null; }
+      if(!key||key.length<20){ status.textContent='Claude API-nøkkel mangler. Legg den inn i Innstillinger.'; return; }
+    }
 
     var btn=document.getElementById('var-gen-btn'); btn.disabled=true; btn.textContent='✨ Lager varianter…';
     status.textContent='';
@@ -1014,43 +1063,53 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 
     for(var i=0;i<chosen.length;i++){
       var ch=chosen[i];
+      var def=DEFFMT[ch.id]||'feed';
+      var opts=VFORMATS.map(function(f){return '<option value="'+f.id+'"'+(f.id===def?' selected':'')+'>'+f.label+'</option>';}).join('');
       var card=document.createElement('div'); card.className='var-card'; card.id='vc-'+ch.id;
       card.innerHTML='<div class="var-head"><span class="vemoji">'+ch.emoji+'</span><span class="vt">'+ch.label+'</span></div>'+
-        '<div class="var-spec">Format: '+esc(ch.spec)+'</div>'+
-        '<div class="var-text" id="vt-'+ch.id+'">Lager tekst…</div>'+
+        '<div class="var-spec">'+esc(ch.spec)+'</div>'+
+        '<div class="var-text" id="vt-'+ch.id+'" contenteditable="true">'+(varMode==='own'?esc(ownText):'Lager tekst…')+'</div>'+
+        '<div class="var-actions"><label class="vfmt-lab">Bildeformat: <select class="vfmt" id="vf-'+ch.id+'">'+opts+'</select></label></div>'+
         '<div class="var-actions">'+
           '<button class="act-btn" type="button" data-copy="'+ch.id+'">📋 Kopier tekst</button>'+
-          '<button class="act-btn sage-btn" type="button" data-img="'+ch.id+'">🎨 Lag bilde ('+ch.gem+')</button>'+
+          '<button class="act-btn sage-btn" type="button" data-img="'+ch.id+'">🎨 Lag bilde</button>'+
         '</div><div id="vimg-'+ch.id+'"></div>';
       results.appendChild(card);
-      try{
-        var prompt=brandBase(topic)+'\n\n'+ch.guide+'\n\n'+STYLE_NO+'\n\nSkriv ferdig innhold klart til å lime inn. Kun selve teksten, ingen forklaring eller overskrift om kanalen.';
-        var text=await callClaude(prompt,key);
-        document.getElementById('vt-'+ch.id).textContent=text.trim();
-        lastResults[ch.id]={text:text.trim(),topic:topic};
-      }catch(e){
-        document.getElementById('vt-'+ch.id).innerHTML='<span class="var-err">Tekstfeil: '+esc(e.message)+'</span>';
+      lastResults[ch.id]={topic:topic};
+      if(varMode==='ai'){
+        try{
+          var prompt=brandBase(topic)+'\n\n'+ch.guide+'\n\n'+STYLE_NO+'\n\nSkriv ferdig innhold klart til å lime inn. Kun selve teksten, ingen forklaring eller overskrift om kanalen.';
+          var text=await callClaude(prompt,key);
+          document.getElementById('vt-'+ch.id).textContent=text.trim();
+        }catch(e){
+          document.getElementById('vt-'+ch.id).innerHTML='<span class="var-err">Tekstfeil: '+esc(e.message)+'</span>';
+        }
       }
     }
     btn.disabled=false; btn.textContent='✨ Generer varianter';
 
     results.querySelectorAll('[data-copy]').forEach(function(b){
       b.addEventListener('click',function(){
-        var id=b.getAttribute('data-copy'); var t=(lastResults[id]&&lastResults[id].text)||'';
-        navigator.clipboard.writeText(t); b.textContent='✅ Kopiert'; setTimeout(function(){b.textContent='📋 Kopier tekst';},1500);
+        var id=b.getAttribute('data-copy'); var el=document.getElementById('vt-'+id);
+        var t=el?(el.innerText||''):''; navigator.clipboard.writeText(t);
+        b.textContent='✅ Kopiert'; setTimeout(function(){b.textContent='📋 Kopier tekst';},1500);
       });
     });
     results.querySelectorAll('[data-img]').forEach(function(b){
       b.addEventListener('click',function(){
-        var id=b.getAttribute('data-img'); var ch=CHANNELS.find(function(x){return x.id===id;});
+        var id=b.getAttribute('data-img');
+        var sel=document.getElementById('vf-'+id);
+        var fmt=VFORMATS.find(function(f){return f.id===(sel&&sel.value);})||VFORMATS[0];
         var holder=document.getElementById('vimg-'+id); var tp=(lastResults[id]&&lastResults[id].topic)||topic;
+        var styleSel=document.getElementById('var-style'); var styleKey=styleSel?styleSel.value:'pixar';
+        var styleCustomEl=document.getElementById('var-style-custom'); var styleCustom=styleCustomEl?styleCustomEl.value:'';
         b.disabled=true; b.textContent='🤖 Lager bilde…';
-        genImageRaw(imgPrompt(tp),ch.dalle,ch.gem).then(function(url){
+        genImageRaw(imgPrompt(tp,styleKey,styleCustom),fmt.dalle,fmt.gem).then(function(url){
           holder.innerHTML='<img class="var-img" src="'+url+'"><div class="var-actions"><a class="act-btn" href="'+url+'" download="lme-'+id+'.png">⬇️ Last ned</a></div>';
-          b.disabled=false; b.textContent='🎨 Lag bilde ('+ch.gem+')';
+          b.disabled=false; b.textContent='🎨 Lag bilde';
         }).catch(function(e){
           holder.innerHTML='<div class="var-err">Bildefeil: '+esc(e.message)+'</div>';
-          b.disabled=false; b.textContent='🎨 Lag bilde ('+ch.gem+')';
+          b.disabled=false; b.textContent='🎨 Lag bilde';
         });
       });
     });
@@ -1060,6 +1119,19 @@ input[type=range]{width:100%;accent-color:var(--rose);}
     if(!document.getElementById('var-channels')) return;
     renderChannels();
     var b=document.getElementById('var-gen-btn'); if(b&&!b._wired){ b._wired=true; b.addEventListener('click',run); }
+    document.querySelectorAll('.vmode').forEach(function(m){
+      if(m._wired) return; m._wired=true;
+      m.addEventListener('click',function(){
+        varMode=m.getAttribute('data-mode');
+        document.querySelectorAll('.vmode').forEach(function(x){x.classList.toggle('on',x===m);});
+        document.getElementById('var-owntext').style.display = varMode==='own'?'block':'none';
+        document.getElementById('var-topic').placeholder = varMode==='own'
+          ? 'Tema/idé for bildet (valgfritt når du skriver teksten selv)'
+          : 'Hva skal innholdet handle om? F.eks. «Telling med naturmateriale ute»';
+      });
+    });
+    var vs=document.getElementById('var-style');
+    if(vs&&!vs._wired){ vs._wired=true; vs.addEventListener('change',function(){ var cu=document.getElementById('var-style-custom'); if(cu) cu.style.display = vs.value==='custom'?'block':'none'; }); }
   }
   if(document.readyState!=='loading') init(); else document.addEventListener('DOMContentLoaded',init);
 })();
@@ -2448,7 +2520,7 @@ async function genererBilde(){
     const sizePart = is916 ? 'Vertical 9:16 portrait format.' : 'Square 1:1 format.';
     const prompt=useMT
       ?`Two fixed, identical children\'s book characters, must remain exactly the same in every image, no variation:
-Mia: 6-year-old girl, fair skin, large round blue eyes, small nose, soft rosy cheeks, happy smile. Blonde hair in a high ponytail with a pink hair tie ONLY (never loose, never braids). Wearing a simple pink knee-length dress, white socks, pink sandals. Always holding a small light brown woven basket with flowers or fruit.
+Mia: 6-year-old girl, fair skin, large round blue eyes, small nose, soft rosy cheeks, happy smile. Blonde hair in a high ponytail with a pink hair tie ONLY (never loose, never braids). Wearing a simple pink knee-length dress, white socks and closed pink shoes (never sandals, feet fully covered, no bare toes). Always holding a small light brown woven basket with flowers or fruit.
 Teo: 6-year-old boy, fair skin, large brown eyes, short slightly messy brown hair. Wearing a yellow t-shirt with horizontal stripes ONLY, blue shorts, brown shoes, and a small brown backpack.
 Style: soft children\'s book illustration, semi-realistic cartoon, clean outlines, soft shading, bright natural colors, NOT anime, NOT Pixar, NOT watercolor.
 Rules: same faces in every image, same proportions and head size, same clothing no changes, same hairstyle no variation, no new accessories unless specified, both characters always present.
