@@ -1008,6 +1008,17 @@ input[type=range]{width:100%;accent-color:var(--rose);}
         <option value="dalle3">DALL-E / GPT Image</option>
       </select>
     </label>
+    <label class="vstyle-row">Egen bildeprompt (valgfritt):
+      <textarea class="var-topic" id="var-imgprompt" rows="2" placeholder="Overstyr bildebeskrivelsen, f.eks. «to barn som planter frø i en hage, mykt lys»" style="display:block;margin-top:6px;min-height:54px;"></textarea>
+    </label>
+    <label class="vstyle-row">Malbilde / referanse (valgfritt, Nano Banana):
+      <span style="display:flex;align-items:center;gap:10px;margin-top:6px;">
+        <span class="act-btn sage-btn" style="font-size:12px;cursor:pointer;" onclick="document.getElementById('var-ref-input').click()">📎 Last opp bilde</span>
+        <input type="file" accept="image/*" id="var-ref-input" style="display:none;">
+        <img id="var-ref-thumb" src="" alt="" style="display:none;width:42px;height:42px;border-radius:8px;object-fit:cover;border:1.5px solid var(--border);"/>
+        <button type="button" id="var-ref-remove" style="display:none;background:none;border:none;color:var(--rose-d);font-size:12px;font-weight:700;cursor:pointer;">Fjern</button>
+      </span>
+    </label>
     <div class="var-channels" id="var-channels"></div>
     <button class="gen-btn" id="var-gen-btn" type="button">Generer varianter</button>
     <div id="var-status" style="font-size:12px;color:var(--text-s);margin-top:8px;"></div>
@@ -1065,18 +1076,24 @@ input[type=range]{width:100%;accent-color:var(--rose);}
       default: return 'Style: high-quality 3D animated render in modern Disney Pixar style, polished, soft cinematic lighting, vibrant saturated colors, rich detail, depth of field. NOT watercolor, NOT pale or washed out.';
     }
   }
+  var varRefData=null, varRefMime=null;
   function imgPrompt(topic,styleKey,styleCustom){
     var c=cfgGet();
     var st=styleText(styleKey||'pixar',styleCustom);
     var chars=(c.charPreset==='custom'&&c.charNames)?('Featuring '+c.charNames+(c.charDesc?' ('+c.charDesc+')':'')+'. '):'';
     var brand=c.brand?(c.brand+'. '):'';
-    return st+' '+chars+brand+'Scene: '+topic+'. No text in image.';
+    var ref=varRefData?'Use the supplied reference image as inspiration for style and composition. ':'';
+    var custEl=document.getElementById('var-imgprompt'); var cust=custEl?(custEl.value||'').trim():'';
+    var scene=cust?cust:('Scene: '+topic);
+    return st+' '+chars+brand+ref+scene+'. No text in image.';
   }
 
   async function genImageRaw(prompt,dalleSize,gemAspect,model){
     var c=cfgGet(); model=model||c.imgModel||'dalle3';
+    if(varRefData && model==='dalle3') model='nano-pro';
     var key = model==='dalle3' ? c.openaiKey : c.geminiKey;
     var payload={type:'image',model:model,key:key,prompt:prompt,size:dalleSize,aspectRatio:gemAspect};
+    if(varRefData && model!=='dalle3'){ payload.refData=varRefData; payload.refMime=varRefMime; }
     var res=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     var d=await res.json().catch(function(){return {};});
     if(!res.ok||d.error) throw new Error(d.error||('Feil '+res.status));
@@ -1206,6 +1223,21 @@ input[type=range]{width:100%;accent-color:var(--rose);}
     });
     var vs=document.getElementById('var-style');
     if(vs&&!vs._wired){ vs._wired=true; vs.addEventListener('change',function(){ var cu=document.getElementById('var-style-custom'); if(cu) cu.style.display = vs.value==='custom'?'block':'none'; }); }
+    var vref=document.getElementById('var-ref-input');
+    if(vref&&!vref._wired){ vref._wired=true; vref.addEventListener('change',function(){
+      var f=vref.files&&vref.files[0]; if(!f) return;
+      var fr=new FileReader(); fr.onload=function(){
+        varRefData=String(fr.result).split(',')[1]||null; varRefMime=f.type||'image/jpeg';
+        var t=document.getElementById('var-ref-thumb'); if(t){ t.src=fr.result; t.style.display='inline-block'; }
+        var rm=document.getElementById('var-ref-remove'); if(rm) rm.style.display='inline';
+      }; fr.readAsDataURL(f);
+    }); }
+    var vrm=document.getElementById('var-ref-remove');
+    if(vrm&&!vrm._wired){ vrm._wired=true; vrm.addEventListener('click',function(){
+      varRefData=null; varRefMime=null;
+      var t=document.getElementById('var-ref-thumb'); if(t){ t.src=''; t.style.display='none'; }
+      vrm.style.display='none'; if(vref) vref.value='';
+    }); }
   }
   if(document.readyState!=='loading') init(); else document.addEventListener('DOMContentLoaded',init);
 })();
