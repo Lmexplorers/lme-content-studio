@@ -877,6 +877,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
           <a id="bilde-last-ned" href="" download="lme-bilde.png" style="flex:1;display:block;padding:10px;border-radius:12px;border:1.5px solid var(--border);background:white;color:var(--text);font-family:'Sasson Montessori';font-size:12px;font-weight:600;text-align:center;text-decoration:none;">Last ned</a>
           <button class="act-btn sage-btn" style="flex:1;font-size:12px;" onclick="brukIStoryEditor()">Åpne i Story-editor</button>
         </div>
+        <button class="gen-btn purple" style="width:100%;margin-top:8px;font-size:12px;padding:11px;" onclick="imageToReel()">🎬 Lag reel av bildet</button>
         <div id="pub-bilde-status" style="margin-top:10px;"></div>
       </div>
     </div>
@@ -2841,6 +2842,36 @@ async function genererBilde(){
     btn.textContent='Generer forsidebilde';
   }
   btn.disabled=false;
+}
+
+// ── Gjør et generert bilde om til en kort animert reel (Ken Burns-zoom) ──
+async function imageToReel(){
+  if(!state.imageUrl){alert('Generer et bilde først!');return;}
+  const statusEl=document.getElementById('pub-bilde-status');
+  statusEl.innerHTML='<div class="pub-status loading">Lager reel av bildet… (kan ta 20-40 sek, FFmpeg lastes første gang) <span class="loading-dots"><span></span><span></span><span></span></span></div>';
+  try{
+    const ff=await loadFFmpeg();
+    const {fetchFile}=FFmpegWASM;
+    await ff.writeFile('still.png', await fetchFile(state.imageUrl));
+    const sq=(state.imgAspect==='1:1')||((!state.imgAspect||state.imgAspect==='auto')&&!(state.format==='story'||state.format==='reel'));
+    const W=1080, H=sq?1080:1920;
+    const preW=Math.round(W*1.25), preH=Math.round(H*1.25);
+    const zoomVf=`scale=${preW}:${preH}:force_original_aspect_ratio=increase,crop=${preW}:${preH},zoompan=z='min(zoom+0.0010,1.2)':d=125:s=${W}x${H}:fps=25,format=yuv420p`;
+    const statVf=`scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},format=yuv420p`;
+    const mk=vf=>['-loop','1','-i','still.png','-t','5','-vf',vf,'-r','25','-c:v','libx264','-preset','ultrafast','-pix_fmt','yuv420p','-movflags','+faststart','-y','imgreel.mp4'];
+    try{ await ff.exec(mk(zoomVf)); }
+    catch(e){ await ff.exec(mk(statVf)); }
+    const data=await ff.readFile('imgreel.mp4');
+    try{ await ff.deleteFile('still.png'); }catch(e){}
+    try{ await ff.deleteFile('imgreel.mp4'); }catch(e){}
+    const file=new File([new Blob([data.buffer],{type:'video/mp4'})],'lme-bilde-reel.mp4',{type:'video/mp4'});
+    const rs=document.getElementById('reel-section'); if(rs) rs.style.display='block';
+    handleVideoFile(file);
+    statusEl.innerHTML='<div class="pub-status success">Reel laget av bildet! Legg på hook og musikk under, og publiser.</div>';
+    if(rs) rs.scrollIntoView({behavior:'smooth',block:'start'});
+  }catch(e){
+    statusEl.innerHTML=`<div class="pub-status error">Kunne ikke lage reel: ${e.message}</div>`;
+  }
 }
 
 async function publiserMedBilde(){
