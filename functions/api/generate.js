@@ -43,8 +43,9 @@ export async function onRequestPost(context) {
         if (!key) return json({ error: "OpenAI-nøkkel mangler. Legg den inn i Innstillinger." }, 400);
         const sz = body.size || "1024x1024";
         const gptSize = sz === "1024x1792" ? "1024x1536" : sz === "1792x1024" ? "1536x1024" : "1024x1024";
+        const dalleQuality = body.quality === "hd" ? "hd" : "standard";
         const attempts = [
-          { model: "dall-e-3", prompt: body.prompt, n: 1, size: sz, quality: "standard" },
+          { model: "dall-e-3", prompt: body.prompt, n: 1, size: sz, quality: dalleQuality },
           { model: "gpt-image-1", prompt: body.prompt, n: 1, size: gptSize },
         ];
         let lastErr = "Ingen bilde i svaret";
