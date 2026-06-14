@@ -806,7 +806,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
       </div>
     </div>
 
-    <script>(function(){function el(i){return document.getElementById(i);} var audio=null;window.updateReelHook=function(){var o=el("reel-hook-overlay"),t=el("reel-hook-text");if(o&&t)o.textContent=t.value;};window.setReelHookPos=function(p){var o=el("reel-hook-overlay");if(o)o.className="reel-hook-overlay "+p;document.querySelectorAll("[data-hookpos]").forEach(function(b){b.classList.toggle("on",b.getAttribute("data-hookpos")===p);});};window.hentHookFraManus=function(){var r=(typeof state!=="undefined")?state.result:null;if(!r)return;var txt=Array.isArray(r)?r.join("\n"):r;var line=txt.split("\n").find(function(l){return /HOOK/i.test(l);});var hook=line?line.replace(/^.*HOOK[:\s]*/i,"").trim():(txt.split("\n")[0]||"");if(hook){el("reel-hook-text").value=hook.slice(0,90);updateReelHook();}};function renderReelMusic(){var host=el("reel-flow-music-list");if(!host)return;if(typeof renderMusicList==="function"){renderMusicList("reel-flow-music-list");}}function init(){if(el("reel-flow-music-list"))renderReelMusic();}if(document.readyState!=="loading")init();else document.addEventListener("DOMContentLoaded",init);})();</script>
+    <script>(function(){function el(i){return document.getElementById(i);} var audio=null;function reRenderPv(){var ov=el("preview-overlay");if(ov&&ov.style.display!=="none"&&typeof renderPreview==="function"){try{renderPreview();}catch(e){}}}window.updateReelHook=function(){var o=el("reel-hook-overlay"),t=el("reel-hook-text");if(o&&t)o.textContent=t.value;if(typeof state!=="undefined")state.reelHook=t?t.value:"";reRenderPv();};window.setReelHookPos=function(p){var o=el("reel-hook-overlay");if(o)o.className="reel-hook-overlay "+p;document.querySelectorAll("[data-hookpos]").forEach(function(b){b.classList.toggle("on",b.getAttribute("data-hookpos")===p);});if(typeof state!=="undefined")state.reelHookPos=p;reRenderPv();};window.hentHookFraManus=function(){var r=(typeof state!=="undefined")?state.result:null;if(!r)return;var txt=Array.isArray(r)?r.join("\n"):r;var line=txt.split("\n").find(function(l){return /HOOK/i.test(l);});var hook=line?line.replace(/^.*HOOK[:\s]*/i,"").trim():(txt.split("\n")[0]||"");if(hook){el("reel-hook-text").value=hook.slice(0,90);updateReelHook();}};function renderReelMusic(){var host=el("reel-flow-music-list");if(!host)return;if(typeof renderMusicList==="function"){renderMusicList("reel-flow-music-list");}}function init(){if(el("reel-flow-music-list"))renderReelMusic();}if(document.readyState!=="loading")init();else document.addEventListener("DOMContentLoaded",init);})();</script>
 
     <!-- ════ IMAGE + PUBLISH (shown for non-Reel formats) ════ -->
     <div id="image-publish-section" class="publish-section">
@@ -2868,6 +2868,9 @@ function reelHtml(text,videoUrl,coverImg){
   const hook=hookLine.replace(/^HOOK[:\s]*/i,'').trim();
   const main=mainLines.map(l=>l.replace(/^MAIN[:\s]*/i,'').trim()).filter(Boolean).join('\n');
   const cta=ctaLine.replace(/^CTA[:\s]*/i,'').trim();
+  const userHook=((typeof state!=='undefined'&&state.reelHook)||'').trim();
+  const hookPos=(typeof state!=='undefined'&&state.reelHookPos)||'center';
+  const hookPosCss=hookPos==='top'?'top:15%;':hookPos==='bottom'?'bottom:26%;':'top:50%;transform:translateY(-50%);';
   let bgInner='';
   if(videoUrl){
     bgInner=`<video src="${videoUrl}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" autoplay muted loop playsinline></video>`;
@@ -2877,6 +2880,7 @@ function reelHtml(text,videoUrl,coverImg){
   return `<div class="phone-916"><div class="phone-916-inner" style="background:linear-gradient(160deg,#0d0d1a,#1a0a14,#0a140d);">
     ${bgInner}
     <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.2),rgba(0,0,0,0) 35%,rgba(0,0,0,.85));pointer-events:none;"></div>
+    ${userHook?`<div style="position:absolute;left:0;right:0;${hookPosCss}text-align:center;padding:0 18px;z-index:6;font-family:'Playpen Sans';font-weight:800;font-size:clamp(16px,5.2vw,24px);color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.7);line-height:1.2;pointer-events:none;">${esc(userHook.substring(0,90))}</div>`:''}
     <div style="position:absolute;top:0;left:0;right:0;z-index:5;padding:14px 16px 8px;display:flex;justify-content:space-between;align-items:center;">
       <div style="display:flex;gap:20px;font-family:-apple-system,sans-serif;"><span style="color:rgba(255,255,255,.55);font-size:13px;">Following</span><span style="color:white;font-size:13px;font-weight:700;border-bottom:2px solid white;padding-bottom:2px;">For You</span></div>
       <span style="font-size:20px;color:white;">🔍</span>
