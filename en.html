@@ -890,6 +890,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
           <a id="bilde-last-ned" href="" download="lme-bilde.png" style="flex:1;display:block;padding:10px;border-radius:12px;border:1.5px solid var(--border);background:white;color:var(--text);font-family:'Sasson Montessori';font-size:12px;font-weight:600;text-align:center;text-decoration:none;">Download</a>
           <button class="act-btn sage-btn" style="flex:1;font-size:12px;" onclick="brukIStoryEditor()">Open in Story editor</button>
         </div>
+        <button class="act-btn" style="width:100%;margin-top:8px;font-size:12px;" onclick="leggHookPaaBilde()">🔤 Add hook to image</button>
         <button class="gen-btn purple" style="width:100%;margin-top:8px;font-size:12px;padding:11px;" onclick="imageToReel()">🎬 Turn image into a reel</button>
         <div id="pub-bilde-status" style="margin-top:10px;"></div>
       </div>
@@ -2602,14 +2603,14 @@ function setImgAspect(el,v){ state.imgAspect=v; document.querySelectorAll('#img-
 function setImgCount(el,n){ state.imgCount=n; document.querySelectorAll('#img-count-chips .chip').forEach(c=>c.classList.toggle('active',c===el)); }
 
 function selectBildeVariant(url,el){
-  state.imageUrl=url;
+  state.imageUrl=url; state.imageUrlClean=url;
   document.getElementById('bilde-preview-img').src=url;
   document.getElementById('bilde-last-ned').href=url;
   document.querySelectorAll('#bilde-varianter .img-variant').forEach(t=>t.classList.toggle('on',t===el));
 }
 function renderBildeVarianter(urls){
   const grid=document.getElementById('bilde-varianter');
-  state.imageUrl=urls[0];
+  state.imageUrl=urls[0]; state.imageUrlClean=urls[0];
   document.getElementById('bilde-preview-img').src=urls[0];
   document.getElementById('bilde-last-ned').href=urls[0];
   if(urls.length>1){
@@ -2715,7 +2716,7 @@ async function imageToReel(){
   try{
     const ff=await loadFFmpeg();
     const {fetchFile}=FFmpegWASM;
-    await ff.writeFile('still.png', await fetchFile(state.imageUrl));
+    await ff.writeFile('still.png', await fetchFile(state.imageUrlClean||state.imageUrl));
     const sq=(state.imgAspect==='1:1')||((!state.imgAspect||state.imgAspect==='auto')&&!(state.format==='story'||state.format==='reel'));
     const W=1080, H=sq?1080:1920;
     const preW=Math.round(W*1.25), preH=Math.round(H*1.25);
@@ -2748,7 +2749,8 @@ async function publiserMedBilde(){
 
   statusEl.innerHTML=`<div class="pub-status loading">Sending to the publishing service… <span class="loading-dots"><span></span><span></span><span></span></span></div>`;
   const text=Array.isArray(state.result)?state.result.join('\n\n---\n\n'):state.result;
-  const ok=await sendToSocialBu(text,[state.imageUrl],state.format,null);
+  const exportImg=await burnHookIntoImage(state.imageUrlClean||state.imageUrl);
+  const ok=await sendToSocialBu(text,[exportImg],state.format,null);
   if(ok){
     statusEl.innerHTML=`<div class="pub-status success">Published to the publishing service!</div>`;
   } else {
@@ -4733,13 +4735,11 @@ async function renderReelToBlob(statusEl){
 function roundRectPath(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
 
 // ── Draw the hook text to a transparent PNG at video resolution ──
-async function renderHookPngBlob(W,H,text){
+async function _drawHook(ctx,W,H,text){
   const h=(typeof state!=='undefined'&&state.hookStyle)||{font:"'Playpen Sans'",size:24,color:'#ffffff',bg:'none'};
   const fontPx=Math.max(22,Math.round((h.size||24)*W/360));
   const fam=(h.font||"'Playpen Sans'")+",sans-serif";
   try{ await document.fonts.load('800 '+fontPx+'px '+fam); }catch(e){}
-  const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
-  const ctx=cv.getContext('2d');
   ctx.font='800 '+fontPx+'px '+fam;
   ctx.textAlign='center'; ctx.textBaseline='top';
   const maxW=W*0.86;
@@ -4766,7 +4766,48 @@ async function renderHookPngBlob(W,H,text){
     ctx.fillText(lines[i],cx,ly);
     ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetY=0;
   }
+}
+
+async function renderHookPngBlob(W,H,text){
+  const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+  const ctx=cv.getContext('2d');
+  await _drawHook(ctx,W,H,text);
   return await new Promise(function(res){ cv.toBlob(function(b){res(b);},'image/png'); });
+}
+
+// Burn the styled hook into an image (for carousel/story/feed export)
+async function burnHookIntoImage(srcUrl){
+  const hk=(typeof state!=='undefined'&&state.reelHook)?String(state.reelHook).trim():'';
+  if(!hk||!srcUrl) return srcUrl;
+  return await new Promise(function(resolve){
+    const img=new Image(); img.crossOrigin='anonymous';
+    img.onload=async function(){
+      try{
+        const W=img.naturalWidth||1024, H=img.naturalHeight||1024;
+        const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+        const ctx=cv.getContext('2d');
+        ctx.drawImage(img,0,0,W,H);
+        await _drawHook(ctx,W,H,hk);
+        resolve(cv.toDataURL('image/png'));
+      }catch(e){ resolve(srcUrl); }
+    };
+    img.onerror=function(){ resolve(srcUrl); };
+    img.src=srcUrl;
+  });
+}
+
+async function leggHookPaaBilde(){
+  const src=state.imageUrlClean||state.imageUrl;
+  if(!src){ alert('Generate an image first!'); return; }
+  const st=document.getElementById('pub-bilde-status');
+  const hk=(state.reelHook||'').trim();
+  if(!hk){ if(st) st.innerHTML='<div class="pub-status error">Write or generate a hook first (in the Hook card above).</div>'; return; }
+  if(st) st.innerHTML='<div class="pub-status loading">Burning hook into the image…</div>';
+  const out=await burnHookIntoImage(src);
+  state.imageUrl=out;
+  document.getElementById('bilde-preview-img').src=out;
+  document.getElementById('bilde-last-ned').href=out;
+  if(st) st.innerHTML='<div class="pub-status success">Hook added to the image. Download or publish.</div>';
 }
 
 // ── Bake selected music AND/OR hook text into an uploaded reel video (create flow) ──
