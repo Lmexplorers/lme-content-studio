@@ -4355,28 +4355,24 @@ function toggleMusicById(id){
 if(typeof window._lmeAudio === 'undefined') window._lmeAudio = null;
 
 function stopAllMusic(){
-  // Stop ALL audio elements on the page
+  // Stop ALL audio but keep the selected song marked (selectedMusicId/Url + .selected)
   document.querySelectorAll('audio').forEach(a => { try{ a.pause(); a.currentTime=0; a.src=''; }catch(e){} });
   if(window._lmeAudio){ try{ window._lmeAudio.pause(); window._lmeAudio.src=''; }catch(e){} window._lmeAudio = null; }
   if(editorState.currentAudio){ try{ editorState.currentAudio.pause(); editorState.currentAudio.src=''; }catch(e){} editorState.currentAudio = null; }
-  editorState.selectedMusicId = null;
+  editorState.playingMusicId = null;
   document.querySelectorAll('.music-play-btn').forEach(b => { b.textContent='▶'; b.classList.remove('pause'); });
-  document.querySelectorAll('.music-item').forEach(el => el.classList.remove('playing','selected'));
+  document.querySelectorAll('.music-item').forEach(el => el.classList.remove('playing'));
 }
 
 function toggleMusic(id, url){
-  // Always stop everything first
-  stopAllMusic();
-
-  if(editorState.selectedMusicId === id){
-    // Was already selected — stop it (done above)
-    editorState.selectedMusicId  = null;
-    editorState.selectedMusicUrl = null;
-    document.querySelectorAll('.music-item').forEach(el => el.classList.remove('selected'));
+  // Already playing this one? Just pause the sound, keep the selection mark.
+  if(editorState.playingMusicId === id){
+    stopAllMusic();
     return;
   }
+  stopAllMusic();
 
-  // Select new song
+  // Mark the chosen song (the mark stays until another song is chosen)
   editorState.selectedMusicId  = id;
   editorState.selectedMusicUrl = url || '';
   editorState.customMusicFile  = null;
@@ -4387,11 +4383,11 @@ function toggleMusic(id, url){
 
   if(!url){
     const btn = document.getElementById('music-btn-'+id);
-    if(btn){ btn.textContent=''; }
+    if(btn){ btn.textContent='▶'; }
     return;
   }
 
-  // Play new song
+  // Play (preview)
   const vol = (document.getElementById('music-volume')?.value || 40) / 100;
   const audio = new Audio();
   audio.src    = url;
@@ -4399,9 +4395,9 @@ function toggleMusic(id, url){
   audio.volume = vol;
   audio.preload = 'auto';
 
-  // Store immediately so next click can stop it
   editorState.currentAudio = audio;
   window._lmeAudio = audio;
+  editorState.playingMusicId = id;
 
   audio.play().then(() => {
     document.getElementById('music-item-'+id)?.classList.add('playing');
@@ -4411,6 +4407,7 @@ function toggleMusic(id, url){
     console.error('Audio play failed:', e);
     editorState.currentAudio = null;
     window._lmeAudio = null;
+    editorState.playingMusicId = null;
     const btn = document.getElementById('music-btn-'+id);
     if(btn){ btn.textContent='▶'; }
   });
