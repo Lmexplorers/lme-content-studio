@@ -687,6 +687,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
       </div>
       <button class="nav-menu-btn" onclick="toggleNavMenu()">☰ Mer</button>
       <div class="nav-dropdown" id="nav-dropdown">
+        <button class="nav-dropdown-item" onclick="showTab('variants',this);closeNavMenu()">🎯 Varianter per kanal</button>
         <button class="nav-dropdown-item" onclick="showTab('plan',this);closeNavMenu()">🗓️ 30-dagers plan</button>
         <button class="nav-dropdown-item" onclick="showTab('canva',this);closeNavMenu()">🎨 Canva</button>
         <button class="nav-dropdown-item" onclick="showTab('editor',this);closeNavMenu()">🎬 Editor</button>
@@ -893,6 +894,186 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 <div id="tab-history" style="display:none;">
   <div id="history-list"></div>
 </div>
+
+<!-- ════ VARIANTER PER KANAL ════ -->
+<div id="tab-variants" style="display:none;">
+  <style>
+    #tab-variants .var-intro{font-size:12px;color:var(--text-s);line-height:1.6;margin:6px 0 14px;}
+    #tab-variants .var-topic{width:100%;font-family:'Sasson Montessori';font-size:14px;border:1.5px solid var(--border);border-radius:13px;padding:12px 14px;background:#fff;margin-bottom:14px;}
+    #tab-variants .var-channels{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:9px;margin-bottom:14px;}
+    #tab-variants .vch{display:flex;align-items:center;gap:9px;border:1.5px solid var(--border);border-radius:13px;padding:10px 12px;cursor:pointer;background:#fff;font-size:13.5px;user-select:none;}
+    #tab-variants .vch.on{border-color:var(--rose);background:#FFF0F5;color:var(--rose-d);font-weight:700;}
+    #tab-variants .vch .vemoji{font-size:16px;}
+    #tab-variants .var-card{background:#fff;border:1.5px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 6px 18px -12px rgba(240,36,120,.35);}
+    #tab-variants .var-head{display:flex;align-items:center;gap:9px;margin-bottom:4px;}
+    #tab-variants .var-head .vt{font-family:'Playpen Sans';font-weight:800;font-size:16px;}
+    #tab-variants .var-spec{font-size:11px;color:var(--text-s);margin-bottom:10px;}
+    #tab-variants .var-text{white-space:pre-wrap;font-size:13.5px;line-height:1.6;background:#FFFAFA;border:1px solid var(--border);border-radius:12px;padding:12px;min-height:40px;}
+    #tab-variants .var-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+    #tab-variants .var-img{width:100%;border-radius:12px;margin-top:10px;border:1.5px solid var(--rose-m);}
+    #tab-variants .var-err{color:#c0392b;font-size:12px;margin-top:8px;}
+  </style>
+  <div class="card">
+    <div class="card-title">Varianter per kanal</div>
+    <div class="var-intro">Skriv ett tema, velg kanaler, og få ferdig tekst og bilde tilpasset hver kanal, i riktig format fra start (9:16 til Story/Reel/TikTok, 1:1 til feed, 16:9 til YouTube osv.). Da blir ikke posten avvist på grunn av feil format.</div>
+    <input class="var-topic" id="var-topic" type="text" placeholder="Hva skal innholdet handle om? F.eks. «Telling med naturmateriale ute»"/>
+    <div class="var-channels" id="var-channels"></div>
+    <button class="gen-btn" id="var-gen-btn" type="button">✨ Generer varianter</button>
+    <div id="var-status" style="font-size:12px;color:var(--text-s);margin-top:8px;"></div>
+  </div>
+  <div id="var-results"></div>
+</div>
+
+<script>
+(function(){
+  var CHANNELS=[
+    {id:'facebook', label:'Facebook',  emoji:'📘', dalle:'1024x1024', gem:'1:1',  spec:'Bilde 1:1 (eller 16:9). Tekst kan være lengre.',
+      guide:'Skriv et Facebook-innlegg: varm, samtalende, gjerne litt lengre. Få hashtags (0-3). Tydelig oppfordring til slutt.'},
+    {id:'instagram',label:'Instagram', emoji:'📸', dalle:'1024x1024', gem:'4:5',  spec:'Feed 4:5 eller 1:1. Reel/Story 9:16.',
+      guide:'Skriv en Instagram-bildetekst: fengende hook i første linje, verdi, varm tone, og 6-10 relevante hashtags helt til slutt.'},
+    {id:'threads',  label:'Threads',   emoji:'🧵', dalle:'1024x1024', gem:'1:1',  spec:'Bilde 1:1. Kort tekst.',
+      guide:'Skriv et kort Threads-innlegg: ledig og samtalende, gjerne et spørsmål som inviterer til svar. Ingen eller få hashtags.'},
+    {id:'tiktok',   label:'TikTok',    emoji:'🎵', dalle:'1024x1792', gem:'9:16', spec:'Video 9:16. Kort caption.',
+      guide:'Skriv en kort, fengende TikTok-caption med sterk hook, pluss 3-5 trendrelevante hashtags.'},
+    {id:'youtube',  label:'YouTube',   emoji:'▶️', dalle:'1792x1024', gem:'16:9', spec:'Miniatyr 16:9 (Shorts 9:16).',
+      guide:'Lag YouTube-innhold: en SEO-tittel under 60 tegn (merk «TITTEL:»), en beskrivelse med nøkkelord (merk «BESKRIVELSE:»), og 5-8 tags (merk «TAGS:»).'},
+    {id:'pinterest',label:'Pinterest', emoji:'📌', dalle:'1024x1792', gem:'3:4',  spec:'Pin 2:3 (stående).',
+      guide:'Lag en Pinterest-pin: nøkkelordrik tittel under 100 tegn (merk «TITTEL:») og en beskrivelse på 150-200 tegn med nøkkelord (merk «BESKRIVELSE:»).'},
+    {id:'linkedin', label:'LinkedIn',  emoji:'💼', dalle:'1792x1024', gem:'16:9', spec:'Bilde 1.91:1 eller 1:1.',
+      guide:'Skriv et LinkedIn-innlegg: profesjonelt men varmt, med en konkret innsikt eller verdi. 3-5 hashtags.'},
+    {id:'x',        label:'X',         emoji:'✖️', dalle:'1792x1024', gem:'16:9', spec:'Bilde 16:9. Maks 280 tegn.',
+      guide:'Skriv et X-innlegg på maks 280 tegn: skarp hook, klart poeng, 1-2 hashtags.'}
+  ];
+
+  function cfgGet(){ try{ return cfg||{}; }catch(e){ return {}; } }
+  function brandBase(topic){
+    var c=cfgGet();
+    var preset=c.charPreset||'miateo';
+    var chars = (preset==='none') ? '' :
+                (preset==='custom'&&c.charNames) ? c.charNames+(c.charDesc?' — '+c.charDesc:'') :
+                'Mia og Teo (to nysgjerrige 6-årige naturutforskere i Montessori-univers)';
+    return 'Du er ekspert på sosiale medier for "'+(c.brand||'Little Montessori Explorers')+'", nisje: "'+(c.niche||'Montessori-pedagogikk for barn 3-9 år')+'". '+
+           'Merkestemme: '+(c.voice||'Varm, pedagogisk, naturbasert')+'. '+(chars?('Karakterer: '+chars+'. '):'')+
+           'Språk: norsk bokmål. Tema: "'+topic+'".';
+  }
+  function imgPrompt(topic){
+    var c=cfgGet();
+    var mt=(c.charPreset||'miateo')==='miateo';
+    if(mt){
+      return 'Two fixed identical children book characters, identical in every image. '+
+        'Mia: 6-year-old girl, fair skin, large round blue eyes, blonde hair in a high ponytail with a pink hair tie, simple pink knee-length dress, white socks, pink sandals, holding a small light brown woven basket. '+
+        'Teo: 6-year-old boy, fair skin, large brown eyes, short messy brown hair, yellow t-shirt with horizontal stripes, blue shorts, brown shoes, small brown backpack. '+
+        'Style: soft children book illustration, semi-realistic cartoon, clean outlines, soft shading, bright natural colors. '+
+        'Scene: '+topic+'. Outdoor nature setting, soft sunlight, warm playful atmosphere. No text in image.';
+    }
+    return 'Soft children book illustration, semi-realistic cartoon, clean outlines, bright natural colors. Scene: '+topic+'. Little Montessori Explorers brand. Warm playful atmosphere. No text in image.';
+  }
+
+  async function genImageRaw(prompt,dalleSize,gemAspect){
+    var c=cfgGet(); var model=c.imgModel||'dalle3';
+    if(model==='dalle3'){
+      if(!c.openaiKey||c.openaiKey.length<10) throw new Error('OpenAI-nøkkel mangler. Legg den inn i Innstillinger.');
+      var res=await fetch('https://api.openai.com/v1/images/generations',{method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.openaiKey},
+        body:JSON.stringify({model:'dall-e-3',prompt:prompt,n:1,size:dalleSize,quality:'standard'})});
+      if(!res.ok){var e=await res.json();throw new Error((e.error&&e.error.message)||('OpenAI '+res.status));}
+      var d=await res.json(); var u=d.data&&d.data[0]&&d.data[0].url; if(!u) throw new Error('Ingen bilde i svaret'); return u;
+    }
+    if(!c.geminiKey||c.geminiKey.length<10) throw new Error('Gemini-nøkkel mangler. Legg den inn i Innstillinger.');
+    var gModel=model==='nano-pro'?'gemini-3-pro-image-preview':'gemini-2.5-flash-image';
+    var r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+gModel+':generateContent',{method:'POST',
+      headers:{'Content-Type':'application/json','x-goog-api-key':c.geminiKey},
+      body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{responseModalities:['TEXT','IMAGE'],imageConfig:{aspectRatio:gemAspect}}})});
+    if(!r.ok){var m;try{m=(await r.json()).error.message;}catch(_){m=null;}throw new Error(m||('Gemini '+r.status));}
+    var dd=await r.json(); var parts=(dd.candidates&&dd.candidates[0]&&dd.candidates[0].content&&dd.candidates[0].content.parts)||[];
+    var ip=parts.find(function(p){return p.inlineData||p.inline_data;}); var inl=ip&&(ip.inlineData||ip.inline_data);
+    if(inl&&inl.data) return 'data:'+(inl.mimeType||inl.mime_type||'image/png')+';base64,'+inl.data;
+    throw new Error('Ingen bilde i svaret');
+  }
+
+  var lastResults={}; // channelId -> {text, topic}
+
+  function renderChannels(){
+    var host=document.getElementById('var-channels'); if(!host) return;
+    host.innerHTML=CHANNELS.map(function(ch){
+      return '<label class="vch on" data-ch="'+ch.id+'"><input type="checkbox" checked style="accent-color:var(--rose);"> <span class="vemoji">'+ch.emoji+'</span> '+ch.label+'</label>';
+    }).join('');
+    host.querySelectorAll('.vch').forEach(function(l){
+      var cb=l.querySelector('input');
+      cb.addEventListener('change',function(){ l.classList.toggle('on',cb.checked); });
+    });
+  }
+
+  function esc(s){return (s||'').replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
+
+  async function run(){
+    var topic=(document.getElementById('var-topic').value||'').trim();
+    var status=document.getElementById('var-status');
+    if(!topic){ status.textContent='Skriv inn et tema først.'; return; }
+    var chosen=CHANNELS.filter(function(ch){
+      var l=document.querySelector('.vch[data-ch="'+ch.id+'"]'); return l&&l.querySelector('input').checked;
+    });
+    if(!chosen.length){ status.textContent='Velg minst én kanal.'; return; }
+    var key; try{ key=getApiKey(); }catch(e){ key=null; }
+    if(!key||key.length<20){ status.textContent='Claude API-nøkkel mangler. Legg den inn i Innstillinger.'; return; }
+
+    var btn=document.getElementById('var-gen-btn'); btn.disabled=true; btn.textContent='✨ Lager varianter…';
+    status.textContent='';
+    var results=document.getElementById('var-results'); results.innerHTML='';
+    lastResults={};
+
+    for(var i=0;i<chosen.length;i++){
+      var ch=chosen[i];
+      var card=document.createElement('div'); card.className='var-card'; card.id='vc-'+ch.id;
+      card.innerHTML='<div class="var-head"><span class="vemoji">'+ch.emoji+'</span><span class="vt">'+ch.label+'</span></div>'+
+        '<div class="var-spec">Format: '+esc(ch.spec)+'</div>'+
+        '<div class="var-text" id="vt-'+ch.id+'">Lager tekst…</div>'+
+        '<div class="var-actions">'+
+          '<button class="act-btn" type="button" data-copy="'+ch.id+'">📋 Kopier tekst</button>'+
+          '<button class="act-btn sage-btn" type="button" data-img="'+ch.id+'">🎨 Lag bilde ('+ch.gem+')</button>'+
+        '</div><div id="vimg-'+ch.id+'"></div>';
+      results.appendChild(card);
+      try{
+        var prompt=brandBase(topic)+'\n\n'+ch.guide+'\n\nSkriv ferdig innhold klart til å lime inn. Kun selve teksten, ingen forklaring eller overskrift om kanalen.';
+        var text=await callClaude(prompt,key);
+        document.getElementById('vt-'+ch.id).textContent=text.trim();
+        lastResults[ch.id]={text:text.trim(),topic:topic};
+      }catch(e){
+        document.getElementById('vt-'+ch.id).innerHTML='<span class="var-err">Tekstfeil: '+esc(e.message)+'</span>';
+      }
+    }
+    btn.disabled=false; btn.textContent='✨ Generer varianter';
+
+    results.querySelectorAll('[data-copy]').forEach(function(b){
+      b.addEventListener('click',function(){
+        var id=b.getAttribute('data-copy'); var t=(lastResults[id]&&lastResults[id].text)||'';
+        navigator.clipboard.writeText(t); b.textContent='✅ Kopiert'; setTimeout(function(){b.textContent='📋 Kopier tekst';},1500);
+      });
+    });
+    results.querySelectorAll('[data-img]').forEach(function(b){
+      b.addEventListener('click',function(){
+        var id=b.getAttribute('data-img'); var ch=CHANNELS.find(function(x){return x.id===id;});
+        var holder=document.getElementById('vimg-'+id); var tp=(lastResults[id]&&lastResults[id].topic)||topic;
+        b.disabled=true; b.textContent='🤖 Lager bilde…';
+        genImageRaw(imgPrompt(tp),ch.dalle,ch.gem).then(function(url){
+          holder.innerHTML='<img class="var-img" src="'+url+'"><div class="var-actions"><a class="act-btn" href="'+url+'" download="lme-'+id+'.png">⬇️ Last ned</a></div>';
+          b.disabled=false; b.textContent='🎨 Lag bilde ('+ch.gem+')';
+        }).catch(function(e){
+          holder.innerHTML='<div class="var-err">Bildefeil: '+esc(e.message)+'</div>';
+          b.disabled=false; b.textContent='🎨 Lag bilde ('+ch.gem+')';
+        });
+      });
+    });
+  }
+
+  function init(){
+    if(!document.getElementById('var-channels')) return;
+    renderChannels();
+    var b=document.getElementById('var-gen-btn'); if(b&&!b._wired){ b._wired=true; b.addEventListener('click',run); }
+  }
+  if(document.readyState!=='loading') init(); else document.addEventListener('DOMContentLoaded',init);
+})();
+</script>
 
 <!-- ════ PRICING ════ -->
 <div id="tab-pricing" style="display:none;">
@@ -1917,7 +2098,7 @@ function changeWeek(d){ state.weekOffset+=d; renderCalendar(); }
 
 // ══ TABS ══
 function showTab(id,btn){
-  ['create','calendar','ideas','history','plan','pricing','settings','canva','editor'].forEach(t=>{
+  ['create','calendar','ideas','history','plan','pricing','settings','canva','editor','variants'].forEach(t=>{
     const el=document.getElementById('tab-'+t);
     if(el) el.style.display=t===id?'block':'none';
   });
