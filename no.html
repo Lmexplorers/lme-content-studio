@@ -690,6 +690,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
     <div class="nav-wrap">
       <div class="tabs">
         <button class="tab-btn active" onclick="showTab('create',this);closeNavMenu()">Lag innhold</button>
+        <button class="tab-btn" onclick="showTab('dashboard',this);closeNavMenu()">Oversikt</button>
         <button class="tab-btn" onclick="showTab('calendar',this);closeNavMenu()">Kalender</button>
         <button class="tab-btn" onclick="showTab('ideas',this);closeNavMenu()">Ideer</button>
         <button class="tab-btn" onclick="showTab('history',this);closeNavMenu()">Historikk</button>
@@ -913,6 +914,37 @@ input[type=range]{width:100%;accent-color:var(--rose);}
       <div id="sched-ok" style="display:none;margin-top:10px;"></div>
     </div>
   </div>
+</div>
+
+<!-- ════ DASHBOARD ════ -->
+<div id="tab-dashboard" style="display:none;">
+  <style>
+  #tab-dashboard .dash-hero{background:linear-gradient(135deg,var(--rose),var(--rose-d));color:#fff;border-radius:20px;padding:22px 20px;margin-bottom:16px;}
+  #tab-dashboard .dash-hero h2{font-family:'Playpen Sans';font-weight:900;font-size:22px;margin-bottom:4px;}
+  #tab-dashboard .dash-hero p{font-size:13px;opacity:.92;line-height:1.5;}
+  #tab-dashboard .dash-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+  #tab-dashboard .dash-stat{background:#fff;border:1px solid var(--border);border-radius:18px;padding:18px 14px;text-align:center;box-shadow:0 10px 26px -18px rgba(90,56,37,.4);}
+  #tab-dashboard .dash-stat .num{font-family:'Playpen Sans';font-weight:900;font-size:30px;color:var(--rose-d);line-height:1;}
+  #tab-dashboard .dash-stat .lab{font-size:12px;color:var(--text-s);margin-top:6px;}
+  #tab-dashboard .dash-card{background:#fff;border:1px solid var(--border);border-radius:18px;padding:18px;margin-top:14px;}
+  #tab-dashboard .dash-card h3{font-family:'Playpen Sans';font-weight:800;font-size:15px;margin-bottom:12px;}
+  #tab-dashboard .dash-fmt{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  #tab-dashboard .dash-fmt .fl{flex:0 0 132px;font-size:12.5px;}
+  #tab-dashboard .dash-track{flex:1;height:9px;border-radius:5px;background:#f1eef0;overflow:hidden;}
+  #tab-dashboard .dash-fill{height:100%;background:linear-gradient(90deg,var(--rose),var(--sage));border-radius:5px;}
+  #tab-dashboard .dash-fmt .fc{font-size:12px;font-weight:700;color:var(--text-s);min-width:22px;text-align:right;}
+  #tab-dashboard .dash-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);}
+  #tab-dashboard .dash-row:last-child{border-bottom:none;}
+  #tab-dashboard .dash-row .de{font-size:18px;}
+  #tab-dashboard .dash-row .dmeta{flex:1;min-width:0;}
+  #tab-dashboard .dash-row .dt{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  #tab-dashboard .dash-row .ds{font-size:11px;color:var(--text-s);}
+  #tab-dashboard .dash-row .dwhen{font-size:11px;font-weight:700;color:var(--rose-d);white-space:nowrap;}
+  #tab-dashboard .dash-empty{text-align:center;color:var(--text-s);padding:24px 12px;font-size:13px;line-height:1.6;}
+  #tab-dashboard .dash-cta{display:inline-block;margin-top:12px;padding:11px 22px;border-radius:12px;background:linear-gradient(110deg,var(--rose),var(--rose-d));color:#fff;font-family:'Playpen Sans';font-weight:800;font-size:14px;border:none;cursor:pointer;}
+  @media(min-width:640px){#tab-dashboard .dash-stats{grid-template-columns:repeat(4,1fr);}}
+  </style>
+  <div id="dashboard-body"></div>
 </div>
 
 <!-- ════ CALENDAR ════ -->
@@ -2337,6 +2369,62 @@ function useIdea(i){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
+// ══ DASHBOARD ══
+function renderDashboard(){
+  const host=document.getElementById('dashboard-body'); if(!host) return;
+  const h=state.history||[];
+  const brand=(cfg&&cfg.brand)?cfg.brand:'';
+  const greet=brand?('Hei, '+brand+' 🌸'):'Velkommen 🌸';
+
+  if(!h.length){
+    host.innerHTML=`<div class="dash-hero"><h2>${esc(greet)}</h2><p>Her får du oversikten over alt innholdet ditt: laget, planlagt og publisert.</p></div>
+      <div class="dash-card"><div class="dash-empty">Du har ikke laget noe innhold ennå.<br/>Lag ditt første innlegg, så fyller oversikten seg opp.<br/><button class="dash-cta" onclick="showTab('create',document.querySelectorAll('.tab-btn')[0])">Lag innhold →</button></div></div>`;
+    return;
+  }
+
+  const scheduled=h.filter(x=>x.scheduledDate && !x.published);
+  const published=h.filter(x=>x.published).length;
+  const platSet=new Set(); h.forEach(x=>(x.platforms||[]).forEach(p=>platSet.add(p)));
+  const byFmt={}; h.forEach(x=>{ byFmt[x.format]=(byFmt[x.format]||0)+1; });
+  const maxFmt=Math.max(1,...Object.values(byFmt));
+
+  const today=new Date(); const todayMid=new Date(today.getFullYear(),today.getMonth(),today.getDate());
+  const upcoming=scheduled.map(x=>{ const d=new Date(x.scheduledDate+'T'+(x.scheduledTime||'09:00')+':00'); return Object.assign({},x,{_dt:d}); })
+    .filter(x=>!isNaN(x._dt)&&x._dt>=todayMid).sort((a,b)=>a._dt-b._dt).slice(0,5);
+  const recent=h.slice(0,5);
+
+  const stat=(n,l)=>`<div class="dash-stat"><div class="num">${n}</div><div class="lab">${l}</div></div>`;
+  const fmtBars=FORMATS.filter(f=>byFmt[f.id]).map(f=>{
+    const c=byFmt[f.id]; const pct=Math.round(c/maxFmt*100);
+    return `<div class="dash-fmt"><span class="fl">${f.emoji} ${esc(f.label)}</span><span class="dash-track"><span class="dash-fill" style="width:${pct}%"></span></span><span class="fc">${c}</span></div>`;
+  }).join('') || '<div class="dash-empty">Ingen data ennå.</div>';
+
+  const upRows=upcoming.length? upcoming.map(x=>{
+    const f=FORMATS.find(ff=>ff.id===x.format);
+    const wd=x._dt.toLocaleDateString('nb-NO',{weekday:'short',day:'numeric',month:'short'});
+    const tm=x.scheduledTime||'09:00';
+    const pl=(x.scheduledPlatforms||x.platforms||[]).join(', ');
+    return `<div class="dash-row"><span class="de">${f?f.emoji:'📄'}</span><div class="dmeta"><div class="dt">${esc(x.topic||(f?f.label:''))}</div><div class="ds">${esc(pl)}</div></div><span class="dwhen">${wd} ${tm}</span></div>`;
+  }).join('') : '<div class="dash-empty">Ingen planlagte innlegg. Planlegg et innlegg fra «Lag innhold».</div>';
+
+  const recRows=recent.map(x=>{
+    const f=FORMATS.find(ff=>ff.id===x.format);
+    return `<div class="dash-row"><span class="de">${f?f.emoji:'📄'}</span><div class="dmeta"><div class="dt">${esc(x.topic||(f?f.label:''))}</div><div class="ds">${f?esc(f.label):''}${x.published?' · publisert':''}</div></div><span class="dwhen">${esc(x.ts||'')}</span></div>`;
+  }).join('');
+
+  host.innerHTML=`
+    <div class="dash-hero"><h2>${esc(greet)}</h2><p>Oversikt over innholdsproduksjonen din. Alt oppdateres mens du lager og planlegger.</p></div>
+    <div class="dash-stats">
+      ${stat(h.length,'Innhold laget')}
+      ${stat(scheduled.length,'Planlagt')}
+      ${stat(published,'Publisert')}
+      ${stat(platSet.size,'Plattformer')}
+    </div>
+    <div class="dash-card"><h3>Fordeling per format</h3>${fmtBars}</div>
+    <div class="dash-card"><h3>Kommende planlagte innlegg</h3>${upRows}</div>
+    <div class="dash-card"><h3>Siste aktivitet</h3>${recRows}</div>`;
+}
+
 function renderHistory(){
   const el = document.getElementById('history-list');
   if(!state.history.length){ el.innerHTML='<div class="empty-state">No content generated yet 🌿</div>'; return; }
@@ -2393,7 +2481,7 @@ function changeWeek(d){ state.weekOffset+=d; renderCalendar(); }
 
 // ══ TABS ══
 function showTab(id,btn){
-  ['create','calendar','ideas','history','plan','pricing','settings','canva','editor','variants','models'].forEach(t=>{
+  ['create','dashboard','calendar','ideas','history','plan','pricing','settings','canva','editor','variants','models'].forEach(t=>{
     const el=document.getElementById('tab-'+t);
     if(el) el.style.display=t===id?'block':'none';
   });
@@ -2403,6 +2491,7 @@ function showTab(id,btn){
   document.querySelectorAll('.nav-dropdown-item').forEach(b=>{
     if(b.getAttribute('onclick')&&b.getAttribute('onclick').includes("'"+id+"'")) b.classList.add('active');
   });
+  if(id==='dashboard')renderDashboard();
   if(id==='calendar')renderCalendar();
   if(id==='history')renderHistory();
   if(id==='plan')initPlan();
