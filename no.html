@@ -967,7 +967,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
       guide:'Skriv et X-innlegg på maks 280 tegn: skarp hook, klart poeng, 1-2 hashtags.'}
   ];
 
-  var STYLE_NO='NORSKE SKRIVEREGLER (følg alltid): Bruk rette anførselstegn, aldri « ». Bruk ALDRI lange bindestreker (— eller –), bruk heller komma, kolon, punktum eller "og". Stor forbokstav etter kolon KUN når en hel setning følger, ellers liten forbokstav (oppramsinger, undertitler, fragmenter). Liten forbokstav etter semikolon. Komma foran "men", "for" og "så" når de binder to helsetninger, komma etter en innledende leddsetning, komma rundt innskutte setninger, og ikke komma foran siste "og" i en oppramsing.';
+  var STYLE_NO='NORSKE SKRIVEREGLER (følg alltid): Bruk rette anførselstegn, aldri « ». Bruk ALDRI lange bindestreker (— eller –), bruk heller komma, kolon, punktum eller "og". VIKTIG kolonregel (gjøres ofte feil): stor forbokstav etter kolon KUN når en hel setning følger (eksempel: "Husk: Du trenger ikke være ekspert."), ellers liten forbokstav ved oppramsinger, undertitler og fragmenter (eksempel: "Faste holdepunkter: måltider, hvile og leggetid."). Liten forbokstav etter semikolon. Komma foran "men", "for" og "så" når de binder to helsetninger, komma etter en innledende leddsetning, komma rundt innskutte setninger, og ikke komma foran siste "og" i en oppramsing.';
   var VFORMATS=[
     {id:'feed',     label:'Feed 1:1',            dalle:'1024x1024', gem:'1:1'},
     {id:'portrait', label:'Story / Reel 9:16',   dalle:'1024x1792', gem:'9:16'},
@@ -2257,7 +2257,7 @@ function buildPrompt(){
   else{ characters='Mia og Teo – to nysgjerrige 6-årige naturutforskere'; }
   const base=`You are a social media content expert for "${cfg.brand||'Little Montessori Explorers'}" in the niche: "${cfg.niche||'Montessori-pedagogikk for barn 3-9 år'}". ${characters!=='no specific characters'?`Characters: ${characters}.`:''} Brand voice: ${cfg.voice||'Varm, pedagogisk, naturbasert'}. Audience: ${cfg.audience||state.ageGroup}. Tone: ${state.tone}. Language: Norwegian bokmål. Topic: "${topic}". ${state.extra?'Context: '+state.extra:''}
 
-NORSKE SKRIVEREGLER (følg alltid i norsk tekst): Bruk rette anførselstegn, aldri « ». Bruk ALDRI lange bindestreker (— eller –), bruk heller komma, kolon, punktum eller "og". Stor forbokstav etter kolon KUN når en hel setning følger, ellers liten forbokstav (oppramsinger, undertitler, fragmenter). Liten forbokstav etter semikolon. Komma foran "men", "for" og "så" når de binder to helsetninger, komma etter en innledende leddsetning, komma rundt innskutte setninger, og ikke komma foran siste "og" i en oppramsing.`;
+NORSKE SKRIVEREGLER (følg alltid i norsk tekst): Bruk rette anførselstegn, aldri « ». Bruk ALDRI lange bindestreker (— eller –), bruk heller komma, kolon, punktum eller "og". VIKTIG kolonregel (gjøres ofte feil): stor forbokstav etter kolon KUN når en hel setning følger (eksempel: "Husk: Du trenger ikke være ekspert."), ellers liten forbokstav ved oppramsinger, undertitler og fragmenter (eksempel: "Faste holdepunkter: måltider, hvile og leggetid."). Liten forbokstav etter semikolon. Komma foran "men", "for" og "så" når de binder to helsetninger, komma etter en innledende leddsetning, komma rundt innskutte setninger, og ikke komma foran siste "og" i en oppramsing.`;
 
   if(state.format==='carousel'||state.format==='story'){
     const type=state.format==='story'?'Story set (9:16 vertical, short punchy headline + 1-2 lines per frame)':'Instagram carousel';
