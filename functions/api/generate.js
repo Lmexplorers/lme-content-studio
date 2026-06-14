@@ -19,6 +19,16 @@ function json(o, s) {
   });
 }
 
+function bufToB64(buf) {
+  const bytes = new Uint8Array(buf);
+  let bin = "";
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    bin += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+  }
+  return btoa(bin);
+}
+
 export async function onRequestPost(context) {
   const { request, env } = context;
   let body = {};
@@ -34,13 +44,22 @@ export async function onRequestPost(context) {
         const r = await fetch("https://api.openai.com/v1/images/generations", {
           method: "POST",
           headers: { "Content-Type": "application/json", "Authorization": "Bearer " + key },
-          body: JSON.stringify({ model: "dall-e-3", prompt: body.prompt, n: 1, size: body.size || "1024x1024", quality: "standard", response_format: "b64_json" }),
+          body: JSON.stringify({ model: "dall-e-3", prompt: body.prompt, n: 1, size: body.size || "1024x1024", quality: "standard" }),
         });
         const d = await r.json().catch(() => ({}));
         if (!r.ok) return json({ error: (d.error && d.error.message) || ("OpenAI " + r.status) }, 200);
-        const b64 = d.data && d.data[0] && d.data[0].b64_json;
-        if (!b64) return json({ error: "Ingen bilde i svaret" }, 200);
-        return json({ imageUrl: "data:image/png;base64," + b64 });
+        const item = d.data && d.data[0];
+        if (item && item.b64_json) return json({ imageUrl: "data:image/png;base64," + item.b64_json });
+        if (item && item.url) {
+          try {
+            const ir = await fetch(item.url);
+            const buf = await ir.arrayBuffer();
+            return json({ imageUrl: "data:image/png;base64," + bufToB64(buf) });
+          } catch (e) {
+            return json({ imageUrl: item.url });
+          }
+        }
+        return json({ error: "Ingen bilde i svaret" }, 200);
       } else {
         const key = env.GEMINI_API_KEY || body.key;
         if (!key) return json({ error: "Gemini-nøkkel mangler. Legg den inn i Innstillinger." }, 400);
