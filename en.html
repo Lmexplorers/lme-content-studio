@@ -496,7 +496,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 <!-- ════ PRICING MODAL — shown when user clicks "See subscription plans" ════ -->
 <div id="lme-pricing-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:100000;background:rgba(0,0,0,0.6);overflow-y:auto;padding:20px;font-family:'Sasson Montessori';">
   <div style="max-width:520px;margin:20px auto;background:#FFFAFA;border-radius:24px;padding:24px;position:relative;">
-    <button onclick="lmeClosePricing()" style="position:absolute;top:14px;right:14px;background:#fff;border:1.5px solid #E8E0E5;color:#C81860;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;font-weight:700;">✕</button>
+    <button onclick="lmeClosePricing()" style="position:absolute;top:14px;right:14px;background:#fff;border:1.5px solid #E8E0E5;color:#C81860;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;font-weight:700;"></button>
 
     <div style="text-align:center;margin-bottom:20px;">
       <div style="font-size:40px;margin-bottom:6px;">💎</div>
@@ -790,8 +790,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
         </div>
 
         <button class="reel-publish-btn" id="reel-publish-btn" onclick="publishReel()" disabled>
-          🚀 Publish Reel automatically
-        </button>
+          🚀 Publish Reel automatically</button>
         <div id="reel-status"></div>
       </div>
     </div>
@@ -808,8 +807,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
         <button type="button" class="chip" data-imgmodel="nano-pro" onclick="selectImgModel('nano-pro')">Nano Banana Pro</button>
       </div>
       <button class="gen-btn purple" id="pub-btn" style="margin-bottom:0;font-size:13px;padding:13px;" onclick="genererBilde()">
-        🎨 Generate cover image
-      </button>
+        🎨 Generate cover image</button>
       <div id="pub-status"></div>
 
       <!-- Preview + publish shown after image generated -->
@@ -846,8 +844,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
         <div style="display:flex;flex-wrap:wrap;gap:6px;" id="sched-platforms"></div>
       </div>
       <button class="act-btn sage-btn" style="width:100%;padding:10px;font-size:13px;" onclick="schedulePost()">
-        📅 Schedule with date & time
-      </button>
+        📅 Schedule with date & time</button>
       <div id="sched-ok" style="display:none;margin-top:10px;"></div>
     </div>
   </div>
@@ -1160,11 +1157,9 @@ input[type=range]{width:100%;accent-color:var(--rose);}
   <!-- Mode selector -->
   <div class="editor-mode-tabs">
     <button class="editor-mode-btn active" id="emode-story" onclick="setEditorMode('story')">
-      <span>🌸</span>Story editor
-    </button>
+      <span>🌸</span>Story editor</button>
     <button class="editor-mode-btn" id="emode-reel" onclick="setEditorMode('reel')">
-      <span>🎬</span>Reel editor
-    </button>
+      <span>🎬</span>Reel editor</button>
   </div>
 
   <!-- ═══ STORY EDITOR ═══ -->
@@ -1265,8 +1260,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
       </div>
 
       <button class="act-btn sage-btn" style="width:100%;" onclick="loadStoryTextFromContent()">
-        📄 Load text from generated content
-      </button>
+        📄 Load text from generated content</button>
     </div>
 
 
@@ -1303,7 +1297,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
         <input class="text-overlay-input" id="story-cta-overlay" placeholder='E.g. "Link in bio 🌿" or "Reply in comments 👇"' oninput="drawStoryCanvas()"/>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
           <button class="chip" onclick="settCTATekst('Link in bio 🌿')">Link in bio</button>
-          <button class="chip" onclick="settCTATekst('Reply 👇')">Reply 👇</button>
+          <button class="chip" onclick="settCTATekst('Reply 👇')">Reply</button>
           <button class="chip" onclick="settCTATekst('Swipe up ⬆️')">Swipe up</button>
           <button class="chip" onclick="settCTATekst('Comment below 💬')">Comment</button>
           <button class="chip" onclick="setCTAText('Save this! 🌸')">Save</button>
@@ -1355,11 +1349,9 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 
     <!-- Export -->
     <button class="export-btn" onclick="exportStory()">
-      ⬇️ Download story image (1080×1920px)
-    </button>
+      ⬇️ Download story image (1080×1920px)</button>
     <button class="export-btn purple" style="margin-top:10px;" onclick="exportAndPublishStory()">
-      🚀 Export + send to the publishing service
-    </button>
+      🚀 Export + send to the publishing service</button>
     <div id="story-export-status" style="margin-top:10px;"></div>
   </div>
 
@@ -1469,8 +1461,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
         </div>
 
         <button class="act-btn sage-btn" style="width:100%;" onclick="loadReelTextFromContent()">
-          📄 Load HOOK from generated content
-        </button>
+          📄 Load HOOK from generated content</button>
       </div>
 
       <!-- Caption / bildetekst -->
@@ -1482,8 +1473,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
       <div id="emoji-picker-reel-caption" class="emoji-picker-wrap"></div>
         <textarea id="reel-caption" rows="4" placeholder="Write your caption here — sent automatically with the Reel to the publishing service..." style="width:100%;border-radius:10px;border:2px solid var(--border);padding:10px 13px;font-family:'Sasson Montessori';font-size:12px;color:var(--text);outline:none;resize:vertical;" oninput="saveReelCaption()"></textarea>
         <button class="act-btn sage-btn" style="width:100%;margin-top:8px;" onclick="loadCaptionFromContent()">
-          📄 Load caption from generated content
-        </button>
+          📄 Load caption from generated content</button>
       </div>
 
       <!-- SEO title -->
@@ -1571,15 +1561,12 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 
       <!-- Remove video -->
       <button onclick="removeReelEditorVideo()" style="width:100%;margin-bottom:14px;padding:10px;border-radius:12px;border:2px solid var(--border);background:white;color:var(--text-s);font-family:'Sasson Montessori';font-size:12px;cursor:pointer;">
-        🗑️ Remove video and start over
-      </button>
+        🗑️ Remove video and start over</button>
 
       <button class="export-btn" onclick="downloadReelDirect()" style="margin-bottom:10px;">
-        ⬇️ Download video
-      </button>
+        ⬇️ Download video</button>
       <button class="export-btn purple" onclick="sendReelToSocialBu()">
-        🚀 Send to the publishing service
-      </button>
+        🚀 Send to the publishing service</button>
       <div id="reel-export-status" style="margin-top:10px;"></div>
     </div>
   </div>
@@ -1591,7 +1578,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 <!-- PREVIEW MODAL -->
 <div class="preview-overlay" id="preview-overlay" style="display:none;" onclick="closePreviewIfBg(event)">
   <div class="preview-modal">
-    <button class="preview-close" onclick="document.getElementById('preview-overlay').style.display='none'">✕</button>
+    <button class="preview-close" onclick="document.getElementById('preview-overlay').style.display='none'"></button>
     <div class="preview-tabs" id="preview-tabs"></div>
     <div class="preview-phone" id="preview-phone"></div>
   </div>
@@ -1760,10 +1747,9 @@ function init(){
 function renderFormats(){
   document.getElementById('format-list').innerHTML = FORMATS.map(f => `
     <button class="format-btn${state.format===f.id?' active':''}" onclick="selectFormat('${f.id}')">
-      <span class="format-emoji">${f.emoji}</span>
+      
       <div><div class="format-label">${f.label}</div><div class="format-desc">${f.desc}</div></div>
-      ${state.format===f.id?'<span class="format-check">✓</span>':''}
-    </button>`).join('');
+      ${state.format===f.id?'<span class="format-check">✓</span>':''}</button>`).join('');
 }
 function selectFormat(id){
   state.format=id; renderFormats(); updateSlidesCard(); updateReelSection();
@@ -1841,8 +1827,7 @@ function renderIdeas(){
       <span class="idea-emoji">${idea.emoji}</span>
       <div><div class="idea-topic">${idea.topic}</div>
       <div class="idea-format">${FORMATS.find(f=>f.id===idea.format)?.emoji} ${FORMATS.find(f=>f.id===idea.format)?.label}</div></div>
-      <span style="margin-left:auto;color:var(--rose);font-size:16px;">→</span>
-    </button>`).join('');
+      <span style="margin-left:auto;color:var(--rose);font-size:16px;">→</span></button>`).join('');
 }
 function useIdea(i){
   const idea=IDEAS[i];
@@ -1865,8 +1850,8 @@ function renderHistory(){
       ${h.imageUrl?`<img src="${h.imageUrl}" style="width:100%;border-radius:10px;margin-bottom:8px;"/>`:'' }
       <div class="hist-preview">${prev.substring(0,250)}${prev.length>250?'…':''}</div>
       <div class="action-row" style="margin-top:8px;">
-        <button class="act-btn" onclick="copyHistory(${i})">📋 Copy</button>
-        ${h.imageUrl?`<button class="act-btn sage-btn" onclick="republish(${i})">🚀 Publish igjen</button>`:''}
+        <button class="act-btn" onclick="copyHistory(${i})">Copy</button>
+        ${h.imageUrl?`<button class="act-btn sage-btn" onclick="republish(${i})">Publish igjen</button>`:''}
       </div>
     </div>`;
   }).join('');
@@ -1899,7 +1884,7 @@ function renderCalendar(){
         return `<div class="cal-item">
           <div style="display:flex;justify-content:space-between;"><div>${fmt?.emoji||''} ${it.topic}</div>${it.scheduledTime?'<div style="font-size:10px;color:var(--rose-d);font-weight:700;">🕐 '+it.scheduledTime+'</div>':''}</div>
           ${it.scheduledPlatforms?.length?'<div style="font-size:10px;color:var(--text-s);margin-top:2px;">'+it.scheduledPlatforms.join(' · ')+'</div>':''}
-          ${it.published?'<div style="font-size:10px;color:var(--sage-d);margin-top:3px;">✅ Published</div>':''}
+          ${it.published?'<div style="font-size:10px;color:var(--sage-d);margin-top:3px;">Published</div>':''}
         </div>`;
       }).join(''):'<span class="cal-empty">No content</span>'}
     </div>`;
@@ -1967,7 +1952,7 @@ function showPlanDay(d){
   document.getElementById('plan-detail-content').innerHTML=`
     <div style="font-family:'Playpen Sans';font-size:16px;font-weight:800;color:var(--rose-d);margin-bottom:12px;">Day ${d.day} — ${d.weekday} ${fmtE}</div>
     <div style="background:var(--rose-l);border-radius:12px;padding:12px 14px;margin-bottom:10px;">
-      <div style="font-size:10px;font-weight:700;color:var(--rose-d);text-transform:uppercase;margin-bottom:6px;">📱 Story idea</div>
+      <div style="font-size:10px;font-weight:700;color:var(--rose-d);text-transform:uppercase;margin-bottom:6px;">Story idea</div>
       <div style="font-size:13px;line-height:1.7;">${esc(d.story)}</div>
     </div>
     <div style="background:var(--warm);border-radius:12px;padding:12px 14px;">
@@ -2051,13 +2036,13 @@ async function generate(){
   hideError(); state.imageUrl=null;
 
   const btn=document.getElementById('gen-btn');
-  btn.disabled=true; btn.innerHTML=`✨ your brand working… <span class="loading-dots"><span></span><span></span><span></span></span>`;
+  btn.disabled=true; btn.innerHTML=`your brand working… <span class="loading-dots"><span></span><span></span><span></span></span>`;
   document.getElementById('result-box').style.display='none';
   document.getElementById('hashtag-result').innerHTML='';
 
   try{
     const key=getApiKey();
-    if(!key||key.length<20){showError('API key missing. Add it in Settings.');btn.disabled=false;btn.innerHTML='✨ Generate content';return;}
+    if(!key||key.length<20){showError('API key missing. Add it in Settings.');btn.disabled=false;btn.innerHTML='Generate content';return;}
     const fmt=FORMATS.find(f=>f.id===state.format);
     const raw=await callClaude(buildPrompt(),key);
     const result=fmt?.slides?parseSlides(raw):raw;
@@ -2073,7 +2058,7 @@ async function generate(){
     document.getElementById('result-box').style.display='block';
     document.getElementById('result-box').scrollIntoView({behavior:'smooth',block:'start'});
   }catch(e){ showError('Error: '+(e.message||'Noe gikk galt.')); }
-  btn.disabled=false; btn.innerHTML='✨ Generate content';
+  btn.disabled=false; btn.innerHTML='Generate content';
 }
 
 function renderResult(){
@@ -2083,9 +2068,9 @@ function renderResult(){
   if(state.slides){ renderSlides(); }
   else{ contentEl.innerHTML=`<div class="text-result">${esc(state.result)}</div>`; }
   document.getElementById('action-row').innerHTML=`
-    <button class="act-btn" id="copy-btn" onclick="copyResult()">📋 Copy tekst</button>
-    <button class="act-btn" onclick="generate()">🔄 Ny versjon</button>
-    <button class="act-btn" style="background:linear-gradient(90deg,var(--rose),var(--rose-d));color:white;border-color:var(--rose);" onclick="openPreview()">📱 Forhåndsvis</button>`;
+    <button class="act-btn" id="copy-btn" onclick="copyResult()">Copy tekst</button>
+    <button class="act-btn" onclick="generate()">Ny versjon</button>
+    <button class="act-btn" style="background:linear-gradient(90deg,var(--rose),var(--rose-d));color:white;border-color:var(--rose);" onclick="openPreview()">Forhåndsvis</button>`;
   updateReelSection();
 }
 
@@ -2102,8 +2087,8 @@ function copyResult(){
   const text=Array.isArray(state.result)?state.result.join('\n\n---\n\n'):state.result;
   navigator.clipboard.writeText(text);
   const btn=document.getElementById('copy-btn');
-  btn.textContent='✓ Copied!'; btn.classList.add('copied');
-  setTimeout(()=>{btn.textContent='📋 Copy tekst';btn.classList.remove('copied');},2000);
+  btn.textContent='Copied!'; btn.classList.add('copied');
+  setTimeout(()=>{btn.textContent='Copy tekst';btn.classList.remove('copied');},2000);
 }
 
 // ══ REEL VIDEO UPLOAD ══
@@ -2156,18 +2141,18 @@ async function publishReel(){
 
   const btn=document.getElementById('reel-publish-btn');
   const statusEl=document.getElementById('reel-status');
-  btn.disabled=true; btn.textContent='🚀 Publisher…';
+  btn.disabled=true; btn.textContent='Publisher…';
 
   const caption=typeof state.result==='string'?state.result:state.result.join('\n\n');
 
   // Check for the publishing service config
   if(!cfg.socialbuKey||!cfg.makeWebhook||!(cfg.socialbuAccounts||[]).length){
-    statusEl.innerHTML=`<div class="pub-status error" style="margin-top:10px;">❌ the publishing service not configured. Add Bearer token + Account IDs + Cloudflare Worker URL in ⚙️ Settings.</div>`;
-    btn.disabled=false; btn.textContent='🚀 Publish Reel automatically';
+    statusEl.innerHTML=`<div class="pub-status error" style="margin-top:10px;">the publishing service not configured. Add Bearer token + Account IDs + Cloudflare Worker URL in ⚙️ Settings.</div>`;
+    btn.disabled=false; btn.textContent='Publish Reel automatically';
     return;
   }
 
-  statusEl.innerHTML=`<div class="pub-status loading" style="margin-top:10px;">🎬 Uploading video and sending to the publishing service… <span class="loading-dots"><span></span><span></span><span></span></span><br/><span style="font-size:11px;opacity:.8;">Large videos may take 30-60 seconds</span></div>`;
+  statusEl.innerHTML=`<div class="pub-status loading" style="margin-top:10px;">Uploading video and sending to the publishing service… <span class="loading-dots"><span></span><span></span><span></span></span><br/><span style="font-size:11px;opacity:.8;">Large videos may take 30-60 seconds</span></div>`;
 
   // Convert video to base64 to send via Cloudflare Worker
   // Worker then uploads to the publishing service which handles the media
@@ -2203,9 +2188,9 @@ async function publishReel(){
       throw new Error('Worker returned status '+res.status);
     }
   }catch(e){
-    statusEl.innerHTML=`<div class="pub-status error" style="margin-top:10px;">❌ Error: ${e.message}<br/><span style="font-size:11px;">Check your Cloudflare Worker and the publishing service token.</span></div>`;
+    statusEl.innerHTML=`<div class="pub-status error" style="margin-top:10px;">Error: ${e.message}<br/><span style="font-size:11px;">Check your Cloudflare Worker and the publishing service token.</span></div>`;
   }
-  btn.disabled=false; btn.textContent='🚀 Publish Reel automatically';
+  btn.disabled=false; btn.textContent='Publish Reel automatically';
 }
 
 function fileToBase64(file){
@@ -2236,17 +2221,17 @@ async function genererBilde(){
 
   if(imgModel==='dalle3'){
     if(!cfg.openaiKey||cfg.openaiKey.length<10){
-      statusEl.innerHTML=`<div class="pub-status error" style="margin-top:10px;">❌ OpenAI API key missing. Enter it in ⚙️ Settings.</div>`;
+      statusEl.innerHTML=`<div class="pub-status error" style="margin-top:10px;">OpenAI API key missing. Enter it in ⚙️ Settings.</div>`;
       return;
     }
   }else{
     if(!cfg.geminiKey||cfg.geminiKey.length<10){
-      statusEl.innerHTML=`<div class="pub-status error" style="margin-top:10px;">❌ Google Gemini API key missing (for Nano Banana). Enter it in ⚙️ Settings.</div>`;
+      statusEl.innerHTML=`<div class="pub-status error" style="margin-top:10px;">Google Gemini API key missing (for Nano Banana). Enter it in ⚙️ Settings.</div>`;
       return;
     }
   }
 
-  btn.disabled=true; btn.textContent='🤖 Generating image…';
+  btn.disabled=true; btn.textContent='Generating image…';
   document.getElementById('bilde-preview-seksjon').style.display='none';
   statusEl.innerHTML=`<div class="pub-status loading" style="margin-top:10px;">🤖 ${IMG_MODEL_NAMES[imgModel]} generating image… (15-30 sec) <span class="loading-dots"><span></span><span></span><span></span></span></div>`;
 
@@ -2303,11 +2288,11 @@ async function genererBilde(){
     document.getElementById('bilde-last-ned').href = imageUrl;
     document.getElementById('bilde-preview-seksjon').style.display='block';
     statusEl.innerHTML='';
-    btn.textContent='🎨 Generate cover image';
+    btn.textContent='Generate cover image';
 
   }catch(e){
-    statusEl.innerHTML=`<div class="pub-status error" style="margin-top:10px;">❌ Bildefeil: ${e.message}</div>`;
-    btn.textContent='🎨 Generate cover image';
+    statusEl.innerHTML=`<div class="pub-status error" style="margin-top:10px;">Bildefeil: ${e.message}</div>`;
+    btn.textContent='Generate cover image';
   }
   btn.disabled=false;
 }
@@ -2317,17 +2302,17 @@ async function publiserMedBilde(){
   const statusEl=document.getElementById('pub-bilde-status');
 
   if(!cfg.socialbuKey||!cfg.makeWebhook||!(cfg.socialbuAccounts||[]).length){
-    statusEl.innerHTML=`<div class="pub-status error">⚠️ the publishing service not configured. Enter token + webhook in Settings.</div>`;
+    statusEl.innerHTML=`<div class="pub-status error">the publishing service not configured. Enter token + webhook in Settings.</div>`;
     return;
   }
 
-  statusEl.innerHTML=`<div class="pub-status loading">🚀 Sending to the publishing service… <span class="loading-dots"><span></span><span></span><span></span></span></div>`;
+  statusEl.innerHTML=`<div class="pub-status loading">Sending to the publishing service… <span class="loading-dots"><span></span><span></span><span></span></span></div>`;
   const text=Array.isArray(state.result)?state.result.join('\n\n---\n\n'):state.result;
   const ok=await sendToSocialBu(text,[state.imageUrl],state.format,null);
   if(ok){
-    statusEl.innerHTML=`<div class="pub-status success">✅ Published to the publishing service!</div>`;
+    statusEl.innerHTML=`<div class="pub-status success">Published to the publishing service!</div>`;
   } else {
-    statusEl.innerHTML=`<div class="pub-status error">❌ Publishing failed. Check Settings.</div>`;
+    statusEl.innerHTML=`<div class="pub-status error">Publishing failed. Check Settings.</div>`;
   }
 }
 
@@ -2381,19 +2366,19 @@ async function schedulePost(){
   const platStr=schedPlatforms.join(', ');
 
   if(cfg.socialbuKey&&cfg.makeWebhook&&(cfg.socialbuAccounts||[]).length){
-    ok.innerHTML='<span style="color:#0084E4;">🚀 Sending to the publishing service with scheduled time…</span>';
+    ok.innerHTML='<span style="color:#0084E4;">Sending to the publishing service with scheduled time…</span>';
     const planDt=new Date(date+'T'+time+':00');
     const publishAt=planDt.getFullYear()+'-'+String(planDt.getMonth()+1).padStart(2,'0')+'-'+String(planDt.getDate()).padStart(2,'0')+' '+String(planDt.getHours()).padStart(2,'0')+':'+String(planDt.getMinutes()).padStart(2,'0')+':00';
     const text=Array.isArray(state.result)?state.result.join('\n\n---\n\n'):state.result;
     const success=await sendToSocialBu(text,state.imageUrl?[state.imageUrl]:null,state.format,publishAt);
     if(success){
-      ok.innerHTML=`✅ Scheduled in the publishing service for ${date} at ${time}! Check your dashboard.`;
+      ok.innerHTML=`Scheduled in the publishing service for ${date} at ${time}! Check your dashboard.`;
     }else{
-      ok.innerHTML=`⚠️ Could not reach the publishing service. Saved locally for ${date} at ${time} → ${platStr}.`;
+      ok.innerHTML=`Could not reach the publishing service. Saved locally for ${date} at ${time} → ${platStr}.`;
       ok.style.background='#FFF6D6'; ok.style.color='#856404';
     }
   }else{
-    ok.innerHTML=`📅 Saved in calendar for ${date} at ${time} → ${platStr}.<br/><span style="font-size:11px;opacity:.8;">💡 Add the publishing service Bearer token + Cloudflare Worker URL in Settings for automatic publishing!</span>`;
+    ok.innerHTML=`Saved in calendar for ${date} at ${time} → ${platStr}.<br/><span style="font-size:11px;opacity:.8;">Add the publishing service Bearer token + Cloudflare Worker URL in Settings for automatic publishing!</span>`;
   }
 }
 
@@ -2410,7 +2395,7 @@ async function generateHashtags(){
     });
     const data=await res.json();
     const tags=data.content?.map(b=>b.text||'').join('').trim()||'';
-    el.innerHTML=`<div class="hashtag-box">${esc(tags)}<div style="margin-top:8px;"><button class="act-btn sage-btn" onclick="navigator.clipboard.writeText('${escAttr(tags)}')">📋 Copy hashtags</button></div></div>`;
+    el.innerHTML=`<div class="hashtag-box">${esc(tags)}<div style="margin-top:8px;"><button class="act-btn sage-btn" onclick="navigator.clipboard.writeText('${escAttr(tags)}')">Copy hashtags</button></div></div>`;
   }catch{
     el.innerHTML='<div class="error-box">Could not generate hashtags. Try again.</div>';
   }
@@ -2641,14 +2626,14 @@ function toggleNotifications(){
   if(checkbox.checked){
     // User wants notifications ON — request permission
     if(!('Notification' in window)){
-      status.innerHTML = '⚠️ Your device does not support notifications.';
+      status.innerHTML = 'Your device does not support notifications.';
       checkbox.checked = false;
       return;
     }
     Notification.requestPermission().then(permission => {
       if(permission === 'granted'){
         try{ localStorage.setItem('lme_notifications','on'); }catch(e){}
-        status.innerHTML = '✅ Notifications enabled / Varsler aktivert';
+        status.innerHTML = 'Notifications enabled / Varsler aktivert';
         // Send a confirmation notification
         try{
           new Notification('LME Studio 🌸', {
@@ -2658,13 +2643,13 @@ function toggleNotifications(){
         }catch(e){}
       } else {
         checkbox.checked = false;
-        status.innerHTML = '❌ Permission denied. Enable in browser/phone settings. / Tillatelse avslått.';
+        status.innerHTML = 'Permission denied. Enable in browser/phone settings. / Tillatelse avslått.';
       }
     });
   } else {
     // User wants notifications OFF
     try{ localStorage.setItem('lme_notifications','off'); }catch(e){}
-    status.innerHTML = '🔕 Notifications disabled / Varsler deaktivert';
+    status.innerHTML = 'Notifications disabled / Varsler deaktivert';
   }
 }
 
@@ -2760,11 +2745,11 @@ async function canvaFetchUrl(type){
       canvaState.storyFile = file;
       canvaState.storyUrl  = URL.createObjectURL(blob);
       showCanvaPreview(type, 'image', canvaState.storyUrl, 'canva-import.png');
-      statusEl.textContent='✅ Bilde hentet! Klikk "Bruk i Story editor" nedenfor.';
+      statusEl.textContent='Bilde hentet! Klikk "Bruk i Story editor" nedenfor.';
     });
   }catch(e){
     statusEl.className='canva-status err';
-    statusEl.textContent='❌ Could not fetch the image. Try downloading the file from Canva and dragging it in instead.';
+    statusEl.textContent='Could not fetch the image. Try downloading the file from Canva and dragging it in instead.';
   }
 }
 
@@ -2813,7 +2798,7 @@ function useCanvaInStoryEditor(){
     showTab('editor', document.querySelectorAll('.tab-btn')[Array.from(document.querySelectorAll('.tab-btn')).findIndex(b=>b.getAttribute('onclick')?.includes("'editor'"))]);
     setEditorMode('story');
     const statusEl = document.getElementById('canva-story-status');
-    statusEl.textContent='🌸 Opened in Story editor! Design and send directly.';
+    statusEl.textContent='Opened in Story editor! Design and send directly.';
   }
 }
 
@@ -2824,7 +2809,7 @@ function useCanvaInReelEditor(){
   setEditorMode('reel');
   setTimeout(()=>{ loadReelVideos([canvaState.storyFile]); }, 100);
   const statusEl = document.getElementById('canva-reel-status');
-  if(statusEl){ statusEl.style.display='block'; statusEl.className='canva-status ok'; statusEl.textContent='🎬 Video from Canva opened in Reel editor!'; }
+  if(statusEl){ statusEl.style.display='block'; statusEl.className='canva-status ok'; statusEl.textContent='Video from Canva opened in Reel editor!'; }
 }
 
 // Carousel: multiple images from Canva
@@ -2848,11 +2833,11 @@ function canvaCarouselLoaded(input){
         </div>`;
       }).join('')}
     </div>
-    <button class="canva-btn" onclick="useCanvaCarouselInEditor()">🎠 Use all ${files.length} slides in editor</button>`;
+    <button class="canva-btn" onclick="useCanvaCarouselInEditor()">Use all ${files.length} slides in editor</button>`;
 
   statusEl.style.display='block';
   statusEl.className='canva-status ok';
-  statusEl.textContent=`✅ ${files.length} Canva slides loaded in correct order!`;
+  statusEl.textContent=`${files.length} Canva slides loaded in correct order!`;
 }
 
 function useCanvaCarouselInEditor(){
@@ -2885,7 +2870,7 @@ function addCanvaCarouselNav(){
   nav.className = 'card';
   nav.style.cssText='background:linear-gradient(135deg,#0066B3,#0066B3);border-color:#0066B3;';
   nav.innerHTML=`
-    <div style="font-family:'Playpen Sans';font-size:13px;font-weight:700;color:white;margin-bottom:10px;">🎠 Canva Carousel — ${urls.length} slides</div>
+    <div style="font-family:'Playpen Sans';font-size:13px;font-weight:700;color:white;margin-bottom:10px;">Canva Carousel — ${urls.length} slides</div>
     <div style="display:flex;align-items:center;gap:10px;">
       <button onclick="canvaCarouselNav(-1)" style="width:36px;height:36px;border-radius:50%;border:none;background:rgba(255,255,255,.2);color:white;font-size:18px;cursor:pointer;">‹</button>
       <div style="flex:1;text-align:center;color:white;font-size:12px;">Slide <span id="canva-slide-num">1</span> of ${urls.length}</div>
@@ -2911,7 +2896,7 @@ function canvaReelLoaded(input){
   const statusEl = document.getElementById('canva-reel-status');
   statusEl.style.display='block';
   statusEl.className='canva-status ok';
-  statusEl.textContent='🎬 Reel-video fra Canva lastet! Åpner i editor…';
+  statusEl.textContent='Reel-video fra Canva lastet! Åpner i editor…';
   canvaState.reelFile = file;
   setTimeout(()=>{
     showTab('editor', document.querySelectorAll('.tab-btn')[Array.from(document.querySelectorAll('.tab-btn')).findIndex(b=>b.getAttribute('onclick')?.includes("'editor'"))]);
@@ -2963,7 +2948,7 @@ function importerSettings(input){
       localStorage.setItem('lme_innstillinger_no', JSON.stringify(cfg));
       applySettingsToUI();
       const ok = document.getElementById('settings-ok');
-      ok.textContent = '✅ Settings imported!';
+      ok.textContent = 'Settings imported!';
       ok.style.display = 'block';
       setTimeout(()=>ok.style.display='none', 3000);
     }catch(err){
@@ -2992,7 +2977,7 @@ function visProfiler(){
         ${PLATFORM_VALG.map(pl => `<option value="${pl}"${p.plattform===pl?' selected':''}>${pl}</option>`).join('')}
       </select>
       <input type="text" value="${p.brukernavn||''}" placeholder="@brukernavn" style="flex:1;border-radius:8px;border:1.5px solid var(--border);padding:7px 10px;font-family:'Sasson Montessori';font-size:12px;" oninput="oppdaterProfilNavn(${i},this.value)"/>
-      <button class="profile-remove" onclick="fjernProfil(${i})">✕</button>
+      <button class="profile-remove" onclick="fjernProfil(${i})"></button>
     </div>`).join('');
 }
 
@@ -3038,12 +3023,12 @@ function loadStoryUpload(input, type){
     drawStoryCanvas();
     previewEl.style.display = 'block';
     previewEl.innerHTML = `<img src="${url}" style="width:100%;max-height:160px;object-fit:cover;display:block;border-radius:12px;"/>
-      <div style="font-size:10px;color:var(--text-s);padding:6px 4px;">✅ Image loaded as background in Story canvas</div>`;
+      <div style="font-size:10px;color:var(--text-s);padding:6px 4px;">Image loaded as background in Story canvas</div>`;
   } else {
     // Video — send directly to reel editor
     previewEl.style.display = 'block';
     previewEl.innerHTML = `<video src="${url}" autoplay muted loop playsinline style="width:100%;max-height:160px;object-fit:cover;display:block;border-radius:12px;"></video>
-      <div style="font-size:10px;color:var(--rose-d);font-weight:700;padding:6px 4px;">🎬 Video detected — opening in Reel editor…</div>`;
+      <div style="font-size:10px;color:var(--rose-d);font-weight:700;padding:6px 4px;">Video detected — opening in Reel editor…</div>`;
     setTimeout(() => {
       setEditorMode('reel');
       loadReelVideos([file]);
@@ -3165,7 +3150,7 @@ function downloadReelDirect(){
   a.href = url; a.download = editorState.reelVideoFile.name; a.click();
   URL.revokeObjectURL(url);
   const st = document.getElementById('reel-export-status');
-  if(st) st.innerHTML = '<div class="pub-status ok" style="margin-top:8px;">✅ Video lastet ned! Add music in Instagram/TikTok after uploading.</div>';
+  if(st) st.innerHTML = '<div class="pub-status ok" style="margin-top:8px;">Video lastet ned! Add music in Instagram/TikTok after uploading.</div>';
 }
 
 async function sendReelToSocialBu(){
@@ -3174,19 +3159,19 @@ async function sendReelToSocialBu(){
   const btn = document.querySelector('#editor-reel .export-btn.purple');
 
   if(!cfg.socialbuKey || !cfg.makeWebhook || !(cfg.socialbuAccounts||[]).length){
-    statusEl.innerHTML = '<div class="pub-status error" style="margin-top:8px;">❌ the publishing service not configured. Add token + webhook in Settings.</div>';
+    statusEl.innerHTML = '<div class="pub-status error" style="margin-top:8px;">the publishing service not configured. Add token + webhook in Settings.</div>';
     return;
   }
 
-  if(btn){ btn.disabled=true; btn.textContent='📤 Sending…'; }
-  statusEl.innerHTML = '<div class="pub-status loading" style="margin-top:8px;">📤 Sending video to the publishing service… <span class="loading-dots"><span></span><span></span><span></span></span></div>';
+  if(btn){ btn.disabled=true; btn.textContent='Sending…'; }
+  statusEl.innerHTML = '<div class="pub-status loading" style="margin-top:8px;">Sending video to the publishing service… <span class="loading-dots"><span></span><span></span><span></span></span></div>';
 
   try{
     const fileSizeMB = editorState.reelVideoFile.size / 1024 / 1024;
     if(fileSizeMB > 25){
       throw new Error('Video is ' + fileSizeMB.toFixed(1) + 'MB — please keep under 25MB for now.');
     }
-    statusEl.innerHTML = `<div class="pub-status loading" style="margin-top:8px;">📦 Preparing video (${fileSizeMB.toFixed(1)}MB)… <span class="loading-dots"><span></span><span></span><span></span></span></div>`;
+    statusEl.innerHTML = `<div class="pub-status loading" style="margin-top:8px;">Preparing video (${fileSizeMB.toFixed(1)}MB)… <span class="loading-dots"><span></span><span></span><span></span></span></div>`;
     const overlayText = document.getElementById('reel-overlay-text')?.value || '';
     const manualCaption = document.getElementById('reel-caption')?.value || '';
     const hashtags = document.getElementById('reel-hashtags')?.value || '';
@@ -3203,7 +3188,7 @@ async function sendReelToSocialBu(){
       reader.readAsDataURL(editorState.reelVideoFile);
     });
 
-    statusEl.innerHTML = '<div class="pub-status loading" style="margin-top:8px;">🚀 Sending to the publishing service… <span class="loading-dots"><span></span><span></span><span></span></span></div>';
+    statusEl.innerHTML = '<div class="pub-status loading" style="margin-top:8px;">Sending to the publishing service… <span class="loading-dots"><span></span><span></span><span></span></span></div>';
 
     // Same shape as sendToSocialBu — Worker reads socialbuBody
     const payload = {
@@ -3227,15 +3212,15 @@ async function sendReelToSocialBu(){
     });
 
     if(res.ok){
-      statusEl.innerHTML = '<div class="pub-status success" style="margin-top:8px;">🎬✅ Reel sent to the publishing service! Check your dashboard.</div>';
+      statusEl.innerHTML = '<div class="pub-status success" style="margin-top:8px;">Reel sent to the publishing service! Check your dashboard.</div>';
     } else {
       const errText = await res.text().catch(()=>'');
       throw new Error('Worker returned status ' + res.status + (errText ? ' — ' + errText.slice(0,200) : ''));
     }
   } catch(e){
-    statusEl.innerHTML = `<div class="pub-status error" style="margin-top:8px;">❌ Could not send: ${e.message}<br/><span style="font-size:11px;">Check Cloudflare Worker logs for details.</span></div>`;
+    statusEl.innerHTML = `<div class="pub-status error" style="margin-top:8px;">Could not send: ${e.message}<br/><span style="font-size:11px;">Check Cloudflare Worker logs for details.</span></div>`;
   }
-  if(btn){ btn.disabled=false; btn.textContent='🚀 Send to the publishing service'; }
+  if(btn){ btn.disabled=false; btn.textContent='Send to the publishing service'; }
 }
 
 
@@ -3641,7 +3626,7 @@ async function exportStory(){
   a.href = canvas.toDataURL('image/png');
   a.click();
   document.getElementById('story-export-status').innerHTML =
-    '<div style="background:var(--sage-l);border-radius:10px;padding:10px 14px;color:var(--sage-d);font-size:12px;margin-top:8px;">✅ Story-bilde lastet ned! Last det opp i Instagram Stories og legg til musikk der.</div>';
+    '<div style="background:var(--sage-l);border-radius:10px;padding:10px 14px;color:var(--sage-d);font-size:12px;margin-top:8px;">Story-bilde lastet ned! Last det opp i Instagram Stories og legg til musikk der.</div>';
 }
 
 async function exportAndPublishStory(){
@@ -3655,10 +3640,10 @@ async function exportAndPublishStory(){
     const reader = new FileReader();
     reader.onload = async (e) => {
       const base64 = e.target.result.split(',')[1];
-      statusEl.innerHTML = '<div class="pub-status loading" style="margin-top:8px;">🚀 Sender story image til the publishing service… <span class="loading-dots"><span></span><span></span><span></span></span></div>';
+      statusEl.innerHTML = '<div class="pub-status loading" style="margin-top:8px;">Sender story image til the publishing service… <span class="loading-dots"><span></span><span></span><span></span></span></div>';
 
       if(!cfg.socialbuKey || !cfg.makeWebhook || !(cfg.socialbuAccounts||[]).length){
-        statusEl.innerHTML = '<div class="pub-status error" style="margin-top:8px;">❌ the publishing service ikke konfigurert. Legg inn token + webhook i Settings.</div>';
+        statusEl.innerHTML = '<div class="pub-status error" style="margin-top:8px;">the publishing service ikke konfigurert. Legg inn token + webhook i Settings.</div>';
         return;
       }
 
@@ -3683,12 +3668,12 @@ async function exportAndPublishStory(){
       try {
         const res = await smartFetch(cfg.makeWebhook, {method:'POST', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(payload)});
         if(res.ok){
-          statusEl.innerHTML = '<div class="pub-status success" style="margin-top:8px;">🌸✅ Story sent to the publishing service! Check your dashboard.</div>';
+          statusEl.innerHTML = '<div class="pub-status success" style="margin-top:8px;">Story sent to the publishing service! Check your dashboard.</div>';
         } else {
           throw new Error('Status '+res.status);
         }
       } catch(e) {
-        statusEl.innerHTML = `<div class="pub-status error" style="margin-top:8px;">❌ Error: ${e.message}</div>`;
+        statusEl.innerHTML = `<div class="pub-status error" style="margin-top:8px;">Error: ${e.message}</div>`;
       }
     };
     reader.readAsDataURL(blob);
@@ -3770,7 +3755,7 @@ function renderClipList(){
         <span style="font-size:18px;">🎬</span>
         <div style="flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);">${i+1}. ${c.name}</div>
         <span style="font-size:11px;color:var(--text-s);white-space:nowrap;">${fmtTime(c.duration)}</span>
-        <button onclick="removeClip(${i})" style="border:none;background:none;color:#ccc;font-size:16px;cursor:pointer;">✕</button>
+        <button onclick="removeClip(${i})" style="border:none;background:none;color:#ccc;font-size:16px;cursor:pointer;"></button>
       </div>`).join('')}
     <div style="font-size:10px;color:var(--text-s);margin-top:4px;">Total: ${fmtTime(clips.reduce((a,c)=>a+c.duration,0))}</div>`;
 }
@@ -4023,7 +4008,7 @@ function toggleMusic(id, url){
 
   if(!url){
     const btn = document.getElementById('music-btn-'+id);
-    if(btn){ btn.textContent='✓'; }
+    if(btn){ btn.textContent=''; }
     return;
   }
 
@@ -4093,7 +4078,7 @@ async function loadFFmpeg(){
     const { FFmpeg } = FFmpegWASM;
     const ff = new FFmpeg();
     ff.on('progress', ({progress}) => {
-      if(statusEl) statusEl.textContent = `🎬 Prosesserer video… ${Math.round(progress*100)}%`;
+      if(statusEl) statusEl.textContent = `Prosesserer video… ${Math.round(progress*100)}%`;
     });
     await ff.load({
       coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js',
@@ -4101,9 +4086,9 @@ async function loadFFmpeg(){
     });
     ffmpegInstance = ff;
     ffmpegLoaded   = true;
-    if(statusEl){ statusEl.textContent = '✅ FFmpeg klar!'; setTimeout(()=>{ statusEl.style.display='none'; }, 2000); }
+    if(statusEl){ statusEl.textContent = 'FFmpeg klar!'; setTimeout(()=>{ statusEl.style.display='none'; }, 2000); }
   }catch(e){
-    if(statusEl){ statusEl.textContent = '❌ Could not load FFmpeg: '+e.message; }
+    if(statusEl){ statusEl.textContent = 'Could not load FFmpeg: '+e.message; }
     ffmpegLoading = false;
     throw e;
   }
@@ -4141,7 +4126,7 @@ async function renderReelToBlob(statusEl){
 
   if(clips.length === 1){
     // ── Single clip ──
-    if(statusEl) statusEl.innerHTML = '<div class="pub-status loading">📥 Writing video… <span class="loading-dots"><span></span><span></span><span></span></span></div>';
+    if(statusEl) statusEl.innerHTML = '<div class="pub-status loading">Writing video… <span class="loading-dots"><span></span><span></span><span></span></span></div>';
     await ff.writeFile('input0.mp4', await fetchFile(clips[0].file));
 
     if(hasMusic){
@@ -4149,7 +4134,7 @@ async function renderReelToBlob(statusEl){
         (editorState.selectedMusicUrl ? new File([await (await fetch(editorState.selectedMusicUrl)).blob()], 'music.mp3', {type:'audio/mpeg'}) : null);
       if(!musicFile) throw new Error('No music file');
       await ff.writeFile('audio.mp3', await fetchFile(musicFile));
-      if(statusEl) statusEl.innerHTML = '<div class="pub-status loading">🎵 Mixing music into video… <span class="loading-dots"><span></span><span></span><span></span></span></div>';
+      if(statusEl) statusEl.innerHTML = '<div class="pub-status loading">Mixing music into video… <span class="loading-dots"><span></span><span></span><span></span></span></div>';
       cmd = [
         '-ss', String(tStart), '-i', 'input0.mp4',
         '-i', 'audio.mp3',
@@ -4161,7 +4146,7 @@ async function renderReelToBlob(statusEl){
         '-movflags', '+faststart', '-y', outputName
       ];
     } else {
-      if(statusEl) statusEl.innerHTML = '<div class="pub-status loading">✂️ Trimming video… <span class="loading-dots"><span></span><span></span><span></span></span></div>';
+      if(statusEl) statusEl.innerHTML = '<div class="pub-status loading">Trimming video… <span class="loading-dots"><span></span><span></span><span></span></span></div>';
       cmd = [
         '-ss', String(tStart), '-i', 'input0.mp4',
         '-t', String(trimDur),
@@ -4172,7 +4157,7 @@ async function renderReelToBlob(statusEl){
     }
   } else {
     // ── Multiple clips — concatenate first, then add music ──
-    if(statusEl) statusEl.innerHTML = '<div class="pub-status loading">📥 Skriver klipp… <span class="loading-dots"><span></span><span></span><span></span></span></div>';
+    if(statusEl) statusEl.innerHTML = '<div class="pub-status loading">Skriver klipp… <span class="loading-dots"><span></span><span></span><span></span></span></div>';
     for(let i=0; i<clips.length; i++){
       await ff.writeFile(`input${i}.mp4`, await fetchFile(clips[i].file));
     }
@@ -4182,7 +4167,7 @@ async function renderReelToBlob(statusEl){
     const filterStr = clips.map((_,i) => `[${i}:v][${i}:a]`).join('') + `concat=n=${clips.length}:v=1:a=1[outv][outa]`;
     const concatName = 'concat.mp4';
 
-    if(statusEl) statusEl.innerHTML = '<div class="pub-status loading">🎞️ Setter klipp sammen… <span class="loading-dots"><span></span><span></span><span></span></span></div>';
+    if(statusEl) statusEl.innerHTML = '<div class="pub-status loading">Setter klipp sammen… <span class="loading-dots"><span></span><span></span><span></span></span></div>';
     await ff.exec([
       ...clips.flatMap((_,i) => ['-i', `input${i}.mp4`]),
       '-filter_complex', filterStr,
@@ -4197,7 +4182,7 @@ async function renderReelToBlob(statusEl){
         (editorState.selectedMusicUrl ? new File([await (await fetch(editorState.selectedMusicUrl)).blob()], 'music.mp3', {type:'audio/mpeg'}) : null);
       if(!musicFile) throw new Error('No music file');
       await ff.writeFile('audio.mp3', await fetchFile(musicFile));
-      if(statusEl) statusEl.innerHTML = '<div class="pub-status loading">🎵 Mixing music… <span class="loading-dots"><span></span><span></span><span></span></span></div>';
+      if(statusEl) statusEl.innerHTML = '<div class="pub-status loading">Mixing music… <span class="loading-dots"><span></span><span></span><span></span></span></div>';
       cmd = [
         '-i', concatName,
         '-i', 'audio.mp3',
@@ -4217,7 +4202,7 @@ async function renderReelToBlob(statusEl){
     }
   }
 
-  if(statusEl) statusEl.innerHTML = '<div class="pub-status loading">🎬 Finalizing MP4… <span class="loading-dots"><span></span><span></span><span></span></span></div>';
+  if(statusEl) statusEl.innerHTML = '<div class="pub-status loading">Finalizing MP4… <span class="loading-dots"><span></span><span></span><span></span></span></div>';
   await ff.exec(cmd);
   const data = await ff.readFile(outputName);
 
@@ -4241,11 +4226,11 @@ async function renderAndDownloadReel(){
     const a    = document.createElement('a');
     a.href     = url; a.download = 'lme-reel.mp4'; a.click();
     URL.revokeObjectURL(url);
-    statusEl.innerHTML = '<div class="pub-status success">✅ MP4 downloaded! Now you can upload it to Instagram/TikTok — music is already baked in.</div>';
+    statusEl.innerHTML = '<div class="pub-status success">MP4 downloaded! Now you can upload it to Instagram/TikTok — music is already baked in.</div>';
   }catch(e){
-    statusEl.innerHTML = `<div class="pub-status error">❌ Error: ${e.message}</div>`;
+    statusEl.innerHTML = `<div class="pub-status error">Error: ${e.message}</div>`;
   }
-  if(btn){ btn.disabled=false; btn.textContent='⬇️ Render + download MP4'; }
+  if(btn){ btn.disabled=false; btn.textContent='Render + download MP4'; }
 }
 
 // ── Render + publish directly to the publishing service ──
@@ -4255,7 +4240,7 @@ async function renderAndPublishReel(){
   const btn      = document.querySelector('#editor-reel .export-btn.purple');
 
   if(!cfg.socialbuKey || !cfg.makeWebhook || !(cfg.socialbuAccounts||[]).length){
-    statusEl.innerHTML = '<div class="pub-status error">❌ the publishing service not configured. Add Bearer token + Account IDs + Cloudflare Worker URL in Settings.</div>';
+    statusEl.innerHTML = '<div class="pub-status error">the publishing service not configured. Add Bearer token + Account IDs + Cloudflare Worker URL in Settings.</div>';
     return;
   }
 
@@ -4265,7 +4250,7 @@ async function renderAndPublishReel(){
     const blob = await renderReelToBlob(statusEl);
 
     // 2. Convert to base64
-    statusEl.innerHTML = '<div class="pub-status loading">📤 Sending to the publishing service… <span class="loading-dots"><span></span><span></span><span></span></span></div>';
+    statusEl.innerHTML = '<div class="pub-status loading">Sending to the publishing service… <span class="loading-dots"><span></span><span></span><span></span></span></div>';
     const base64 = await blobToBase64(blob);
 
     // 3. Caption
@@ -4302,9 +4287,9 @@ async function renderAndPublishReel(){
       throw new Error('Worker returned status '+res.status);
     }
   }catch(e){
-    statusEl.innerHTML = `<div class="pub-status error">❌ Error: ${e.message}<br/><span style="font-size:11px;">Check your Cloudflare Worker and the publishing service token in Settings.</span></div>`;
+    statusEl.innerHTML = `<div class="pub-status error">Error: ${e.message}<br/><span style="font-size:11px;">Check your Cloudflare Worker and the publishing service token in Settings.</span></div>`;
   }
-  if(btn){ btn.disabled=false; btn.textContent='🚀 Render + auto-send to the publishing service'; }
+  if(btn){ btn.disabled=false; btn.textContent='Render + auto-send to the publishing service'; }
 }
 
 function blobToBase64(blob){
