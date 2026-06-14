@@ -768,6 +768,23 @@ input[type=range]{width:100%;accent-color:var(--rose);}
     <div class="result-title" id="result-title">Your content is ready!</div>
     <div id="result-content"></div>
     <div class="action-row" id="action-row"></div>
+    <style>
+    .vscore-card{margin-top:16px;border:1px solid var(--border);border-radius:18px;padding:18px;background:linear-gradient(160deg,#fff,var(--rose-l));}
+    .vscore-head{display:flex;align-items:center;gap:16px;margin-bottom:14px;}
+    .vscore-ring{width:76px;height:76px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:conic-gradient(var(--col) var(--deg), #ececec 0);}
+    .vscore-ring span{width:60px;height:60px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-family:'Playpen Sans';font-weight:900;font-size:23px;color:var(--col);}
+    .vscore-title{font-family:'Playpen Sans';font-weight:800;font-size:17px;color:#1A1A1A;}
+    .vscore-label{font-size:13px;font-weight:700;color:var(--col);margin-top:2px;}
+    .vscore-metric{margin-bottom:9px;}
+    .vscore-metric .vm-top{display:flex;justify-content:space-between;font-size:12px;font-weight:700;color:var(--text-s);margin-bottom:4px;}
+    .vscore-track{height:7px;border-radius:5px;background:#ececec;overflow:hidden;}
+    .vscore-fill{height:100%;border-radius:5px;transition:width .5s;}
+    .vscore-tips{margin-top:13px;border-top:1px dashed var(--border);padding-top:12px;}
+    .vscore-tip{display:flex;gap:8px;font-size:12.5px;color:var(--text-s);line-height:1.55;margin-bottom:7px;}
+    .vscore-tip:last-child{margin-bottom:0;}
+    .vscore-tip .vt-ic{flex-shrink:0;}
+    </style>
+    <div id="visibility-score"></div>
 
     <!-- HASHTAGS -->
     <div style="margin-top:14px;">
@@ -2219,6 +2236,76 @@ function renderResult(){
     <button class="act-btn" onclick="generate()">Ny versjon</button>
     <button class="act-btn" style="background:linear-gradient(90deg,var(--rose),var(--rose-d));color:white;border-color:var(--rose);" onclick="openPreview()">Forhåndsvis</button>`;
   updateReelSection();
+  renderVisibilityScore();
+}
+
+function computeVisibility(){
+  const text = Array.isArray(state.result) ? state.result.join('\n') : (state.result||'');
+  if(!text.trim()) return null;
+  const lower = text.toLowerCase();
+  const cleanLen = text.replace(/\s+/g,' ').trim().length;
+  // Hook (0-25)
+  const firstLine = (text.split('\n').find(l=>l.trim())||'').trim();
+  const hookLine  = text.split('\n').find(l=>/^\s*hook/i.test(l));
+  const hookText  = (hookLine ? hookLine.replace(/^\s*hook[:\s]*/i,'') : firstLine).trim();
+  const hl = hookText.length;
+  let hook = hl>=12 && hl<=90 ? 25 : hl>0 ? 14 : 0;
+  // Length (0-20)
+  let length = cleanLen>=120 && cleanLen<=900 ? 20 : cleanLen>=60 ? 13 : cleanLen>0 ? 7 : 0;
+  // Hashtags (0-20)
+  const extraTags = (document.getElementById('hashtag-result') ? document.getElementById('hashtag-result').innerText : '')||'';
+  const tags = ((text+' '+extraTags).match(/#[\wæøåÆØÅ]+/g)||[]).length;
+  let hashtags = tags>=5 && tags<=15 ? 20 : tags>=3 ? 15 : tags>=1 ? 10 : 0;
+  // CTA (0-15)
+  const ctaWords = ['follow','comment','save','share','sign up','try','shop','learn more','link in bio','swipe','tap','check out','tag a'];
+  const cta = ctaWords.some(w=>lower.includes(w)) ? 15 : 0;
+  // Emoji (0-10)
+  const emojis = (text.match(/\p{Extended_Pictographic}/gu)||[]).length;
+  let emoji = emojis>=1 && emojis<=6 ? 10 : emojis>6 && emojis<=12 ? 6 : emojis===0 ? 3 : 4;
+  // Readability (0-10)
+  const lines = text.split('\n').filter(l=>l.trim()).length;
+  let read = lines>=3 ? 10 : lines===2 ? 8 : 5;
+  const total = Math.round(hook+length+hashtags+cta+emoji+read);
+  const metrics = [
+    {name:'Hook', val:hook, max:25},
+    {name:'Length', val:length, max:20},
+    {name:'Hashtags', val:hashtags, max:20},
+    {name:'Call to action', val:cta, max:15},
+    {name:'Emoji balance', val:emoji, max:10},
+    {name:'Readability', val:read, max:10},
+  ];
+  const tips = [];
+  if(hook<25) tips.push(['🎯','<b>Stronger hook:</b> make the first words more gripping, it decides whether people stop scrolling.']);
+  if(hashtags<20) tips.push(['#','<b>Hashtags:</b> use 5 to 15 relevant hashtags to reach more people.']);
+  if(cta===0) tips.push(['👉','<b>Add a call to action:</b> ask people to follow, save or comment.']);
+  if(length<20 && cleanLen<120) tips.push(['✍️','<b>A bit more text:</b> give the post enough content to add value.']);
+  if(emojis===0) tips.push(['🌸','<b>A couple of emoji</b> can lift the tone. Don\'t overdo it.']);
+  if(read<8) tips.push(['📑','<b>Break the text</b> into a few lines, it makes it easier to read.']);
+  return {total, metrics, tips};
+}
+
+function renderVisibilityScore(){
+  const host = document.getElementById('visibility-score');
+  if(!host) return;
+  const r = computeVisibility();
+  if(!r){ host.innerHTML=''; return; }
+  const col = r.total>=75 ? '#5BA800' : r.total>=50 ? '#E0A100' : '#E5484D';
+  const label = r.total>=75 ? 'Strong visibility' : r.total>=50 ? 'Good, can improve' : 'Needs some work';
+  const bars = r.metrics.map(m=>{
+    const pct = Math.round(m.val/m.max*100);
+    const c = pct>=75 ? '#5BA800' : pct>=50 ? '#E0A100' : '#E5484D';
+    return `<div class="vscore-metric"><div class="vm-top"><span>${m.name}</span><span>${m.val}/${m.max}</span></div><div class="vscore-track"><div class="vscore-fill" style="width:${pct}%;background:${c};"></div></div></div>`;
+  }).join('');
+  let tips = r.tips.slice(0,3).map(t=>`<div class="vscore-tip"><span class="vt-ic">${t[0]}</span><span>${t[1]}</span></div>`).join('');
+  if(!tips) tips = `<div class="vscore-tip"><span class="vt-ic">✨</span><span><b>Strong post!</b> This is ready to publish.</span></div>`;
+  host.innerHTML = `<div class="vscore-card" style="--col:${col};--deg:${Math.round(r.total*3.6)}deg;">
+    <div class="vscore-head">
+      <div class="vscore-ring"><span>${r.total}</span></div>
+      <div><div class="vscore-title">Visibility score</div><div class="vscore-label">${label}</div></div>
+    </div>
+    ${bars}
+    <div class="vscore-tips">${tips}</div>
+  </div>`;
 }
 
 function renderSlides(){
@@ -2543,6 +2630,7 @@ async function generateHashtags(){
     const data=await res.json();
     const tags=data.content?.map(b=>b.text||'').join('').trim()||'';
     el.innerHTML=`<div class="hashtag-box">${esc(tags)}<div style="margin-top:8px;"><button class="act-btn sage-btn" onclick="navigator.clipboard.writeText('${escAttr(tags)}')">Copy hashtags</button></div></div>`;
+    renderVisibilityScore();
   }catch{
     el.innerHTML='<div class="error-box">Could not generate hashtags. Try again.</div>';
   }
