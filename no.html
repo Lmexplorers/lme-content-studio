@@ -2649,15 +2649,16 @@ async function publishReel(){
     return;
   }
 
-  // Bak inn valgt musikk FØR opplasting (auto-posting kan ikke legge på lyd etterpå)
+  // Bak inn musikk og/eller hook-tekst FØR opplasting (auto-posting kan ikke legge på dette etterpå)
   let uploadFile = state.videoFile;
   const musicUrl = editorState.selectedMusicUrl;
-  if(musicUrl){
+  const hookText = (state.reelHook||'').trim();
+  if(musicUrl || hookText){
     try{
       const vol = (document.getElementById('reel-flow-music-volume')?.value || 40)/100;
-      uploadFile = await bakeReelMusic(state.videoFile, musicUrl, vol, statusEl);
+      uploadFile = await bakeReel(state.videoFile, {musicUrl, vol, hookText, statusEl});
     }catch(e){
-      statusEl.innerHTML=`<div class="pub-status error" style="margin-top:10px;">Kunne ikke bake inn musikken: ${e.message}. Sjekk at videoen har en lydspor, eller velg en annen sang.</div>`;
+      statusEl.innerHTML=`<div class="pub-status error" style="margin-top:10px;">Kunne ikke ferdigstille videoen: ${e.message}. Hvis du bruker musikk, sjekk at videoen har et lydspor, eller velg en annen sang.</div>`;
       btn.disabled=false; btn.textContent='Publiser Reel automatisk';
       return;
     }
@@ -4823,29 +4824,81 @@ async function renderReelToBlob(statusEl){
   return new Blob([data.buffer], {type:'video/mp4'});
 }
 
-// ── Bak valgt musikk inn i en opplastet reel-video (create-flyten) ──
-// Henter musikken via same-origin proxy (/api/audio) for å unngå CORS i FFmpeg.
-async function bakeReelMusic(videoFile, musicUrl, vol, statusEl){
+// ── Avrundet rektangel (for hook-bakgrunn) ──
+function roundRectPath(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+
+// ── Tegn hook-teksten til en gjennomsiktig PNG i videooppløsning ──
+// Bruker nettleserens fontgjengivelse, så valgt font/farge/bakgrunn/emoji blir riktig.
+async function renderHookPngBlob(W,H,text){
+  const h=(typeof state!=='undefined'&&state.hookStyle)||{font:"'Playpen Sans'",size:24,color:'#ffffff',bg:'none'};
+  const fontPx=Math.max(22,Math.round((h.size||24)*W/360));
+  const fam=(h.font||"'Playpen Sans'")+",sans-serif";
+  try{ await document.fonts.load('800 '+fontPx+'px '+fam); }catch(e){}
+  const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+  const ctx=cv.getContext('2d');
+  ctx.font='800 '+fontPx+'px '+fam;
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  const maxW=W*0.86;
+  const words=(text||'').split(/\s+/).filter(Boolean);
+  const lines=[]; let cur='';
+  for(const w of words){ const t=cur?cur+' '+w:w; if(ctx.measureText(t).width>maxW&&cur){ lines.push(cur); cur=w; } else cur=t; }
+  if(cur) lines.push(cur);
+  const lineH=fontPx*1.28;
+  const blockH=lines.length*lineH;
+  const hp=(typeof state!=='undefined'&&state.reelHookPos)||'center';
+  const y0= hp==='top'? H*0.10 : hp==='bottom'? (H*0.82-blockH) : (H/2 - blockH/2);
+  const cx=W/2, padX=fontPx*0.42, padY=fontPx*0.16, radius=fontPx*0.3;
+  const useBg=h.bg&&h.bg!=='none';
+  for(let i=0;i<lines.length;i++){
+    const ly=y0+i*lineH;
+    const lw=ctx.measureText(lines[i]).width;
+    if(useBg){
+      ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetY=0;
+      ctx.fillStyle=h.bg; roundRectPath(ctx,cx-lw/2-padX,ly-padY,lw+padX*2,fontPx+padY*2,radius); ctx.fill();
+    } else {
+      ctx.shadowColor='rgba(0,0,0,.7)'; ctx.shadowBlur=fontPx*0.3; ctx.shadowOffsetY=fontPx*0.06;
+    }
+    ctx.fillStyle=h.color||'#ffffff';
+    ctx.fillText(lines[i],cx,ly);
+    ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetY=0;
+  }
+  return await new Promise(function(res){ cv.toBlob(function(b){res(b);},'image/png'); });
+}
+
+// ── Bak valgt musikk OG/ELLER hook-tekst inn i en opplastet reel-video (create-flyten) ──
+// Musikk hentes via same-origin proxy (/api/audio) for å unngå CORS i FFmpeg.
+async function bakeReel(videoFile, opts){
+  opts=opts||{};
   const ff = await loadFFmpeg();
   const { fetchFile } = FFmpegWASM;
-  if(statusEl) statusEl.innerHTML='<div class="pub-status loading" style="margin-top:10px;">Baker inn musikken i videoen… <span class="loading-dots"><span></span><span></span><span></span></span></div>';
+  const statusEl=opts.statusEl;
+  if(statusEl) statusEl.innerHTML='<div class="pub-status loading" style="margin-top:10px;">Ferdigstiller reelen (musikk og hook)… <span class="loading-dots"><span></span><span></span><span></span></span></div>';
   await ff.writeFile('reelin.mp4', await fetchFile(videoFile));
-  const prox = '/api/audio?url=' + encodeURIComponent(musicUrl);
-  let mblob;
-  try{ mblob = await (await fetch(prox)).blob(); }
-  catch(e){ throw new Error('Kunne ikke hente musikken'); }
-  await ff.writeFile('reelmus.m4a', await fetchFile(mblob));
-  await ff.exec([
-    '-i','reelin.mp4','-i','reelmus.m4a',
-    '-filter_complex', `[1:a]volume=${vol},aloop=loop=-1:size=2000000000[mus];[0:a][mus]amix=inputs=2:duration=first:dropout_transition=2[aout]`,
-    '-map','0:v','-map','[aout]',
-    '-c:v','copy','-c:a','aac','-b:a','128k',
-    '-movflags','+faststart','-y','reelout.mp4'
-  ]);
+  const args=['-i','reelin.mp4']; const fc=[]; let idx=1; let vlabel='0:v';
+  let hasHook=false, hasMusic=false;
+  if(opts.hookText && opts.hookText.trim()){
+    const vp=document.getElementById('video-preview');
+    const W=(vp&&vp.videoWidth)||1080, H=(vp&&vp.videoHeight)||1920;
+    const png=await renderHookPngBlob(W,H,opts.hookText.trim());
+    if(png){ await ff.writeFile('hook.png', await fetchFile(png)); args.push('-i','hook.png'); fc.push('[0:v]['+idx+':v]overlay=0:0[v]'); vlabel='[v]'; idx++; hasHook=true; }
+  }
+  if(opts.musicUrl){
+    const prox='/api/audio?url='+encodeURIComponent(opts.musicUrl);
+    let mblob; try{ mblob=await (await fetch(prox)).blob(); }catch(e){ throw new Error('Kunne ikke hente musikken'); }
+    await ff.writeFile('reelmus.m4a', await fetchFile(mblob)); args.push('-i','reelmus.m4a');
+    fc.push('['+idx+':a]volume='+opts.vol+',aloop=loop=-1:size=2000000000[mus];[0:a][mus]amix=inputs=2:duration=first:dropout_transition=2[aout]'); idx++; hasMusic=true;
+  }
+  if(fc.length) args.push('-filter_complex', fc.join(';'));
+  args.push('-map', vlabel);
+  args.push('-map', hasMusic?'[aout]':'0:a?');
+  args.push('-c:v', hasHook?'libx264':'copy');
+  if(hasHook){ args.push('-preset','ultrafast','-crf','23'); }
+  args.push('-c:a', hasMusic?'aac':'copy');
+  if(hasMusic){ args.push('-b:a','128k'); }
+  args.push('-movflags','+faststart','-shortest','-y','reelout.mp4');
+  await ff.exec(args);
   const data = await ff.readFile('reelout.mp4');
-  try{ await ff.deleteFile('reelin.mp4'); }catch(e){}
-  try{ await ff.deleteFile('reelmus.m4a'); }catch(e){}
-  try{ await ff.deleteFile('reelout.mp4'); }catch(e){}
+  ['reelin.mp4','hook.png','reelmus.m4a','reelout.mp4'].forEach(function(f){ try{ ff.deleteFile(f); }catch(e){} });
   return new Blob([data.buffer], {type:'video/mp4'});
 }
 
