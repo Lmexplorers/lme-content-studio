@@ -688,6 +688,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
       <button class="nav-menu-btn" onclick="toggleNavMenu()">Mer</button>
       <div class="nav-dropdown" id="nav-dropdown">
         <button class="nav-dropdown-item" onclick="showTab('variants',this);closeNavMenu()">Varianter per kanal</button>
+        <button class="nav-dropdown-item" onclick="showTab('models',this);closeNavMenu()">AI-modeller</button>
         <button class="nav-dropdown-item" onclick="showTab('plan',this);closeNavMenu()">30-dagers plan</button>
         <button class="nav-dropdown-item" onclick="showTab('canva',this);closeNavMenu()">Canva</button>
         <button class="nav-dropdown-item" onclick="showTab('editor',this);closeNavMenu()">Editor</button>
@@ -1145,6 +1146,20 @@ input[type=range]{width:100%;accent-color:var(--rose);}
   if(document.readyState!=='loading') init(); else document.addEventListener('DOMContentLoaded',init);
 })();
 </script>
+
+<div id="tab-models" style="display:none;"><style>
+  #tab-models .mp-intro{font-size:13.5px;color:var(--text-s);line-height:1.6;margin:6px 0 22px;}
+  #tab-models .mp-group{margin-bottom:28px;}
+  #tab-models .mp-group h3{font-family:'Playpen Sans';font-size:13px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--rose-d);margin-bottom:14px;}
+  #tab-models .mp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;}
+  #tab-models .mp-card{background:linear-gradient(165deg,#2a1620,#191016);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:16px 16px 18px;color:#fff;box-shadow:0 14px 34px -20px rgba(0,0,0,.7);}
+  #tab-models .mp-badge{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-family:'Playpen Sans';font-weight:800;font-size:18px;color:#fff;margin-bottom:13px;}
+  #tab-models .mp-name{font-family:'Playpen Sans';font-weight:800;font-size:16px;margin-bottom:5px;}
+  #tab-models .mp-desc{font-size:12px;color:rgba(255,255,255,.62);line-height:1.5;min-height:36px;}
+  #tab-models .mp-status{margin-top:13px;display:inline-block;font-size:11px;font-weight:700;border-radius:999px;padding:5px 12px;}
+  #tab-models .mp-on{background:rgba(180,216,112,.22);color:#d2ee8e;}
+  #tab-models .mp-soon{background:rgba(255,255,255,.1);color:rgba(255,255,255,.55);}
+</style><div class="card-title">AI-modeller</div><p class="mp-intro">De beste AI-modellene samlet på ett sted. Tilkoblede modeller er klare til bruk nå, flere kobles på fortløpende.</p><div class="mp-group"><h3>Tekst</h3><div class="mp-grid"><div class="mp-card"><div class="mp-badge" style="background:#10A37F">C</div><div class="mp-name">ChatGPT</div><div class="mp-desc">OpenAI, allsidig og rask tekst</div><span class="mp-status mp-on">Tilkoblet</span></div><div class="mp-card"><div class="mp-badge" style="background:#D97757">C</div><div class="mp-name">Claude</div><div class="mp-desc">Anthropic, varm og presis tekst</div><span class="mp-status mp-on">Tilkoblet</span></div><div class="mp-card"><div class="mp-badge" style="background:#4285F4">G</div><div class="mp-name">Gemini</div><div class="mp-desc">Google, sterk på lang kontekst</div><span class="mp-status mp-on">Tilkoblet</span></div></div></div><div class="mp-group"><h3>Bilde</h3><div class="mp-grid"><div class="mp-card"><div class="mp-badge" style="background:#10A37F">I</div><div class="mp-name">GPT Image</div><div class="mp-desc">OpenAI, skarpe bilder med ren tekst</div><span class="mp-status mp-on">Tilkoblet</span></div><div class="mp-card"><div class="mp-badge" style="background:#F5B400">N</div><div class="mp-name">Nano Banana</div><div class="mp-desc">Google, konsistente figurer</div><span class="mp-status mp-on">Tilkoblet</span></div><div class="mp-card"><div class="mp-badge" style="background:#15151A">F</div><div class="mp-name">Flux</div><div class="mp-desc">Detaljrike, fotorealistiske bilder</div><span class="mp-status mp-soon">Kommer snart</span></div><div class="mp-card"><div class="mp-badge" style="background:#7C3AED">S</div><div class="mp-name">SeeDream</div><div class="mp-desc">Stilrene illustrasjoner</div><span class="mp-status mp-soon">Kommer snart</span></div></div></div><div class="mp-group"><h3>Video</h3><div class="mp-grid"><div class="mp-card"><div class="mp-badge" style="background:#15151A">K</div><div class="mp-name">Kling</div><div class="mp-desc">Jevn, filmatisk bevegelse</div><span class="mp-status mp-soon">Kommer snart</span></div><div class="mp-card"><div class="mp-badge" style="background:#4285F4">V</div><div class="mp-name">Veo</div><div class="mp-desc">Google, video med innebygd lyd</div><span class="mp-status mp-soon">Kommer snart</span></div><div class="mp-card"><div class="mp-badge" style="background:#15151A">S</div><div class="mp-name">Sora</div><div class="mp-desc">OpenAI, kinematiske klipp</div><span class="mp-status mp-soon">Kommer snart</span></div><div class="mp-card"><div class="mp-badge" style="background:#7C3AED">P</div><div class="mp-name">PixVerse</div><div class="mp-desc">Korte, fengende videoklipp</div><span class="mp-status mp-soon">Kommer snart</span></div></div></div></div>
 
 <!-- ════ PRICING ════ -->
 <div id="tab-pricing" style="display:none;">
@@ -2154,7 +2169,7 @@ function changeWeek(d){ state.weekOffset+=d; renderCalendar(); }
 
 // ══ TABS ══
 function showTab(id,btn){
-  ['create','calendar','ideas','history','plan','pricing','settings','canva','editor','variants'].forEach(t=>{
+  ['create','calendar','ideas','history','plan','pricing','settings','canva','editor','variants','models'].forEach(t=>{
     const el=document.getElementById('tab-'+t);
     if(el) el.style.display=t===id?'block':'none';
   });
