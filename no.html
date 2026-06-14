@@ -939,6 +939,13 @@ input[type=range]{width:100%;accent-color:var(--rose);}
       </select>
     </label>
     <input class="var-topic" id="var-style-custom" type="text" style="display:none;" placeholder="Beskriv din egen stil, f.eks. myk pastell, håndtegnet"/>
+    <label class="vstyle-row">Bildemodell:
+      <select id="var-imgmodel" class="vfmt">
+        <option value="nano">Nano Banana (best for like figurer)</option>
+        <option value="nano-pro">Nano Banana Pro</option>
+        <option value="dalle3">DALL-E / GPT Image</option>
+      </select>
+    </label>
     <div class="var-channels" id="var-channels"></div>
     <button class="gen-btn" id="var-gen-btn" type="button">✨ Generer varianter</button>
     <div id="var-status" style="font-size:12px;color:var(--text-s);margin-top:8px;"></div>
@@ -1013,11 +1020,28 @@ input[type=range]{width:100%;accent-color:var(--rose);}
     return st+' '+chars+brand+'Scene: '+topic+'. No text in image.';
   }
 
-  async function genImageRaw(prompt,dalleSize,gemAspect){
-    var c=cfgGet(); var model=c.imgModel||'dalle3';
+  var _refCache;
+  async function getRef(){
+    if(_refCache!==undefined) return _refCache;
+    try{
+      var r=await fetch('/images/gallery/g-miateo.jpg');
+      var b=await r.blob();
+      var dataUrl=await new Promise(function(res,rej){var fr=new FileReader();fr.onload=function(){res(fr.result);};fr.onerror=rej;fr.readAsDataURL(b);});
+      var m=/^data:([^;]+);base64,(.*)$/.exec(dataUrl);
+      _refCache=m?{mime:m[1],data:m[2]}:null;
+    }catch(e){ _refCache=null; }
+    return _refCache;
+  }
+  async function genImageRaw(prompt,dalleSize,gemAspect,model){
+    var c=cfgGet(); model=model||c.imgModel||'dalle3';
     var key = model==='dalle3' ? c.openaiKey : c.geminiKey;
-    var res=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({type:'image',model:model,key:key,prompt:prompt,size:dalleSize,aspectRatio:gemAspect})});
+    var payload={type:'image',model:model,key:key,prompt:prompt,size:dalleSize,aspectRatio:gemAspect};
+    if((model==='nano'||model==='nano-pro') && (c.charPreset||'miateo')==='miateo'){
+      var ref=await getRef();
+      if(ref){ payload.refData=ref.data; payload.refMime=ref.mime;
+        payload.prompt='Bruk det vedlagte referansebildet av de to figurene Mia og Teo. Hold dem helt identiske med referansen (samme ansikter, hår, klær, proporsjoner). Ny scene: '+prompt; }
+    }
+    var res=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     var d=await res.json().catch(function(){return {};});
     if(!res.ok||d.error) throw new Error(d.error||('Feil '+res.status));
     if(!d.imageUrl) throw new Error('Ingen bilde i svaret');
@@ -1073,7 +1097,8 @@ input[type=range]{width:100%;accent-color:var(--rose);}
         '<div class="var-actions">'+
           '<button class="act-btn" type="button" data-copy="'+ch.id+'">📋 Kopier tekst</button>'+
           '<button class="act-btn sage-btn" type="button" data-img="'+ch.id+'">🎨 Lag bilde</button>'+
-        '</div><div id="vimg-'+ch.id+'"></div>';
+          '<button class="act-btn" type="button" data-upload="'+ch.id+'">⬆️ Last opp eget</button>'+
+        '</div><input type="file" accept="image/*" id="vup-'+ch.id+'" style="display:none;"><div id="vimg-'+ch.id+'"></div>';
       results.appendChild(card);
       lastResults[ch.id]={topic:topic};
       if(varMode==='ai'){
@@ -1103,14 +1128,27 @@ input[type=range]{width:100%;accent-color:var(--rose);}
         var holder=document.getElementById('vimg-'+id); var tp=(lastResults[id]&&lastResults[id].topic)||topic;
         var styleSel=document.getElementById('var-style'); var styleKey=styleSel?styleSel.value:'pixar';
         var styleCustomEl=document.getElementById('var-style-custom'); var styleCustom=styleCustomEl?styleCustomEl.value:'';
+        var imSel=document.getElementById('var-imgmodel'); var imModel=imSel?imSel.value:(cfgGet().imgModel||'nano');
         b.disabled=true; b.textContent='🤖 Lager bilde…';
-        genImageRaw(imgPrompt(tp,styleKey,styleCustom),fmt.dalle,fmt.gem).then(function(url){
+        genImageRaw(imgPrompt(tp,styleKey,styleCustom),fmt.dalle,fmt.gem,imModel).then(function(url){
           holder.innerHTML='<img class="var-img" src="'+url+'"><div class="var-actions"><a class="act-btn" href="'+url+'" download="lme-'+id+'.png">⬇️ Last ned</a></div>';
           b.disabled=false; b.textContent='🎨 Lag bilde';
         }).catch(function(e){
           holder.innerHTML='<div class="var-err">Bildefeil: '+esc(e.message)+'</div>';
           b.disabled=false; b.textContent='🎨 Lag bilde';
         });
+      });
+    });
+
+    results.querySelectorAll('[data-upload]').forEach(function(b){
+      b.addEventListener('click',function(){ var inp=document.getElementById('vup-'+b.getAttribute('data-upload')); if(inp) inp.click(); });
+    });
+    results.querySelectorAll('input[type=file]').forEach(function(inp){
+      inp.addEventListener('change',function(){
+        var f=inp.files&&inp.files[0]; if(!f) return; var id=inp.id.replace('vup-','');
+        var fr=new FileReader(); fr.onload=function(){ var url=fr.result;
+          document.getElementById('vimg-'+id).innerHTML='<img class="var-img" src="'+url+'"><div class="var-actions"><a class="act-btn" href="'+url+'" download="lme-'+id+'.png">⬇️ Last ned</a></div>';
+        }; fr.readAsDataURL(f);
       });
     });
   }
