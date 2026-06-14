@@ -1005,7 +1005,6 @@ input[type=range]{width:100%;accent-color:var(--rose);}
     <div class="card-title" style="color:var(--gold);">Characters</div>
     <div style="font-size:11px;color:var(--text-s);margin-bottom:10px;line-height:1.6;">Choose which characters to use in your content</div>
     <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px;">
-      <button class="chip" id="char-miateo" onclick="selectCharPreset('miateo')">🌿 Mia & Teo</button>
       <button class="chip" id="char-custom" onclick="selectCharPreset('custom')">✨ Custom characters</button>
       <button class="chip" id="char-none" onclick="selectCharPreset('none')">— None</button>
     </div>
@@ -1647,7 +1646,7 @@ const TOPICS = [
 ];
 
 const AGE_GROUPS  = ['3–6 years','6–9 years','Both age groups','Parents general'];
-const CHARACTERS  = ['Mia and Teo','Mia','Teo','Custom characters','No character'];
+const CHARACTERS  = ['Custom characters','No character'];
 const TONES       = ['Warm and personal','Educational','Inspiring','Playful and fun','Direct and clear'];
 const PLATFORMS   = ['Instagram','TikTok','Facebook','Threads','YouTube','Pinterest','LinkedIn'];
 const WEEKDAYS    = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
@@ -1702,7 +1701,7 @@ const PLAN_DAYS = [
 // ══ STATE ══
 const state = {
   format:'carousel', topic:'Child-led activity', customTopic:'',
-  ageGroup:'3–6 år', char:'Mia and Teo', tone:'Warm and personal',
+  ageGroup:'3–6 år', char:'No character', tone:'Warm and personal',
   slideCount:5, cta:'', extra:'',
   platforms:['Instagram'],
   result:null, slides:null, currentSlide:0,
@@ -1713,13 +1712,13 @@ const state = {
 
 // ══ DEFAULT SETTINGS ══
 const DEFAULTS = {
-  brand:'Little Montessori Explorers',
-  niche:'Montessori-pedagogikk for barn 3-9 år',
-  voice:'Varm, pedagogisk, naturbasert. Alltid Montessori-forankret.',
-  audience:'Foreldre og pedagoger med barn 3-9 år',
-  greeting:'Hei, kjære! 🌸',
-  signature:'Med kjærlighet, Renate 🌿',
-  email:'hello@littlemontessoriexplorers.com',
+  brand:'',
+  niche:'',
+  voice:'',
+  audience:'',
+  greeting:'Hi!',
+  signature:'',
+  email:'',
   profiler:[
     {plattform:'Instagram',  brukernavn:'@littlemontessoriexplorers'},
     {plattform:'TikTok',     brukernavn:'@littlemontessoriexplorers'},
@@ -1730,7 +1729,7 @@ const DEFAULTS = {
     {plattform:'Pinterest',  brukernavn:'littlemontessoriexplorers'},
     {plattform:'LinkedIn',   brukernavn:'Little Montessori Explorers'},
   ],
-  charPreset:'miateo', charNames:'', charDesc:'',
+  charPreset:'none', charNames:'', charDesc:'',
   apiKey:'',
   openaiKey:'',
   geminiKey:'',
@@ -1996,7 +1995,7 @@ function buildPrompt(){
   const topic = state.topic==='Custom topic...' ? state.customTopic : state.topic;
   const ctaLine = state.cta ? `Call to action: "${state.cta}"` : 'End with a warm, natural call-to-action.';
   let characters;
-  const preset = cfg.charPreset||'miateo';
+  const preset = cfg.charPreset||'none';
   if(state.char==='No character'){ characters='no specific characters'; }
   else if(state.char==='Custom characters'&&cfg.charNames){ characters=`${cfg.charNames}${cfg.charDesc?' — '+cfg.charDesc:''}`; }
   else if(state.char==='Custom characters'){ characters='custom characters (add names in Settings)'; }
@@ -2004,7 +2003,7 @@ function buildPrompt(){
   else if(preset==='custom'&&cfg.charNames){ characters=`${cfg.charNames}${cfg.charDesc?' — '+cfg.charDesc:''}`; }
   else if(state.char==='Mia'){ characters='Mia – a curious 6-year-old girl who loves nature and exploration'; }
   else if(state.char==='Teo'){ characters='Teo – a curious 6-year-old boy who loves nature and exploration'; }
-  else{ characters='Mia and Teo – two curious 6-year-old nature explorers'; }
+  else{ characters='no specific characters'; }
   const base=`You are a social media content expert for "${cfg.brand||'Little Montessori Explorers'}" in the niche: "${cfg.niche||'Montessori pedagogy for children 3-9 years'}". ${characters!=='no specific characters'?`Characters: ${characters}.`:''} Brand voice: ${cfg.voice||'Warm, educational, nature-based'}. Audience: ${cfg.audience||state.ageGroup}. Tone: ${state.tone}. Language: English. Topic: "${topic}". ${state.extra?'Context: '+state.extra:''}`;
 
   if(state.format==='carousel'||state.format==='story'){
@@ -2257,7 +2256,6 @@ async function genererBilde(){
     const topic=state.topic==='Custom theme...'?state.customTopic:state.topic;
     const is916=state.format==='story'||state.format==='reel';
     const size=is916?'1024x1792':'1024x1024';
-    const useMT=(cfg.charPreset||'miateo')==='miateo';
 
     // Extract hook from generated content for image prompt
     const contentText = Array.isArray(state.result) ? state.result[0] : state.result;
@@ -2266,15 +2264,9 @@ async function genererBilde(){
 
     const hookPart = hook ? `Hook concept: "${hook}". ` : '';
     const sizePart = is916 ? 'Vertical 9:16 portrait format.' : 'Square 1:1 format.';
-    const prompt=useMT
-      ?`Two fixed, identical children\'s book characters, must remain exactly the same in every image, no variation:
-Mia: 6-year-old girl, fair skin, large round blue eyes, small nose, soft rosy cheeks, happy smile. Blonde hair in a high ponytail with a pink hair tie ONLY (never loose, never braids). Wearing a simple pink knee-length dress, white socks, pink sandals. Always holding a small light brown woven basket with flowers or fruit.
-Teo: 6-year-old boy, fair skin, large brown eyes, short slightly messy brown hair. Wearing a yellow t-shirt with horizontal stripes ONLY, blue shorts, brown shoes, and a small brown backpack.
-Style: soft children\'s book illustration, semi-realistic cartoon, clean outlines, soft shading, bright natural colors, NOT anime, NOT Pixar, NOT watercolor.
-Rules: same faces in every image, same proportions and head size, same clothing no changes, same hairstyle no variation, no new accessories unless specified, both characters always present.
-Consistency keywords: same character design, identical characters, no variation, no redesign, fixed appearance, repeatable character model, character model sheet consistency, locked design, do not change character appearance.
-SCENE: ${topic}. ${hookPart}Outdoor nature setting, soft sunlight, warm playful atmosphere. ${sizePart} No text in image.`
-      :`Soft children\'s book illustration, semi-realistic cartoon, clean outlines, soft shading, bright natural colors. Scene: "${topic}". ${hookPart}Little Montessori Explorers brand. Outdoor nature setting, soft sunlight, warm playful atmosphere. No text in image. ${sizePart}`;
+    const _brandPart = cfg.brand ? cfg.brand+'. ' : '';
+    const _charPart = (cfg.charPreset==='custom'&&cfg.charNames) ? ('Featuring '+cfg.charNames+(cfg.charDesc?' ('+cfg.charDesc+')':'')+'. ') : '';
+    const prompt=`High-quality, polished, modern social media illustration. ${_charPart}Scene: "${topic}". ${hookPart}${_brandPart}Warm, professional style. No text in image. ${sizePart}`;
 
     let imageUrl;
     if(imgModel==='dalle3'){
@@ -2613,7 +2605,7 @@ function applySettingsToUI(){
   s('s-socialbu-accounts',(cfg.socialbuAccounts||[]).join(', '));
   s('s-make-webhook',cfg.makeWebhook);
   s('s-char-names',cfg.charNames); s('s-char-desc',cfg.charDesc);
-  selectCharPreset(cfg.charPreset||'miateo');
+  selectCharPreset(cfg.charPreset||'none');
   loadNotificationState();
 }
 function saveSettings(){
@@ -2692,7 +2684,7 @@ function loadNotificationState(){
 }
 function selectCharPreset(preset){
   cfg.charPreset=preset;
-  ['miateo','custom','none'].forEach(p=>{
+  ['custom','none'].forEach(p=>{
     const el=document.getElementById('char-'+p);if(el)el.className='chip'+(p===preset?' active':'');
   });
   const f=document.getElementById('custom-char-fields');if(f)f.style.display=preset==='custom'?'block':'none';
@@ -2700,9 +2692,8 @@ function selectCharPreset(preset){
 }
 function updateCharPreview(){
   const el=document.getElementById('char-preview');if(!el)return;
-  const p=cfg.charPreset||'miateo';
-  if(p==='miateo') el.innerHTML='<strong>Aktiv:</strong> 🌿 Mia & Teo — to nysgjerrige 6-årige naturutforskere';
-  else if(p==='none') el.innerHTML='<strong>Aktiv:</strong> No characterer';
+  const p=cfg.charPreset||'none';
+  if(p==='none') el.innerHTML='<strong>Active:</strong> No characters';
   else el.innerHTML=`<strong>Active:</strong> ✨ ${cfg.charNames||'(add name above)'}${cfg.charDesc?' — '+cfg.charDesc.substring(0,60):''}`;
 }
 

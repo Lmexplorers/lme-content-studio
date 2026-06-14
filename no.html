@@ -1008,39 +1008,15 @@ input[type=range]{width:100%;accent-color:var(--rose);}
   function imgPrompt(topic,styleKey,styleCustom){
     var c=cfgGet();
     var st=styleText(styleKey||'pixar',styleCustom);
-    // Mia og Teo er KUN for LME-eieren (miateo-forhandsvalget). Andre brukere far aldri disse.
-    if((c.charPreset||'miateo')==='miateo'){
-      return 'Two fixed identical characters, identical in every image. '+
-        'Mia: 6-year-old girl, fair skin, large round blue eyes, blonde hair in a high ponytail with a pink hair tie, simple pink knee-length dress, white socks and closed pink shoes (never sandals, feet fully covered, no bare toes), holding a small light brown woven basket. '+
-        'Teo: 6-year-old boy, fair skin, large brown eyes, short messy brown hair, yellow t-shirt with horizontal stripes, blue shorts, brown shoes, small brown backpack. '+
-        st+' Scene: '+topic+'. Outdoor nature setting, warm golden light, cozy and magical atmosphere. No text in image.';
-    }
     var chars=(c.charPreset==='custom'&&c.charNames)?('Featuring '+c.charNames+(c.charDesc?' ('+c.charDesc+')':'')+'. '):'';
     var brand=c.brand?(c.brand+'. '):'';
     return st+' '+chars+brand+'Scene: '+topic+'. No text in image.';
   }
 
-  var _refCache;
-  async function getRef(){
-    if(_refCache!==undefined) return _refCache;
-    try{
-      var r=await fetch('/images/gallery/g-miateo.jpg');
-      var b=await r.blob();
-      var dataUrl=await new Promise(function(res,rej){var fr=new FileReader();fr.onload=function(){res(fr.result);};fr.onerror=rej;fr.readAsDataURL(b);});
-      var m=/^data:([^;]+);base64,(.*)$/.exec(dataUrl);
-      _refCache=m?{mime:m[1],data:m[2]}:null;
-    }catch(e){ _refCache=null; }
-    return _refCache;
-  }
   async function genImageRaw(prompt,dalleSize,gemAspect,model){
     var c=cfgGet(); model=model||c.imgModel||'dalle3';
     var key = model==='dalle3' ? c.openaiKey : c.geminiKey;
     var payload={type:'image',model:model,key:key,prompt:prompt,size:dalleSize,aspectRatio:gemAspect};
-    if((model==='nano'||model==='nano-pro') && (c.charPreset||'miateo')==='miateo'){
-      var ref=await getRef();
-      if(ref){ payload.refData=ref.data; payload.refMime=ref.mime;
-        payload.prompt='Bruk det vedlagte referansebildet av de to figurene Mia og Teo. Hold dem helt identiske med referansen (samme ansikter, hår, klær, proporsjoner). Ny scene: '+prompt; }
-    }
     var res=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     var d=await res.json().catch(function(){return {};});
     if(!res.ok||d.error) throw new Error(d.error||('Feil '+res.status));
@@ -1285,7 +1261,6 @@ input[type=range]{width:100%;accent-color:var(--rose);}
     <div class="card-title" style="color:var(--gold);">Karakterer</div>
     <div style="font-size:11px;color:var(--text-s);margin-bottom:10px;line-height:1.6;">Velg hvilke karakterer som brukes i innholdet ditt</div>
     <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px;">
-      <button class="chip" id="char-miateo" onclick="selectCharPreset('miateo')">🌿 Mia & Teo</button>
       <button class="chip" id="char-custom" onclick="selectCharPreset('custom')">✨ Egne karakterer</button>
       <button class="chip" id="char-none" onclick="selectCharPreset('none')">— Ingen</button>
     </div>
@@ -1935,7 +1910,7 @@ const TOPICS = [
 ];
 
 const AGE_GROUPS  = ['3–6 år','6–9 år','Begge aldersgrupper','Foreldre generelt'];
-const CHARACTERS  = ['Mia og Teo','Mia','Teo','Egne karakterer','Ingen karakter'];
+const CHARACTERS  = ['Egne karakterer','Ingen karakter'];
 const TONES       = ['Varm og personlig','Pedagogisk','Inspirerende','Leken og morsom','Direkte og tydelig'];
 const PLATFORMS   = ['Instagram','TikTok','Facebook','Threads','YouTube','Pinterest','LinkedIn'];
 const WEEKDAYS    = ['Man','Tir','Ons','Tor','Fre','Lør','Søn'];
@@ -1990,7 +1965,7 @@ const PLAN_DAYS = [
 // ══ STATE ══
 const state = {
   format:'carousel', topic:'Barneledet aktivitet', customTopic:'',
-  ageGroup:'3–6 år', char:'Mia og Teo', tone:'Varm og personlig',
+  ageGroup:'3–6 år', char:'Ingen karakter', tone:'Varm og personlig',
   slideCount:5, cta:'', extra:'',
   platforms:['Instagram'],
   result:null, slides:null, currentSlide:0,
@@ -2001,24 +1976,24 @@ const state = {
 
 // ══ DEFAULT SETTINGS ══
 const DEFAULTS = {
-  brand:'Little Montessori Explorers',
-  niche:'Montessori-pedagogikk for barn 3-9 år',
-  voice:'Varm, pedagogisk, naturbasert. Alltid Montessori-forankret.',
-  audience:'Foreldre og pedagoger med barn 3-9 år',
-  greeting:'Hei, kjære! 🌸',
-  signature:'Med kjærlighet, Renate 🌿',
-  email:'hello@littlemontessoriexplorers.com',
+  brand:'',
+  niche:'',
+  voice:'',
+  audience:'',
+  greeting:'Hei!',
+  signature:'',
+  email:'',
   profiler:[
-    {plattform:'Instagram',  brukernavn:'@littlemontessoriexplorers'},
-    {plattform:'TikTok',     brukernavn:'@littlemontessoriexplorers'},
-    {plattform:'Facebook',   brukernavn:'Little Montessori Explorers'},
-    {plattform:'Threads',    brukernavn:'@littlemontessoriexplorers'},
-    {plattform:'X / Twitter',brukernavn:'@LMExplorers'},
-    {plattform:'YouTube',    brukernavn:'Little Montessori Explorers'},
-    {plattform:'Pinterest',  brukernavn:'littlemontessoriexplorers'},
-    {plattform:'LinkedIn',   brukernavn:'Little Montessori Explorers'},
+    {plattform:'Instagram',  brukernavn:''},
+    {plattform:'TikTok',     brukernavn:''},
+    {plattform:'Facebook',   brukernavn:''},
+    {plattform:'Threads',    brukernavn:''},
+    {plattform:'X / Twitter',brukernavn:''},
+    {plattform:'YouTube',    brukernavn:''},
+    {plattform:'Pinterest',  brukernavn:''},
+    {plattform:'LinkedIn',   brukernavn:''},
   ],
-  charPreset:'miateo', charNames:'', charDesc:'',
+  charPreset:'none', charNames:'', charDesc:'',
   apiKey:'',
   openaiKey:'',
   geminiKey:'',
@@ -2284,7 +2259,7 @@ function buildPrompt(){
   const topic = state.topic==='Custom topic...' ? state.customTopic : state.topic;
   const ctaLine = state.cta ? `Call to action: "${state.cta}"` : 'End with a warm, natural call-to-action.';
   let characters;
-  const preset = cfg.charPreset||'miateo';
+  const preset = cfg.charPreset||'none';
   if(state.char==='Ingen karakter'){ characters='ingen spesifikke karakterer'; }
   else if(state.char==='Egne karakterer'&&cfg.charNames){ characters=`${cfg.charNames}${cfg.charDesc?' — '+cfg.charDesc:''}`; }
   else if(state.char==='Egne karakterer'){ characters='egendefinerte karakterer (legg til navn i Innstillinger)'; }
@@ -2292,7 +2267,7 @@ function buildPrompt(){
   else if(preset==='custom'&&cfg.charNames){ characters=`${cfg.charNames}${cfg.charDesc?' — '+cfg.charDesc:''}`; }
   else if(state.char==='Mia'){ characters='Mia – en nysgjerrig 6-årig jente som elsker natur og utforsking'; }
   else if(state.char==='Teo'){ characters='Teo – en nysgjerrig 6-årig gutt som elsker natur og utforsking'; }
-  else{ characters='Mia og Teo – to nysgjerrige 6-årige naturutforskere'; }
+  else{ characters='ingen spesifikke karakterer'; }
   const base=`You are a social media content expert for "${cfg.brand||'Little Montessori Explorers'}" in the niche: "${cfg.niche||'Montessori-pedagogikk for barn 3-9 år'}". ${characters!=='no specific characters'?`Characters: ${characters}.`:''} Brand voice: ${cfg.voice||'Varm, pedagogisk, naturbasert'}. Audience: ${cfg.audience||state.ageGroup}. Tone: ${state.tone}. Language: Norwegian bokmål. Topic: "${topic}". ${state.extra?'Context: '+state.extra:''}
 
 NORSKE SKRIVEREGLER (følg alltid i norsk tekst): Bruk rette anførselstegn, aldri « ». Bruk ALDRI lange bindestreker (— eller –), bruk heller komma, kolon, punktum eller "og". VIKTIG kolonregel (gjøres ofte feil): stor forbokstav etter kolon KUN når en hel setning følger (eksempel: "Husk: Du trenger ikke være ekspert."), ellers liten forbokstav ved oppramsinger, undertitler og fragmenter (eksempel: "Faste holdepunkter: måltider, hvile og leggetid."). Liten forbokstav etter semikolon. Komma foran "men", "for" og "så" når de binder to helsetninger, komma etter en innledende leddsetning, komma rundt innskutte setninger, og ikke komma foran siste "og" i en oppramsing.`;
@@ -2547,7 +2522,6 @@ async function genererBilde(){
     const topic=state.topic==='Eget tema...'?state.customTopic:state.topic;
     const is916=state.format==='story'||state.format==='reel';
     const size=is916?'1024x1792':'1024x1024';
-    const useMT=(cfg.charPreset||'miateo')==='miateo';
 
     // Extract hook from generated content for image prompt
     const contentText = Array.isArray(state.result) ? state.result[0] : state.result;
@@ -2556,15 +2530,9 @@ async function genererBilde(){
 
     const hookPart = hook ? `Hook concept: "${hook}". ` : '';
     const sizePart = is916 ? 'Vertical 9:16 portrait format.' : 'Square 1:1 format.';
-    const prompt=useMT
-      ?`Two fixed, identical children\'s book characters, must remain exactly the same in every image, no variation:
-Mia: 6-year-old girl, fair skin, large round blue eyes, small nose, soft rosy cheeks, happy smile. Blonde hair in a high ponytail with a pink hair tie ONLY (never loose, never braids). Wearing a simple pink knee-length dress, white socks and closed pink shoes (never sandals, feet fully covered, no bare toes). Always holding a small light brown woven basket with flowers or fruit.
-Teo: 6-year-old boy, fair skin, large brown eyes, short slightly messy brown hair. Wearing a yellow t-shirt with horizontal stripes ONLY, blue shorts, brown shoes, and a small brown backpack.
-Style: soft children\'s book illustration, semi-realistic cartoon, clean outlines, soft shading, bright natural colors, NOT anime, NOT Pixar, NOT watercolor.
-Rules: same faces in every image, same proportions and head size, same clothing no changes, same hairstyle no variation, no new accessories unless specified, both characters always present.
-Consistency keywords: same character design, identical characters, no variation, no redesign, fixed appearance, repeatable character model, character model sheet consistency, locked design, do not change character appearance.
-SCENE: ${topic}. ${hookPart}Outdoor nature setting, soft sunlight, warm playful atmosphere. ${sizePart} No text in image.`
-      :`Soft children\'s book illustration, semi-realistic cartoon, clean outlines, soft shading, bright natural colors. Scene: "${topic}". ${hookPart}Little Montessori Explorers brand. Outdoor nature setting, soft sunlight, warm playful atmosphere. No text in image. ${sizePart}`;
+    const _brandPart = cfg.brand ? cfg.brand+'. ' : '';
+    const _charPart = (cfg.charPreset==='custom'&&cfg.charNames) ? ('Featuring '+cfg.charNames+(cfg.charDesc?' ('+cfg.charDesc+')':'')+'. ') : '';
+    const prompt=`High-quality, polished, modern social media illustration. ${_charPart}Scene: "${topic}". ${hookPart}${_brandPart}Warm, professional style. No text in image. ${sizePart}`;
 
     let imageUrl;
     {
@@ -2887,7 +2855,7 @@ function applySettingsToUI(){
   s('s-socialbu-accounts',(cfg.socialbuAccounts||[]).join(', '));
   s('s-make-webhook',cfg.makeWebhook);
   s('s-char-names',cfg.charNames); s('s-char-desc',cfg.charDesc);
-  selectCharPreset(cfg.charPreset||'miateo');
+  selectCharPreset(cfg.charPreset||'none');
   loadNotificationState();
 }
 function saveSettings(){
@@ -2962,7 +2930,7 @@ function loadNotificationState(){
 }
 function selectCharPreset(preset){
   cfg.charPreset=preset;
-  ['miateo','custom','none'].forEach(p=>{
+  ['custom','none'].forEach(p=>{
     const el=document.getElementById('char-'+p);if(el)el.className='chip'+(p===preset?' active':'');
   });
   const f=document.getElementById('custom-char-fields');if(f)f.style.display=preset==='custom'?'block':'none';
@@ -2970,9 +2938,8 @@ function selectCharPreset(preset){
 }
 function updateCharPreview(){
   const el=document.getElementById('char-preview');if(!el)return;
-  const p=cfg.charPreset||'miateo';
-  if(p==='miateo') el.innerHTML='<strong>Aktiv:</strong> 🌿 Mia & Teo — to nysgjerrige 6-årige naturutforskere';
-  else if(p==='none') el.innerHTML='<strong>Aktiv:</strong> Ingen karakterer';
+  const p=cfg.charPreset||'none';
+  if(p==='none') el.innerHTML='<strong>Aktiv:</strong> Ingen karakterer';
   else el.innerHTML=`<strong>Aktiv:</strong> ✨ ${cfg.charNames||'(legg til navn ovenfor)'}${cfg.charDesc?' — '+cfg.charDesc.substring(0,60):''}`;
 }
 
