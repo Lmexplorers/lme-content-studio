@@ -75,13 +75,13 @@ export async function onRequestPost(context) {
         const key = env.GEMINI_API_KEY || body.key;
         if (!key) return json({ error: "Gemini-nøkkel mangler. Legg den inn i Innstillinger." }, 400);
         const gModel = model === "nano-pro" ? "gemini-3-pro-image-preview" : "gemini-2.5-flash-image";
-        const parts = [];
-        if (body.refData) parts.push({ inlineData: { mimeType: body.refMime || "image/jpeg", data: body.refData } });
-        parts.push({ text: body.prompt });
+        const reqParts = [];
+        if (body.refData) reqParts.push({ inlineData: { mimeType: body.refMime || "image/jpeg", data: body.refData } });
+        reqParts.push({ text: body.prompt });
         const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + gModel + ":generateContent", {
           method: "POST",
           headers: { "Content-Type": "application/json", "x-goog-api-key": key },
-          body: JSON.stringify({ contents: [{ parts: parts }], generationConfig: { responseModalities: ["TEXT", "IMAGE"], imageConfig: { aspectRatio: body.aspectRatio || "1:1" } } }),
+          body: JSON.stringify({ contents: [{ parts: reqParts }], generationConfig: { responseModalities: ["TEXT", "IMAGE"], imageConfig: { aspectRatio: body.aspectRatio || "1:1" } } }),
         });
         const d = await r.json().catch(() => ({}));
         if (!r.ok) return json({ error: (d.error && d.error.message) || ("Gemini " + r.status) }, 200);
