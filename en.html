@@ -699,6 +699,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
       <button class="nav-menu-btn" onclick="toggleNavMenu()">More</button>
       <div class="nav-dropdown" id="nav-dropdown">
         <button class="nav-dropdown-item" onclick="showTab('models',this);closeNavMenu()">AI-modeller</button>
+        <button class="nav-dropdown-item" onclick="showTab('video',this);closeNavMenu()">AI video</button>
         <button class="nav-dropdown-item" onclick="showTab('plan',this);closeNavMenu()">30-day plan</button>
         <button class="nav-dropdown-item" onclick="showTab('canva',this);closeNavMenu()">Canva</button>
         <button class="nav-dropdown-item" onclick="showTab('editor',this);closeNavMenu()">Editor</button>
@@ -1006,6 +1007,72 @@ input[type=range]{width:100%;accent-color:var(--rose);}
   #tab-models .mp-on{background:rgba(180,216,112,.22);color:#d2ee8e;}
   #tab-models .mp-soon{background:rgba(255,255,255,.1);color:rgba(255,255,255,.55);}
 </style><div class="card-title">AI models</div><p class="mp-intro">The best AI models in one place. Connected models are ready to use now, more are being added.</p><div class="mp-group"><h3>Text</h3><div class="mp-grid"><div class="mp-card"><div class="mp-badge" style="background:#10A37F">C</div><div class="mp-name">ChatGPT</div><div class="mp-desc">OpenAI, versatile and fast text</div><span class="mp-status mp-on">Connected</span></div><div class="mp-card"><div class="mp-badge" style="background:#D97757">C</div><div class="mp-name">Claude</div><div class="mp-desc">Anthropic, warm and precise text</div><span class="mp-status mp-on">Connected</span></div><div class="mp-card"><div class="mp-badge" style="background:#4285F4">G</div><div class="mp-name">Gemini</div><div class="mp-desc">Google, strong on long context</div><span class="mp-status mp-on">Connected</span></div></div></div><div class="mp-group"><h3>Image</h3><div class="mp-grid"><div class="mp-card"><div class="mp-badge" style="background:#10A37F">I</div><div class="mp-name">GPT Image</div><div class="mp-desc">OpenAI, sharp images with clean text</div><span class="mp-status mp-on">Connected</span></div><div class="mp-card"><div class="mp-badge" style="background:#F5B400">N</div><div class="mp-name">Nano Banana</div><div class="mp-desc">Google, consistent characters</div><span class="mp-status mp-on">Connected</span></div><div class="mp-card"><div class="mp-badge" style="background:#15151A">F</div><div class="mp-name">Flux</div><div class="mp-desc">Detailed, photorealistic images</div><span class="mp-status mp-soon">Coming soon</span></div><div class="mp-card"><div class="mp-badge" style="background:#7C3AED">S</div><div class="mp-name">SeeDream</div><div class="mp-desc">Clean, stylish illustrations</div><span class="mp-status mp-soon">Coming soon</span></div></div></div><div class="mp-group"><h3>Video</h3><div class="mp-grid"><div class="mp-card"><div class="mp-badge" style="background:#15151A">K</div><div class="mp-name">Kling</div><div class="mp-desc">Smooth, cinematic motion</div><span class="mp-status mp-soon">Coming soon</span></div><div class="mp-card"><div class="mp-badge" style="background:#4285F4">V</div><div class="mp-name">Veo</div><div class="mp-desc">Google, video with built-in audio</div><span class="mp-status mp-soon">Coming soon</span></div><div class="mp-card"><div class="mp-badge" style="background:#15151A">S</div><div class="mp-name">Sora</div><div class="mp-desc">OpenAI, cinematic clips</div><span class="mp-status mp-soon">Coming soon</span></div><div class="mp-card"><div class="mp-badge" style="background:#7C3AED">P</div><div class="mp-name">PixVerse</div><div class="mp-desc">Short, eye-catching video</div><span class="mp-status mp-soon">Coming soon</span></div></div></div></div>
+
+<!-- ════ AI VIDEO ════ -->
+<div id="tab-video" style="display:none;">
+  <style>
+  #tab-video .vid-hero{background:linear-gradient(135deg,var(--rose),var(--rose-d));color:#fff;border-radius:20px;padding:22px 20px;margin-bottom:16px;}
+  #tab-video .vid-hero h2{font-family:'Playpen Sans';font-weight:900;font-size:22px;margin-bottom:4px;}
+  #tab-video .vid-hero p{font-size:13px;opacity:.92;line-height:1.5;}
+  #tab-video h3.vid-grp{font-family:'Playpen Sans';font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--rose-d);margin:18px 0 12px;}
+  #tab-video .vid-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;}
+  #tab-video .vid-card{background:linear-gradient(165deg,#2a1620,#191016);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:16px;color:#fff;box-shadow:0 14px 34px -20px rgba(0,0,0,.7);}
+  #tab-video .vid-badge{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-family:'Playpen Sans';font-weight:800;font-size:20px;color:#fff;margin-bottom:12px;}
+  #tab-video .vid-name{font-family:'Playpen Sans';font-weight:800;font-size:17px;margin-bottom:5px;}
+  #tab-video .vid-desc{font-size:12.5px;color:rgba(255,255,255,.66);line-height:1.5;min-height:36px;}
+  #tab-video .vid-status{margin-top:12px;display:inline-block;font-size:11px;font-weight:700;border-radius:999px;padding:5px 12px;}
+  #tab-video .vid-on{background:rgba(180,216,112,.22);color:#d2ee8e;}
+  #tab-video .vid-soon{background:rgba(255,255,255,.1);color:rgba(255,255,255,.55);}
+  #tab-video .vid-tool{background:#fff;border:1.5px solid var(--border);border-radius:18px;padding:18px;margin-top:8px;}
+  #tab-video .vid-tool .vt-title{font-family:'Playpen Sans';font-weight:800;font-size:16px;margin-bottom:4px;}
+  #tab-video .vid-tool .vt-sub{font-size:12px;color:var(--text-s);margin-bottom:14px;line-height:1.5;}
+  #tab-video .vt-lab{font-size:11px;font-weight:700;color:var(--text-s);margin:12px 0 6px;}
+  #tab-video .vt-chips{display:flex;gap:8px;flex-wrap:wrap;}
+  #tab-video .vt-chip{font-family:'Sasson Montessori';font-size:13px;border:1.5px solid var(--border);background:#fff;color:var(--text-s);border-radius:999px;padding:8px 15px;cursor:pointer;}
+  #tab-video .vt-chip.on{background:var(--rose);border-color:var(--rose);color:#fff;}
+  #tab-video .vt-thumb{width:60px;height:60px;border-radius:10px;object-fit:cover;border:1.5px solid var(--border);}
+  </style>
+  <div class="vid-hero"><h2>AI video 🎬</h2><p>The best video models in one place. Image to video is ready now, more are being added.</p></div>
+
+  <h3 class="vid-grp">Available now</h3>
+  <div class="vid-grid">
+    <div class="vid-card"><div class="vid-badge" style="background:linear-gradient(135deg,#F02478,#9CC000)">KB</div><div class="vid-name">Ken Burns animation</div><div class="vid-desc">Turn an image into a living video with gentle zoom and pan. Made in the browser.</div><span class="vid-status vid-on">Ready to use</span></div>
+  </div>
+
+  <h3 class="vid-grp">Coming soon</h3>
+  <div class="vid-grid">
+    <div class="vid-card"><div class="vid-badge" style="background:#15151A">K</div><div class="vid-name">Kling</div><div class="vid-desc">Smooth, cinematic motion from text or image.</div><span class="vid-status vid-soon">Coming soon</span></div>
+    <div class="vid-card"><div class="vid-badge" style="background:#4285F4">V</div><div class="vid-name">Veo</div><div class="vid-desc">Google, video with built-in audio.</div><span class="vid-status vid-soon">Coming soon</span></div>
+    <div class="vid-card"><div class="vid-badge" style="background:#15151A">S</div><div class="vid-name">Sora</div><div class="vid-desc">OpenAI, cinematic clips from text.</div><span class="vid-status vid-soon">Coming soon</span></div>
+    <div class="vid-card"><div class="vid-badge" style="background:#7C3AED">P</div><div class="vid-name">PixVerse</div><div class="vid-desc">Short, eye-catching video clips.</div><span class="vid-status vid-soon">Coming soon</span></div>
+  </div>
+
+  <h3 class="vid-grp">Image to video</h3>
+  <div class="vid-tool">
+    <div class="vt-title">Make a video from an image</div>
+    <div class="vt-sub">Upload an image (or use one you generated) and the studio creates a short, living video with a gentle zoom. Ready for reels and stories.</div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <label class="act-btn sage-btn" style="font-size:12px;cursor:pointer;margin:0;">📎 Upload image<input type="file" accept="image/*" id="vidtool-input" onchange="vidToolPick(this)" style="display:none;"></label>
+      <img id="vidtool-thumb" class="vt-thumb" src="" alt="" style="display:none;"/>
+    </div>
+    <div class="vt-lab">Format</div>
+    <div class="vt-chips" id="vidtool-aspect">
+      <button type="button" class="vt-chip on" data-va="9:16" onclick="vidToolSet('aspect','9:16',this)">9:16</button>
+      <button type="button" class="vt-chip" data-va="1:1" onclick="vidToolSet('aspect','1:1',this)">1:1</button>
+      <button type="button" class="vt-chip" data-va="16:9" onclick="vidToolSet('aspect','16:9',this)">16:9</button>
+    </div>
+    <div class="vt-lab">Length</div>
+    <div class="vt-chips" id="vidtool-secs">
+      <button type="button" class="vt-chip" data-vs="3" onclick="vidToolSet('secs',3,this)">3 sec</button>
+      <button type="button" class="vt-chip on" data-vs="5" onclick="vidToolSet('secs',5,this)">5 sec</button>
+      <button type="button" class="vt-chip" data-vs="8" onclick="vidToolSet('secs',8,this)">8 sec</button>
+    </div>
+    <button class="gen-btn purple" style="width:100%;margin-top:16px;" onclick="vidToolGenerate()">🎬 Make video</button>
+    <div id="vidtool-status" style="margin-top:10px;"></div>
+    <video id="vidtool-preview" controls playsinline style="display:none;width:100%;border-radius:12px;margin-top:12px;border:1.5px solid var(--rose-m);"></video>
+    <a id="vidtool-download" href="" download="lme-video.mp4" style="display:none;margin-top:8px;width:100%;text-align:center;padding:11px;border-radius:12px;border:1.5px solid var(--border);background:#fff;color:var(--text);font-family:'Sasson Montessori';font-size:12px;font-weight:700;text-decoration:none;">Download video</a>
+  </div>
+</div>
 
 <!-- ════ PRICING ════ -->
 <div id="tab-pricing" style="display:none;">
@@ -2192,7 +2259,7 @@ function changeWeek(d){ state.weekOffset+=d; renderCalendar(); }
 
 // ══ TABS ══
 function showTab(id,btn){
-  ['create','dashboard','calendar','ideas','history','plan','pricing','settings','canva','editor','models'].forEach(t=>{
+  ['create','dashboard','calendar','ideas','history','plan','pricing','settings','canva','editor','models','video'].forEach(t=>{
     const el=document.getElementById('tab-'+t);
     if(el) el.style.display=t===id?'block':'none';
   });
@@ -2706,6 +2773,42 @@ async function genererBilde(){
     btn.textContent='Generate cover image';
   }
   btn.disabled=false;
+}
+
+// ── AI video tab: Image to video (Ken Burns) ──
+var vidToolFile=null, vidToolAspect='9:16', vidToolSecs=5;
+function vidToolPick(input){
+  const f=input.files&&input.files[0]; if(!f)return;
+  vidToolFile=f;
+  const t=document.getElementById('vidtool-thumb'); t.src=URL.createObjectURL(f); t.style.display='block';
+}
+function vidToolSet(kind,val,el){
+  if(kind==='aspect'){ vidToolAspect=val; document.querySelectorAll('#vidtool-aspect .vt-chip').forEach(c=>c.classList.toggle('on',c===el)); }
+  else { vidToolSecs=val; document.querySelectorAll('#vidtool-secs .vt-chip').forEach(c=>c.classList.toggle('on',c===el)); }
+}
+async function vidToolGenerate(){
+  if(!vidToolFile){ alert('Upload an image first.'); return; }
+  const st=document.getElementById('vidtool-status');
+  st.innerHTML='<div class="pub-status loading">Making the video… (FFmpeg loads first time, can take a moment) <span class="loading-dots"><span></span><span></span><span></span></span></div>';
+  try{
+    const ff=await loadFFmpeg(); const {fetchFile}=FFmpegWASM;
+    await ff.writeFile('vt.png', await fetchFile(vidToolFile));
+    const W = vidToolAspect==='1:1'?1080:vidToolAspect==='16:9'?1920:1080;
+    const H = vidToolAspect==='1:1'?1080:vidToolAspect==='16:9'?1080:1920;
+    const preW=Math.round(W*1.25), preH=Math.round(H*1.25);
+    const d=vidToolSecs*25;
+    const zoomVf=`scale=${preW}:${preH}:force_original_aspect_ratio=increase,crop=${preW}:${preH},zoompan=z='min(zoom+0.0010,1.2)':d=${d}:s=${W}x${H}:fps=25,format=yuv420p`;
+    const statVf=`scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},format=yuv420p`;
+    const mk=vf=>['-loop','1','-i','vt.png','-t',String(vidToolSecs),'-vf',vf,'-r','25','-c:v','libx264','-preset','ultrafast','-pix_fmt','yuv420p','-movflags','+faststart','-y','vt.mp4'];
+    try{ await ff.exec(mk(zoomVf)); }catch(e){ await ff.exec(mk(statVf)); }
+    const data=await ff.readFile('vt.mp4');
+    try{ await ff.deleteFile('vt.png'); }catch(e){}
+    try{ await ff.deleteFile('vt.mp4'); }catch(e){}
+    const url=URL.createObjectURL(new Blob([data.buffer],{type:'video/mp4'}));
+    const v=document.getElementById('vidtool-preview'); v.src=url; v.style.display='block';
+    const a=document.getElementById('vidtool-download'); a.href=url; a.style.display='block';
+    st.innerHTML='<div class="pub-status success">Video ready! Preview and download below.</div>';
+  }catch(e){ st.innerHTML='<div class="pub-status error">Could not make video: '+esc(e.message)+'</div>'; }
 }
 
 // ── Turn a generated image into a short animated reel (Ken Burns zoom) ──
