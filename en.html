@@ -831,6 +831,15 @@ input[type=range]{width:100%;accent-color:var(--rose);}
       <div style="font-size:11px;color:var(--text-s);margin-bottom:10px;line-height:1.6;">
         Choose an image model and create a cover image with hook. <strong>9:16 for Story</strong>, 1:1 for carousel and feed. You'll see the image and approve before you use it.
       </div>
+      <div class="img-ctrl"><div class="ic-lab">Custom image prompt (optional)</div><textarea id="img-prompt" rows="2" placeholder="Describe the image you want, e.g. “two children planting seeds in a garden, soft morning light”" style="width:100%;border-radius:10px;border:1.5px solid var(--border);padding:10px 12px;font-family:'Sasson Montessori';font-size:12px;color:var(--text);outline:none;resize:vertical;box-sizing:border-box;"></textarea></div>
+      <div class="img-ctrl"><div class="ic-lab">Template / reference image (optional)</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <label class="act-btn sage-btn" style="font-size:12px;cursor:pointer;margin:0;">📎 Upload image<input type="file" accept="image/*" id="img-ref-input" onchange="handleImgRef(this)" style="display:none;"></label>
+          <img id="img-ref-thumb" src="" alt="" style="display:none;width:46px;height:46px;border-radius:8px;object-fit:cover;border:1.5px solid var(--border);"/>
+          <button type="button" id="img-ref-remove" onclick="removeImgRef()" style="display:none;background:none;border:none;color:var(--rose-d);font-size:12px;font-weight:700;cursor:pointer;">Remove</button>
+        </div>
+        <div style="font-size:10px;color:var(--text-s);margin-top:6px;">Upload an image for the AI to mimic style/composition from. Works with Nano Banana (selected automatically).</div>
+      </div>
       <div class="chip-wrap" id="img-model-chips" style="margin-bottom:12px;">
         <button type="button" class="chip active" data-imgmodel="dalle3" onclick="selectImgModel('dalle3')">DALL-E 3</button>
         <button type="button" class="chip" data-imgmodel="nano" onclick="selectImgModel('nano')">Nano Banana</button>
@@ -2518,13 +2527,30 @@ function renderBildeVarianter(urls){
   document.getElementById('bilde-preview-seksjon').style.display='block';
 }
 
+function handleImgRef(input){
+  const f=input.files&&input.files[0]; if(!f)return;
+  fileToBase64(f).then(b64=>{
+    state.imgRefData=b64; state.imgRefMime=f.type||'image/jpeg';
+    const t=document.getElementById('img-ref-thumb'); t.src=URL.createObjectURL(f); t.style.display='block';
+    document.getElementById('img-ref-remove').style.display='inline';
+  });
+}
+function removeImgRef(){
+  state.imgRefData=null; state.imgRefMime=null;
+  const t=document.getElementById('img-ref-thumb'); if(t){t.src=''; t.style.display='none';}
+  const r=document.getElementById('img-ref-remove'); if(r) r.style.display='none';
+  const inp=document.getElementById('img-ref-input'); if(inp) inp.value='';
+}
+
 async function genererBilde(){
-  if(!state.result){alert('Generate content first!');return;}
+  if(!state.result&&!(document.getElementById('img-prompt')?.value||'').trim()){alert('Generate content first, or write a custom image prompt!');return;}
   const btn=document.getElementById('pub-btn');
   const statusEl=document.getElementById('pub-status');
   const imgModel=cfg.imgModel||'dalle3';
+  const hasRef=!!state.imgRefData;
+  const useModel=(hasRef&&imgModel==='dalle3')?'nano-pro':imgModel;
 
-  if(imgModel==='dalle3'){
+  if(useModel==='dalle3'){
     if(!cfg.openaiKey||cfg.openaiKey.length<10){
       statusEl.innerHTML=`<div class="pub-status error" style="margin-top:10px;">OpenAI API key missing. Enter it in ⚙️ Settings.</div>`;
       return;
@@ -2546,24 +2572,30 @@ async function genererBilde(){
     const size=asp==='9:16'?'1024x1792':asp==='16:9'?'1792x1024':'1024x1024';
     const count=state.imgCount||1;
 
-    const contentText = Array.isArray(state.result) ? state.result[0] : state.result;
-    const hookLine = contentText.split('\n').find(l=>l.toUpperCase().includes('HOOK')||l.length>10) || topic;
-    const hook = hookLine.replace(/^HOOK[:\s]*/i,'').substring(0,80);
+    const contentText = Array.isArray(state.result) ? (state.result[0]||'') : (state.result||'');
+    const hookLine = contentText.split('\n').find(l=>l.toUpperCase().includes('HOOK')||l.length>10) || topic || '';
+    const hook = (hookLine||'').replace(/^HOOK[:\s]*/i,'').substring(0,80);
 
     const hookPart = hook ? `Hook concept: "${hook}". ` : '';
     const sizePart = asp==='9:16'?'Vertical 9:16 portrait format.':asp==='16:9'?'Wide 16:9 landscape format.':asp==='4:5'?'Portrait 4:5 format.':'Square 1:1 format.';
     const _brandPart = cfg.brand ? cfg.brand+'. ' : '';
     const _charPart = (cfg.charPreset==='custom'&&cfg.charNames) ? ('Featuring '+cfg.charNames+(cfg.charDesc?' ('+cfg.charDesc+')':'')+'. ') : '';
     const stylePart = IMG_STYLES[state.imgStyle||'auto']||IMG_STYLES.auto;
-    const prompt=`High-quality, polished, modern social media illustration. ${_charPart}Scene: "${topic}". ${hookPart}${_brandPart}${stylePart} No text in image. ${sizePart}`;
+    const userPrompt=(document.getElementById('img-prompt')?.value||'').trim();
+    const refPart = hasRef ? 'Use the supplied reference image as inspiration for style and composition. ' : '';
+    const prompt = userPrompt
+      ? `${_charPart}${userPrompt}. ${_brandPart}${refPart}${stylePart} No text in image. ${sizePart}`
+      : `High-quality, polished, modern social media illustration. ${_charPart}Scene: "${topic}". ${hookPart}${_brandPart}${refPart}${stylePart} No text in image. ${sizePart}`;
 
-    const _key = imgModel==='dalle3' ? cfg.openaiKey : cfg.geminiKey;
-    const quality = (imgModel==='dalle3' && state.imgHd) ? 'hd' : 'standard';
+    const _key = useModel==='dalle3' ? cfg.openaiKey : cfg.geminiKey;
+    const quality = (useModel==='dalle3' && state.imgHd) ? 'hd' : 'standard';
     const urls=[];
     for(let i=0;i<count;i++){
-      statusEl.innerHTML=`<div class="pub-status loading" style="margin-top:10px;">🤖 ${IMG_MODEL_NAMES[imgModel]} generating image ${count>1?(i+1)+'/'+count:''}… <span class="loading-dots"><span></span><span></span><span></span></span></div>`;
+      statusEl.innerHTML=`<div class="pub-status loading" style="margin-top:10px;">🤖 ${IMG_MODEL_NAMES[useModel]} generating image ${count>1?(i+1)+'/'+count:''}…${hasRef?' (reference)':''} <span class="loading-dots"><span></span><span></span><span></span></span></div>`;
+      const _body={type:'image',model:useModel,key:_key,prompt,size,aspectRatio:asp,quality};
+      if(hasRef&&useModel!=='dalle3'){ _body.refData=state.imgRefData; _body.refMime=state.imgRefMime; }
       const _res = await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({type:'image',model:imgModel,key:_key,prompt,size,aspectRatio:asp,quality})});
+        body:JSON.stringify(_body)});
       const _d = await _res.json().catch(()=>({}));
       if(!_res.ok||_d.error) throw new Error(_d.error||('Error '+_res.status));
       if(_d.imageUrl) urls.push(_d.imageUrl);
