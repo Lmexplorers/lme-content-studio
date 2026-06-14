@@ -41,25 +41,36 @@ export async function onRequestPost(context) {
       if (model === "dalle3") {
         const key = env.OPENAI_API_KEY || body.key;
         if (!key) return json({ error: "OpenAI-nøkkel mangler. Legg den inn i Innstillinger." }, 400);
-        const r = await fetch("https://api.openai.com/v1/images/generations", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "Authorization": "Bearer " + key },
-          body: JSON.stringify({ model: "dall-e-3", prompt: body.prompt, n: 1, size: body.size || "1024x1024", quality: "standard" }),
-        });
-        const d = await r.json().catch(() => ({}));
-        if (!r.ok) return json({ error: (d.error && d.error.message) || ("OpenAI " + r.status) }, 200);
-        const item = d.data && d.data[0];
-        if (item && item.b64_json) return json({ imageUrl: "data:image/png;base64," + item.b64_json });
-        if (item && item.url) {
-          try {
-            const ir = await fetch(item.url);
-            const buf = await ir.arrayBuffer();
-            return json({ imageUrl: "data:image/png;base64," + bufToB64(buf) });
-          } catch (e) {
-            return json({ imageUrl: item.url });
+        const sz = body.size || "1024x1024";
+        const gptSize = sz === "1024x1792" ? "1024x1536" : sz === "1792x1024" ? "1536x1024" : "1024x1024";
+        const attempts = [
+          { model: "dall-e-3", prompt: body.prompt, n: 1, size: sz, quality: "standard" },
+          { model: "gpt-image-1", prompt: body.prompt, n: 1, size: gptSize },
+        ];
+        let lastErr = "Ingen bilde i svaret";
+        for (const a of attempts) {
+          const r = await fetch("https://api.openai.com/v1/images/generations", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": "Bearer " + key },
+            body: JSON.stringify(a),
+          });
+          const d = await r.json().catch(() => ({}));
+          if (r.ok) {
+            const item = d.data && d.data[0];
+            if (item && item.b64_json) return json({ imageUrl: "data:image/png;base64," + item.b64_json });
+            if (item && item.url) {
+              try {
+                const ir = await fetch(item.url);
+                const buf = await ir.arrayBuffer();
+                return json({ imageUrl: "data:image/png;base64," + bufToB64(buf) });
+              } catch (e) { return json({ imageUrl: item.url }); }
+            }
+            lastErr = "Ingen bilde i svaret";
+          } else {
+            lastErr = (d.error && d.error.message) || ("OpenAI " + r.status);
           }
         }
-        return json({ error: "Ingen bilde i svaret" }, 200);
+        return json({ error: lastErr }, 200);
       } else {
         const key = env.GEMINI_API_KEY || body.key;
         if (!key) return json({ error: "Gemini-nøkkel mangler. Legg den inn i Innstillinger." }, 400);
