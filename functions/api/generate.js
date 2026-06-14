@@ -44,6 +44,32 @@ export async function onRequestPost(context) {
         const sz = body.size || "1024x1024";
         const gptSize = sz === "1024x1792" ? "1024x1536" : sz === "1792x1024" ? "1536x1024" : "1024x1024";
         const dalleQuality = body.quality === "hd" ? "hd" : "standard";
+
+        // Malbilde/referanse: DALL-E 3 støtter det ikke, men gpt-image-1 gjør det via /images/edits.
+        if (body.refData) {
+          try {
+            const bin = Uint8Array.from(atob(body.refData), (c) => c.charCodeAt(0));
+            const blob = new Blob([bin], { type: body.refMime || "image/png" });
+            const form = new FormData();
+            form.append("model", "gpt-image-1");
+            form.append("image", blob, "ref.png");
+            form.append("prompt", body.prompt);
+            form.append("size", gptSize);
+            const r = await fetch("https://api.openai.com/v1/images/edits", {
+              method: "POST",
+              headers: { "Authorization": "Bearer " + key },
+              body: form,
+            });
+            const d = await r.json().catch(() => ({}));
+            if (r.ok && d.data && d.data[0] && d.data[0].b64_json) {
+              return json({ imageUrl: "data:image/png;base64," + d.data[0].b64_json });
+            }
+            return json({ error: (d.error && d.error.message) || ("OpenAI edits " + r.status) }, 200);
+          } catch (e) {
+            return json({ error: "Malbilde-feil: " + String((e && e.message) || e) }, 200);
+          }
+        }
+
         const attempts = [
           { model: "dall-e-3", prompt: body.prompt, n: 1, size: sz, quality: dalleQuality },
           { model: "gpt-image-1", prompt: body.prompt, n: 1, size: gptSize },
