@@ -927,24 +927,25 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 <script>
 (function(){
   var CHANNELS=[
-    {id:'facebook', label:'Facebook',  emoji:'📘', dalle:'1024x1024', gem:'1:1',  spec:'Bilde 1:1 (eller 16:9). Tekst kan være lengre.',
+    {id:'facebook', label:'Facebook',  emoji:'📘', dalle:'1024x1024', gem:'1:1',  spec:'bilde 1:1 (eller 16:9). Tekst kan være lengre.',
       guide:'Skriv et Facebook-innlegg: varm, samtalende, gjerne litt lengre. Få hashtags (0-3). Tydelig oppfordring til slutt.'},
-    {id:'instagram',label:'Instagram', emoji:'📸', dalle:'1024x1024', gem:'4:5',  spec:'Feed 4:5 eller 1:1. Reel/Story 9:16.',
+    {id:'instagram',label:'Instagram', emoji:'📸', dalle:'1024x1024', gem:'4:5',  spec:'feed 4:5 eller 1:1. Reel/Story 9:16.',
       guide:'Skriv en Instagram-bildetekst: fengende hook i første linje, verdi, varm tone, og 6-10 relevante hashtags helt til slutt.'},
-    {id:'threads',  label:'Threads',   emoji:'🧵', dalle:'1024x1024', gem:'1:1',  spec:'Bilde 1:1. Kort tekst.',
+    {id:'threads',  label:'Threads',   emoji:'🧵', dalle:'1024x1024', gem:'1:1',  spec:'bilde 1:1. Kort tekst.',
       guide:'Skriv et kort Threads-innlegg: ledig og samtalende, gjerne et spørsmål som inviterer til svar. Ingen eller få hashtags.'},
-    {id:'tiktok',   label:'TikTok',    emoji:'🎵', dalle:'1024x1792', gem:'9:16', spec:'Video 9:16. Kort caption.',
+    {id:'tiktok',   label:'TikTok',    emoji:'🎵', dalle:'1024x1792', gem:'9:16', spec:'video 9:16. Kort caption.',
       guide:'Skriv en kort, fengende TikTok-caption med sterk hook, pluss 3-5 trendrelevante hashtags.'},
-    {id:'youtube',  label:'YouTube',   emoji:'▶️', dalle:'1792x1024', gem:'16:9', spec:'Miniatyr 16:9 (Shorts 9:16).',
+    {id:'youtube',  label:'YouTube',   emoji:'▶️', dalle:'1792x1024', gem:'16:9', spec:'miniatyr 16:9 (Shorts 9:16).',
       guide:'Lag YouTube-innhold: en SEO-tittel under 60 tegn (merk «TITTEL:»), en beskrivelse med nøkkelord (merk «BESKRIVELSE:»), og 5-8 tags (merk «TAGS:»).'},
-    {id:'pinterest',label:'Pinterest', emoji:'📌', dalle:'1024x1792', gem:'3:4',  spec:'Pin 2:3 (stående).',
+    {id:'pinterest',label:'Pinterest', emoji:'📌', dalle:'1024x1792', gem:'3:4',  spec:'pin 2:3 (stående).',
       guide:'Lag en Pinterest-pin: nøkkelordrik tittel under 100 tegn (merk «TITTEL:») og en beskrivelse på 150-200 tegn med nøkkelord (merk «BESKRIVELSE:»).'},
-    {id:'linkedin', label:'LinkedIn',  emoji:'💼', dalle:'1792x1024', gem:'16:9', spec:'Bilde 1.91:1 eller 1:1.',
+    {id:'linkedin', label:'LinkedIn',  emoji:'💼', dalle:'1792x1024', gem:'16:9', spec:'bilde 1.91:1 eller 1:1.',
       guide:'Skriv et LinkedIn-innlegg: profesjonelt men varmt, med en konkret innsikt eller verdi. 3-5 hashtags.'},
-    {id:'x',        label:'X',         emoji:'✖️', dalle:'1792x1024', gem:'16:9', spec:'Bilde 16:9. Maks 280 tegn.',
+    {id:'x',        label:'X',         emoji:'✖️', dalle:'1792x1024', gem:'16:9', spec:'bilde 16:9. Maks 280 tegn.',
       guide:'Skriv et X-innlegg på maks 280 tegn: skarp hook, klart poeng, 1-2 hashtags.'}
   ];
 
+  var STYLE_NO='NORSKE SKRIVEREGLER (følg alltid): Bruk rette anførselstegn, aldri « ». Bruk ALDRI lange bindestreker (— eller –), bruk heller komma, kolon, punktum eller "og". Stor forbokstav etter kolon KUN når en hel setning følger, ellers liten forbokstav (oppramsinger, undertitler, fragmenter). Liten forbokstav etter semikolon. Komma foran "men", "for" og "så" når de binder to helsetninger, komma etter en innledende leddsetning, komma rundt innskutte setninger, og ikke komma foran siste "og" i en oppramsing.';
   function cfgGet(){ try{ return cfg||{}; }catch(e){ return {}; } }
   function brandBase(topic){
     var c=cfgGet();
@@ -1023,7 +1024,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
         '</div><div id="vimg-'+ch.id+'"></div>';
       results.appendChild(card);
       try{
-        var prompt=brandBase(topic)+'\n\n'+ch.guide+'\n\nSkriv ferdig innhold klart til å lime inn. Kun selve teksten, ingen forklaring eller overskrift om kanalen.';
+        var prompt=brandBase(topic)+'\n\n'+ch.guide+'\n\n'+STYLE_NO+'\n\nSkriv ferdig innhold klart til å lime inn. Kun selve teksten, ingen forklaring eller overskrift om kanalen.';
         var text=await callClaude(prompt,key);
         document.getElementById('vt-'+ch.id).textContent=text.trim();
         lastResults[ch.id]={text:text.trim(),topic:topic};
@@ -2182,7 +2183,9 @@ function buildPrompt(){
   else if(state.char==='Mia'){ characters='Mia – en nysgjerrig 6-årig jente som elsker natur og utforsking'; }
   else if(state.char==='Teo'){ characters='Teo – en nysgjerrig 6-årig gutt som elsker natur og utforsking'; }
   else{ characters='Mia og Teo – to nysgjerrige 6-årige naturutforskere'; }
-  const base=`You are a social media content expert for "${cfg.brand||'Little Montessori Explorers'}" in the niche: "${cfg.niche||'Montessori-pedagogikk for barn 3-9 år'}". ${characters!=='no specific characters'?`Characters: ${characters}.`:''} Brand voice: ${cfg.voice||'Varm, pedagogisk, naturbasert'}. Audience: ${cfg.audience||state.ageGroup}. Tone: ${state.tone}. Language: Norwegian bokmål. Topic: "${topic}". ${state.extra?'Context: '+state.extra:''}`;
+  const base=`You are a social media content expert for "${cfg.brand||'Little Montessori Explorers'}" in the niche: "${cfg.niche||'Montessori-pedagogikk for barn 3-9 år'}". ${characters!=='no specific characters'?`Characters: ${characters}.`:''} Brand voice: ${cfg.voice||'Varm, pedagogisk, naturbasert'}. Audience: ${cfg.audience||state.ageGroup}. Tone: ${state.tone}. Language: Norwegian bokmål. Topic: "${topic}". ${state.extra?'Context: '+state.extra:''}
+
+NORSKE SKRIVEREGLER (følg alltid i norsk tekst): Bruk rette anførselstegn, aldri « ». Bruk ALDRI lange bindestreker (— eller –), bruk heller komma, kolon, punktum eller "og". Stor forbokstav etter kolon KUN når en hel setning følger, ellers liten forbokstav (oppramsinger, undertitler, fragmenter). Liten forbokstav etter semikolon. Komma foran "men", "for" og "så" når de binder to helsetninger, komma etter en innledende leddsetning, komma rundt innskutte setninger, og ikke komma foran siste "og" i en oppramsing.`;
 
   if(state.format==='carousel'||state.format==='story'){
     const type=state.format==='story'?'Story set (9:16 vertical, short punchy headline + 1-2 lines per frame)':'Instagram carousel';
