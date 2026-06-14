@@ -31,11 +31,11 @@ body{font-family:'Sasson Montessori';background:var(--cream);color:var(--text);m
 .app-header{background:linear-gradient(120deg,var(--rose) 0%,var(--rose-d) 100%);padding:14px 12px 0;box-shadow:0 4px 24px rgba(240,36,120,.35);}
 .app-header-inner{max-width:580px;margin:0 auto;}
 .app-brand{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
-.app-logo{width:42px;height:42px;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;border:2px solid rgba(255,255,255,.6);padding:3px;}
+.app-logo{width:56px;height:56px;border-radius:14px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;border:2px solid rgba(255,255,255,.6);padding:3px;}
 .app-logo img{width:100%;height:100%;object-fit:contain;display:block;}
 .app-brand-text{color:white;}
-.app-brand-name{font-family:'Sasson Montessori';font-size:15px;font-weight:700;line-height:1.1;}
-.app-brand-tag{font-size:11px;opacity:.88;}
+.app-brand-name{font-family:'Sasson Montessori';font-size:21px;font-weight:700;line-height:1.1;}
+.app-brand-tag{font-size:12.5px;opacity:.88;}
 .tabs{display:flex;gap:0;}
 .tab-btn{flex:0 0 auto;padding:8px 10px;background:transparent;color:rgba(255,255,255,.82);border:none;cursor:pointer;font-family:'Sasson Montessori';font-size:10px;font-weight:500;border-radius:10px 10px 0 0;transition:all .2s;white-space:nowrap;}
 .tab-btn.active{background:var(--cream);color:var(--rose-d);font-weight:700;}
@@ -235,9 +235,9 @@ input[type=range]{width:100%;accent-color:var(--rose);}
   .app-header-inner,.app-body{max-width:1180px;}
   .app-body{padding:30px 30px 90px;}
   .app-brand{margin-bottom:14px;}
-  .app-logo{width:48px;height:48px;font-size:24px;}
-  .app-brand-name{font-size:22px;}
-  .app-brand-tag{font-size:13px;}
+  .app-logo{width:72px;height:72px;}
+  .app-brand-name{font-size:32px;}
+  .app-brand-tag{font-size:15px;}
   .tabs{gap:4px;}
   .tab-btn{font-size:13px;padding:10px 18px;}
   .nav-menu-btn{margin-left:auto;font-size:14px;padding:10px 18px;}
@@ -671,10 +671,10 @@ input[type=range]{width:100%;accent-color:var(--rose);}
     </div>
     <div class="nav-wrap">
       <div class="tabs">
-        <button class="tab-btn active" onclick="showTab('create',this);closeNavMenu()">✦ Create content</button>
-        <button class="tab-btn" onclick="showTab('calendar',this);closeNavMenu()">📅 Calendar</button>
-        <button class="tab-btn" onclick="showTab('ideas',this);closeNavMenu()">💡 Ideas</button>
-        <button class="tab-btn" onclick="showTab('history',this);closeNavMenu()">🕐 History</button>
+        <button class="tab-btn active" onclick="showTab('create',this);closeNavMenu()">Create content</button>
+        <button class="tab-btn" onclick="showTab('calendar',this);closeNavMenu()">Calendar</button>
+        <button class="tab-btn" onclick="showTab('ideas',this);closeNavMenu()">Ideas</button>
+        <button class="tab-btn" onclick="showTab('history',this);closeNavMenu()">History</button>
       </div>
       <button class="nav-menu-btn" onclick="toggleNavMenu()">☰ More</button>
       <div class="nav-dropdown" id="nav-dropdown">
