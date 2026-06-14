@@ -29,7 +29,7 @@
 body{font-family:'Sasson Montessori';background:var(--cream);color:var(--text);min-height:100vh;}
 
 .app-header{background:linear-gradient(120deg,var(--rose) 0%,var(--rose-d) 100%);padding:14px 12px 0;box-shadow:0 4px 24px rgba(240,36,120,.35);}
-.app-header-inner{max-width:580px;margin:0 auto;}
+.app-header-inner{max-width:640px;margin:0 auto;}
 .app-brand{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
 .app-logo{width:56px;height:56px;border-radius:14px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;border:2px solid rgba(255,255,255,.6);padding:3px;}
 .app-logo img{width:100%;height:100%;object-fit:contain;display:block;}
@@ -37,7 +37,7 @@ body{font-family:'Sasson Montessori';background:var(--cream);color:var(--text);m
 .app-brand-name{font-family:'Sasson Montessori';font-size:21px;font-weight:700;line-height:1.1;}
 .app-brand-tag{font-size:12.5px;opacity:.88;}
 .tabs{display:flex;gap:0;}
-.tab-btn{flex:0 0 auto;padding:8px 10px;background:transparent;color:rgba(255,255,255,.82);border:none;cursor:pointer;font-family:'Sasson Montessori';font-size:10px;font-weight:500;border-radius:10px 10px 0 0;transition:all .2s;white-space:nowrap;}
+.tab-btn{flex:0 0 auto;padding:11px 15px;background:transparent;color:rgba(255,255,255,.82);border:none;cursor:pointer;font-family:'Sasson Montessori';font-size:13px;font-weight:600;border-radius:12px 12px 0 0;transition:all .2s;white-space:nowrap;}
 .tab-btn.active{background:var(--cream);color:var(--rose-d);font-weight:700;}
 /* Hamburger menu */
 .nav-menu-btn{padding:8px 12px;background:rgba(255,255,255,.15);color:white;border:none;cursor:pointer;font-size:18px;border-radius:10px 10px 0 0;flex-shrink:0;}
@@ -49,38 +49,38 @@ body{font-family:'Sasson Montessori';background:var(--cream);color:var(--text);m
 .nav-dropdown-item.active{background:var(--rose-l);color:var(--rose-d);font-weight:700;}
 .nav-wrap{position:relative;display:flex;align-items:flex-end;}
 
-.app-body{max-width:580px;margin:0 auto;padding:20px 16px 80px;}
-.card{background:white;border-radius:20px;border:1px solid #F3E7EE;padding:18px;margin-bottom:16px;box-shadow:0 8px 26px -16px rgba(240,36,120,.28);}
-.card-title{font-size:11px;font-weight:700;color:var(--rose-d);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;}
+.app-body{max-width:640px;margin:0 auto;padding:30px 22px 110px;}
+.card{background:white;border-radius:22px;border:1px solid #F3E7EE;padding:24px 22px;margin-bottom:22px;box-shadow:0 10px 30px -18px rgba(240,36,120,.3);}
+.card-title{font-size:12.5px;font-weight:700;color:var(--rose-d);letter-spacing:.09em;text-transform:uppercase;margin-bottom:16px;}
 
 .format-list{display:flex;flex-direction:column;gap:8px;}
-.format-btn{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:13px;border:2px solid var(--border);background:white;cursor:pointer;text-align:left;transition:all .18s;width:100%;}
+.format-btn{display:flex;align-items:center;gap:14px;padding:15px 16px;border-radius:15px;border:1.5px solid var(--border);background:white;cursor:pointer;text-align:left;transition:all .18s;width:100%;}
 .format-btn.active{border-color:var(--rose);background:var(--rose-l);}
 .format-btn:hover:not(.active){border-color:var(--rose-m);}
 .format-emoji{font-size:20px;flex-shrink:0;}
-.format-label{font-family:'Sasson Montessori';font-weight:700;color:var(--text);font-size:13px;}
-.format-desc{font-size:11px;color:var(--text-s);margin-top:1px;}
+.format-label{font-family:'Sasson Montessori';font-weight:700;color:var(--text);font-size:15px;}
+.format-desc{font-size:12.5px;color:var(--text-s);margin-top:3px;line-height:1.5;}
 .format-check{margin-left:auto;color:var(--rose);font-size:16px;font-weight:700;}
 
-.chip-wrap{display:flex;flex-wrap:wrap;gap:7px;}
-.chip{padding:6px 13px;border-radius:30px;border:2px solid var(--border);background:white;color:var(--text-s);font-size:12px;cursor:pointer;font-family:'Sasson Montessori';transition:all .18s;}
+.chip-wrap{display:flex;flex-wrap:wrap;gap:10px;}
+.chip{padding:10px 18px;border-radius:30px;border:1.5px solid var(--border);background:white;color:var(--text-s);font-size:14px;cursor:pointer;font-family:'Sasson Montessori';transition:all .18s;}
 .chip.active{background:var(--rose);border-color:var(--rose);color:white;}
 .chip:hover:not(.active){border-color:var(--rose-m);}
 .chip.sage.active{background:var(--sage-d);border-color:var(--sage-d);}
 .chip.sage:hover:not(.active){border-color:var(--sage);}
 
 input[type=text],input[type=email],input[type=password],textarea,input[type=date],input[type=time]{
-  width:100%;border-radius:10px;border:2px solid var(--border);padding:10px 13px;
-  font-family:'Sasson Montessori';font-size:13px;color:var(--text);background:white;outline:none;transition:border-color .18s;
+  width:100%;border-radius:13px;border:1.5px solid var(--border);padding:14px 16px;
+  font-family:'Sasson Montessori';font-size:15px;color:var(--text);background:white;outline:none;transition:border-color .18s;
 }
 input:focus,textarea:focus{border-color:var(--rose);}
 textarea{resize:vertical;}
 input[type=range]{width:100%;accent-color:var(--rose);}
 .range-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--text-s);margin-top:3px;}
-.row{display:flex;gap:12px;}
+.row{display:flex;gap:18px;}
 .row>.card{flex:1;margin-bottom:0;}
 
-.gen-btn{width:100%;padding:17px;border:none;border-radius:16px;background:linear-gradient(110deg,var(--rose),var(--rose-d));color:white;font-family:'Playpen Sans';font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 6px 28px rgba(240,36,120,.45);transition:all .3s;margin-bottom:18px;}
+.gen-btn{width:100%;padding:19px;border:none;border-radius:18px;background:linear-gradient(110deg,var(--rose),var(--rose-d));color:white;font-family:'Playpen Sans';font-size:17px;font-weight:700;cursor:pointer;box-shadow:0 10px 30px -8px rgba(240,36,120,.5);transition:all .3s;margin-bottom:24px;}
 .gen-btn:disabled{background:var(--rose-m);box-shadow:none;cursor:not-allowed;}
 .gen-btn:not(:disabled):hover{transform:translateY(-2px);box-shadow:0 10px 32px rgba(240,36,120,.55);}
 .gen-btn.sage{background:linear-gradient(110deg,var(--sage),var(--sage-d));box-shadow:0 6px 28px rgba(156,192,0,.35);}
@@ -93,9 +93,9 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 .slide-nav{display:flex;gap:7px;justify-content:center;margin-top:11px;flex-wrap:wrap;}
 .slide-dot{width:28px;height:28px;border-radius:50%;border:2px solid var(--rose-m);background:white;color:var(--rose);font-size:10px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .18s;}
 .slide-dot.active{background:var(--rose);color:white;border-color:var(--rose);}
-.text-result{background:var(--warm);border-radius:14px;padding:16px;font-size:13px;color:var(--text);line-height:1.85;white-space:pre-wrap;max-height:320px;overflow-y:auto;}
+.text-result{background:var(--warm);border-radius:16px;padding:20px;font-size:15px;color:var(--text);line-height:1.85;white-space:pre-wrap;max-height:360px;overflow-y:auto;}
 .action-row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
-.act-btn{padding:8px 16px;border-radius:10px;font-family:'Sasson Montessori';font-size:12px;cursor:pointer;transition:all .2s;border:2px solid var(--rose);background:white;color:var(--rose);}
+.act-btn{padding:11px 18px;border-radius:12px;font-family:'Sasson Montessori';font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;border:1.5px solid var(--rose);background:white;color:var(--rose);}
 .act-btn.copied{background:var(--sage-d);border-color:var(--sage-d);color:white;}
 .act-btn.sage-btn{border-color:var(--sage-d);color:var(--sage-d);}
 .act-btn.sage-btn:hover{background:var(--sage-l);}
@@ -443,16 +443,16 @@ input[type=range]{width:100%;accent-color:var(--rose);}
       <div style="font-size:13px;color:#6B6470;margin-bottom:20px;font-style:italic;">AI-powered content + auto-publishing</div>
 
       <div style="background:#FCE4EE;border-radius:14px;padding:16px;margin-bottom:16px;text-align:left;font-size:13px;line-height:1.6;">
-        <strong style="color:#C81860;">✨ Create &amp; auto-post to all platforms</strong><br/>
+        <strong style="color:#C81860;">Create &amp; auto-post to all platforms</strong><br/>
         <span style="color:#6B6470;">Generate captions, images, hashtags, and reels with AI — then auto-publish to Instagram, TikTok, Facebook, Pinterest &amp; more. Perfect for creators, educators, and small businesses.</span>
       </div>
 
       <div style="background:#F0FCDB;border-radius:14px;padding:14px;margin-bottom:20px;text-align:left;font-size:12px;line-height:1.6;">
-        <strong style="color:#9CC000;">🌿 Includes Montessori templates</strong><br/>
+        <strong style="color:#9CC000;">Includes Montessori templates</strong><br/>
         <span style="color:#6B6470;">Built-in your brand characters and Montessori-themed content packs — or use your own brand voice.</span>
       </div>
 
-      <a href="https://link.feacreate.com/payment-link/69dff984557558e89e5202da" style="display:block;background:linear-gradient(120deg,#F02478 0%,#C81860 100%);color:#fff;padding:16px 20px;border-radius:14px;font-size:15px;font-weight:700;text-decoration:none;margin-bottom:16px;box-shadow:0 8px 24px rgba(240,36,120,.25);">🎁 Start 7-day free trial</a>
+      <a href="https://link.feacreate.com/payment-link/69dff984557558e89e5202da" style="display:block;background:linear-gradient(120deg,#F02478 0%,#C81860 100%);color:#fff;padding:16px 20px;border-radius:14px;font-size:15px;font-weight:700;text-decoration:none;margin-bottom:16px;box-shadow:0 8px 24px rgba(240,36,120,.25);">Start 7-day free trial</a>
 
       <div style="font-size:13px;font-weight:700;color:#C81860;margin-bottom:10px;text-align:center;">Subscription Plans</div>
 
@@ -481,8 +481,8 @@ input[type=range]{width:100%;accent-color:var(--rose);}
       <div style="border-top:1px solid #E8E0E5;padding-top:16px;">
         <div style="font-size:12px;color:#6B6470;margin-bottom:10px;">Already subscribed? Enter your access key:</div>
         <input type="text" id="lme-access-input" placeholder="Enter access key / Skriv inn nøkkel" style="width:100%;padding:12px 14px;border:2px solid #E8E0E5;border-radius:10px;font-family:'Sasson Montessori';font-size:14px;color:#1A1A1A;outline:none;margin-bottom:10px;text-align:center;" onkeypress="if(event.key==='Enter')lmeCheckAccess()"/>
-        <button onclick="lmeCheckAccess()" style="width:100%;padding:12px;background:#B4D870;color:#fff;border:none;border-radius:10px;font-family:'Sasson Montessori';font-size:14px;font-weight:700;cursor:pointer;">🔓 Unlock Studio</button>
-        <div id="lme-access-error" style="display:none;color:#C81860;font-size:12px;margin-top:10px;">❌ Invalid key. Check your welcome email from Your brand.</div>
+        <button onclick="lmeCheckAccess()" style="width:100%;padding:12px;background:#B4D870;color:#fff;border:none;border-radius:10px;font-family:'Sasson Montessori';font-size:14px;font-weight:700;cursor:pointer;">Unlock Studio</button>
+        <div id="lme-access-error" style="display:none;color:#C81860;font-size:12px;margin-top:10px;">Invalid key. Check your welcome email from Your brand.</div>
       </div>
 
       <div style="margin-top:20px;font-size:10px;color:#6B6470;opacity:.7;line-height:1.5;">
@@ -511,9 +511,9 @@ input[type=range]{width:100%;accent-color:var(--rose);}
         <div style="font-size:18px;font-weight:900;color:#C81860;">$29<span style="font-size:11px;color:#6B6470;font-weight:400;">/mo</span></div>
       </div>
       <ul style="list-style:none;padding:0;margin:0 0 14px 0;font-size:12px;color:#1A1A1A;line-height:1.8;">
-        <li>✅ AI content generation — all formats</li>
-        <li>✅ Norwegian and English</li>
-        <li>✅ Content calendar &amp; 30-day plan</li>
+        <li>AI content generation — all formats</li>
+        <li>Norwegian and English</li>
+        <li>Content calendar &amp; 30-day plan</li>
         <li>✅ <strong>3 platforms</strong></li>
         <li style="color:#999;">— DALL-E 3 image generation</li>
         <li style="color:#999;">— Auto-publishing</li>
@@ -523,22 +523,22 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 
     <!-- Pro (most popular) -->
     <div style="background:linear-gradient(135deg,#fff 0%,#FCE4EE 100%);border:2px solid #F02478;border-radius:16px;padding:18px;margin-bottom:14px;position:relative;box-shadow:0 8px 24px rgba(240,36,120,.15);">
-      <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#F02478;color:#fff;padding:4px 14px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;">⭐ MOST POPULAR</div>
+      <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#F02478;color:#fff;padding:4px 14px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;">MOST POPULAR</div>
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;margin-top:6px;">
         <div style="font-family:'Playpen Sans';font-size:20px;font-weight:900;color:#C81860;">Pro</div>
         <div style="font-size:20px;font-weight:900;color:#C81860;">$49<span style="font-size:11px;color:#6B6470;font-weight:400;">/mo</span></div>
       </div>
       <ul style="list-style:none;padding:0;margin:0 0 14px 0;font-size:12px;color:#1A1A1A;line-height:1.8;">
-        <li>✅ Everything in Starter</li>
+        <li>Everything in Starter</li>
         <li>✅ <strong>6 platforms</strong></li>
-        <li>✅ DALL-E 3 AI image generation</li>
-        <li>✅ your brand character-consistent images</li>
+        <li>DALL-E 3 AI image generation</li>
+        <li>your brand character-consistent images</li>
         <li>✅ <strong>Auto-publishing</strong> — scheduled, hands-free</li>
-        <li>✅ Reel editor with music baked in</li>
-        <li>✅ Story editor with Canva import</li>
-        <li>✅ Priority support</li>
+        <li>Reel editor with music baked in</li>
+        <li>Story editor with Canva import</li>
+        <li>Priority support</li>
       </ul>
-      <a href="https://link.feacreate.com/payment-link/69dff984557558e89e5202da" target="_top" style="display:block;width:100%;padding:14px;border-radius:10px;text-align:center;background:linear-gradient(120deg,#F02478 0%,#C81860 100%);color:#fff;font-size:14px;font-weight:700;text-decoration:none;box-shadow:0 4px 14px rgba(240,36,120,.25);">🎁 Start 7-day free trial →</a>
+      <a href="https://link.feacreate.com/payment-link/69dff984557558e89e5202da" target="_top" style="display:block;width:100%;padding:14px;border-radius:10px;text-align:center;background:linear-gradient(120deg,#F02478 0%,#C81860 100%);color:#fff;font-size:14px;font-weight:700;text-decoration:none;box-shadow:0 4px 14px rgba(240,36,120,.25);">Start 7-day free trial →</a>
       <div style="text-align:center;font-size:11px;color:#6B6470;margin-top:8px;">or <a href="https://link.feacreate.com/payment-link/69dff9d180425dc02fbc87b2" target="_top" style="color:#C81860;font-weight:700;">subscribe directly — $49/mo</a></div>
     </div>
 
@@ -547,28 +547,28 @@ input[type=range]{width:100%;accent-color:var(--rose);}
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
         <div>
           <div style="font-family:'Playpen Sans';font-size:18px;font-weight:700;color:#005C9E;">Pro + Community</div>
-          <div style="font-size:10px;color:#0084E4;font-weight:700;letter-spacing:0.5px;">🌿 COMING SOON</div>
+          <div style="font-size:10px;color:#0084E4;font-weight:700;letter-spacing:0.5px;">COMING SOON</div>
         </div>
         <div style="font-size:18px;font-weight:900;color:#005C9E;">$69<span style="font-size:11px;color:#6B6470;font-weight:400;">/mo</span></div>
       </div>
       <ul style="list-style:none;padding:0;margin:0 0 14px 0;font-size:12px;color:#1A1A1A;line-height:1.8;">
-        <li>✅ Everything in Pro</li>
+        <li>Everything in Pro</li>
         <li>✅ <strong>All 8 platforms</strong></li>
-        <li>✅ Bilingual community 🇳🇴🇺🇸</li>
-        <li>✅ Monthly live Q&amp;A with Renate</li>
-        <li>✅ Resource library with Canva templates</li>
-        <li>✅ Monthly content challenge</li>
+        <li>Bilingual community 🇳🇴🇺🇸</li>
+        <li>Monthly live Q&amp;A with Renate</li>
+        <li>Resource library with Canva templates</li>
+        <li>Monthly content challenge</li>
       </ul>
       <a href="https://link.feacreate.com/payment-link/69df72c280425dc02fbc85d8" target="_top" style="display:block;width:100%;padding:12px;border-radius:10px;text-align:center;background:linear-gradient(110deg,#0084E4,#339BEA);color:#fff;font-size:13px;font-weight:700;text-decoration:none;">Join Pro + Community →</a>
     </div>
 
     <!-- Annual Pro + Community (best value) -->
     <div style="background:linear-gradient(135deg,#FFF9E5 0%,#FCE4EE 100%);border:2px solid #FCC000;border-radius:16px;padding:18px;margin-bottom:14px;position:relative;box-shadow:0 8px 24px rgba(212,149,106,.2);">
-      <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:linear-gradient(110deg,#FCC000,#D9A500);color:#fff;padding:4px 14px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;">💎 BEST VALUE</div>
+      <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:linear-gradient(110deg,#FCC000,#D9A500);color:#fff;padding:4px 14px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;">BEST VALUE</div>
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;margin-top:6px;">
         <div>
           <div style="font-family:'Playpen Sans';font-size:18px;font-weight:900;color:#D9A500;">Annual Pro + Community</div>
-          <div style="font-size:10px;color:#FCC000;font-weight:700;letter-spacing:0.5px;">🌿 COMING SOON · Save $138</div>
+          <div style="font-size:10px;color:#FCC000;font-weight:700;letter-spacing:0.5px;">COMING SOON · Save $138</div>
         </div>
         <div style="text-align:right;">
           <div style="font-size:18px;font-weight:900;color:#D9A500;">$690<span style="font-size:11px;color:#6B6470;font-weight:400;">/year</span></div>
@@ -576,12 +576,12 @@ input[type=range]{width:100%;accent-color:var(--rose);}
         </div>
       </div>
       <ul style="list-style:none;padding:0;margin:0 0 14px 0;font-size:12px;color:#1A1A1A;line-height:1.8;">
-        <li>✅ Everything in Pro + Community</li>
-        <li>✅ 🌟 Founding Member badge</li>
-        <li>✅ 📞 Welcome call with Renate (20 min)</li>
-        <li>✅ 🎨 your brand Canva starter pack</li>
-        <li>✅ 💰 Pay for 10 months, get 12</li>
-        <li>✅ Locked price for 12 months</li>
+        <li>Everything in Pro + Community</li>
+        <li>Founding Member badge</li>
+        <li>Welcome call with Renate (20 min)</li>
+        <li>your brand Canva starter pack</li>
+        <li>Pay for 10 months, get 12</li>
+        <li>Locked price for 12 months</li>
       </ul>
       <a href="https://link.feacreate.com/payment-link/69df761d80425dc02fbc85e0" target="_top" style="display:block;width:100%;padding:13px;border-radius:10px;text-align:center;background:linear-gradient(110deg,#FCC000,#D9A500);color:#fff;font-size:13px;font-weight:700;text-decoration:none;box-shadow:0 4px 14px rgba(212,149,106,.25);">Get Annual →</a>
     </div>
@@ -686,13 +686,13 @@ input[type=range]{width:100%;accent-color:var(--rose);}
         <button class="tab-btn" onclick="showTab('ideas',this);closeNavMenu()">Ideas</button>
         <button class="tab-btn" onclick="showTab('history',this);closeNavMenu()">History</button>
       </div>
-      <button class="nav-menu-btn" onclick="toggleNavMenu()">☰ More</button>
+      <button class="nav-menu-btn" onclick="toggleNavMenu()">More</button>
       <div class="nav-dropdown" id="nav-dropdown">
-        <button class="nav-dropdown-item" onclick="showTab('plan',this);closeNavMenu()">🗓️ 30-day plan</button>
-        <button class="nav-dropdown-item" onclick="showTab('canva',this);closeNavMenu()">🎨 Canva</button>
-        <button class="nav-dropdown-item" onclick="showTab('editor',this);closeNavMenu()">🎬 Editor</button>
-        <button class="nav-dropdown-item" onclick="showTab('pricing',this);closeNavMenu()">💎 Pricing</button>
-        <button class="nav-dropdown-item" onclick="showTab('settings',this);closeNavMenu()">⚙️ Settings</button>
+        <button class="nav-dropdown-item" onclick="showTab('plan',this);closeNavMenu()">30-day plan</button>
+        <button class="nav-dropdown-item" onclick="showTab('canva',this);closeNavMenu()">Canva</button>
+        <button class="nav-dropdown-item" onclick="showTab('editor',this);closeNavMenu()">Editor</button>
+        <button class="nav-dropdown-item" onclick="showTab('pricing',this);closeNavMenu()">Pricing</button>
+        <button class="nav-dropdown-item" onclick="showTab('settings',this);closeNavMenu()">Settings</button>
       </div>
     </div>
   </div>
@@ -751,17 +751,17 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 
   <div class="error-box" id="error-box" style="display:none;"></div>
 
-  <button class="gen-btn" id="gen-btn" onclick="generate()">✨ Generate content</button>
+  <button class="gen-btn" id="gen-btn" onclick="generate()">Generate content</button>
 
   <!-- RESULT BOX -->
   <div class="result-box" id="result-box" style="display:none;">
-    <div class="result-title" id="result-title">✦ Your content is ready!</div>
+    <div class="result-title" id="result-title">Your content is ready!</div>
     <div id="result-content"></div>
     <div class="action-row" id="action-row"></div>
 
     <!-- HASHTAGS -->
     <div style="margin-top:14px;">
-      <button class="act-btn sage-btn" onclick="generateHashtags()">🔖 Generate hashtags</button>
+      <button class="act-btn sage-btn" onclick="generateHashtags()">Generate hashtags</button>
       <div id="hashtag-result"></div>
     </div>
 
@@ -785,7 +785,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
           <div class="video-info">
             <span class="video-info-name" id="video-name">video.mp4</span>
             <span class="video-info-size" id="video-size">0 MB</span>
-            <button class="video-remove" onclick="removeVideo()">✕ Remove</button>
+            <button class="video-remove" onclick="removeVideo()">Remove</button>
           </div>
         </div>
 
@@ -804,8 +804,8 @@ input[type=range]{width:100%;accent-color:var(--rose);}
       </div>
       <div class="chip-wrap" id="img-model-chips" style="margin-bottom:12px;">
         <button type="button" class="chip active" data-imgmodel="dalle3" onclick="selectImgModel('dalle3')">DALL-E 3</button>
-        <button type="button" class="chip" data-imgmodel="nano" onclick="selectImgModel('nano')">🍌 Nano Banana</button>
-        <button type="button" class="chip" data-imgmodel="nano-pro" onclick="selectImgModel('nano-pro')">🍌 Nano Banana Pro</button>
+        <button type="button" class="chip" data-imgmodel="nano" onclick="selectImgModel('nano')">Nano Banana</button>
+        <button type="button" class="chip" data-imgmodel="nano-pro" onclick="selectImgModel('nano-pro')">Nano Banana Pro</button>
       </div>
       <button class="gen-btn purple" id="pub-btn" style="margin-bottom:0;font-size:13px;padding:13px;" onclick="genererBilde()">
         🎨 Generate cover image
@@ -817,12 +817,12 @@ input[type=range]{width:100%;accent-color:var(--rose);}
         <div style="font-size:11px;font-weight:700;color:var(--text-s);margin-bottom:8px;">Preview:</div>
         <img id="bilde-preview-img" src="" style="width:100%;border-radius:12px;border:2px solid var(--rose-m);margin-bottom:12px;"/>
         <div style="display:flex;gap:8px;">
-          <button class="gen-btn purple" style="flex:1;font-size:12px;padding:11px;" onclick="genererBilde()">🔄 New image</button>
-          <button class="gen-btn sage" style="flex:1;font-size:12px;padding:11px;" onclick="publiserMedBilde()">🚀 Publish</button>
+          <button class="gen-btn purple" style="flex:1;font-size:12px;padding:11px;" onclick="genererBilde()">New image</button>
+          <button class="gen-btn sage" style="flex:1;font-size:12px;padding:11px;" onclick="publiserMedBilde()">Publish</button>
         </div>
         <div style="display:flex;gap:8px;margin-top:8px;">
-          <a id="bilde-last-ned" href="" download="lme-bilde.png" style="flex:1;display:block;padding:10px;border-radius:12px;border:1.5px solid var(--border);background:white;color:var(--text);font-family:'Sasson Montessori';font-size:12px;font-weight:600;text-align:center;text-decoration:none;">⬇️ Download</a>
-          <button class="act-btn sage-btn" style="flex:1;font-size:12px;" onclick="brukIStoryEditor()">🌸 Open in Story editor</button>
+          <a id="bilde-last-ned" href="" download="lme-bilde.png" style="flex:1;display:block;padding:10px;border-radius:12px;border:1.5px solid var(--border);background:white;color:var(--text);font-family:'Sasson Montessori';font-size:12px;font-weight:600;text-align:center;text-decoration:none;">Download</a>
+          <button class="act-btn sage-btn" style="flex:1;font-size:12px;" onclick="brukIStoryEditor()">Open in Story editor</button>
         </div>
         <div id="pub-bilde-status" style="margin-top:10px;"></div>
       </div>
@@ -884,8 +884,8 @@ input[type=range]{width:100%;accent-color:var(--rose);}
   <div id="plan-detail" style="display:none;background:white;border-radius:18px;border:2px solid var(--rose);padding:16px;margin-top:14px;">
     <div id="plan-detail-content"></div>
     <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
-      <button class="act-btn" onclick="generateFromPlan()">✨ Generate content for this day</button>
-      <button class="act-btn" style="border-color:var(--border);color:var(--text-s);" onclick="document.getElementById('plan-detail').style.display='none'">✕ Close</button>
+      <button class="act-btn" onclick="generateFromPlan()">Generate content for this day</button>
+      <button class="act-btn" style="border-color:var(--border);color:var(--text-s);" onclick="document.getElementById('plan-detail').style.display='none'">Close</button>
     </div>
   </div>
 </div>
@@ -902,7 +902,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
     <div style="font-size:36px;margin-bottom:8px;">🌿</div>
     <div style="font-family:'Playpen Sans';font-size:22px;font-weight:900;margin-bottom:8px;">LME Content Studio</div>
     <div style="font-size:13px;opacity:.92;line-height:1.6;">AI-powered Montessori content creation<br/>with automatic publishing to all platforms</div>
-    <div style="margin-top:14px;background:rgba(255,255,255,.2);border-radius:12px;padding:10px 16px;font-size:13px;font-weight:700;">🎁 Try Pro free for 7 days — card details required — cancel anytime</div>
+    <div style="margin-top:14px;background:rgba(255,255,255,.2);border-radius:12px;padding:10px 16px;font-size:13px;font-weight:700;">Try Pro free for 7 days — card details required — cancel anytime</div>
   </div>
 
   <!-- 7 days free -->
@@ -932,7 +932,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 
   <!-- PRO $49 -->
   <div class="card" style="border:2.5px solid var(--rose);background:linear-gradient(160deg,var(--rose-l) 0%,white 100%);margin-bottom:14px;position:relative;">
-    <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,var(--rose),var(--rose-d));color:white;border-radius:20px;padding:4px 16px;font-size:11px;font-weight:700;white-space:nowrap;">⭐ MOST POPULAR</div>
+    <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,var(--rose),var(--rose-d));color:white;border-radius:20px;padding:4px 16px;font-size:11px;font-weight:700;white-space:nowrap;">MOST POPULAR</div>
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;margin-top:8px;">
       <div><div style="font-family:'Playpen Sans';font-size:18px;font-weight:900;color:var(--rose-d);">Pro</div><div style="font-size:11px;color:var(--text-s);margin-top:2px;">The complete content system</div></div>
       <div style="text-align:right;"><div style="font-family:'Playpen Sans';font-size:28px;font-weight:900;color:var(--rose-d);">$49</div><div style="font-size:10px;color:var(--text-s);">per month</div></div>
@@ -953,7 +953,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 
   <!-- PRO + COMMUNITY $69 -->
   <div class="card" style="border:2px solid #0084E4;background:linear-gradient(160deg,#E6F3FC 0%,white 100%);margin-bottom:14px;position:relative;">
-    <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,#0084E4,#339BEA);color:white;border-radius:20px;padding:4px 16px;font-size:11px;font-weight:700;white-space:nowrap;">🌿 COMING SOON</div>
+    <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,#0084E4,#339BEA);color:white;border-radius:20px;padding:4px 16px;font-size:11px;font-weight:700;white-space:nowrap;">COMING SOON</div>
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;margin-top:8px;">
       <div><div style="font-family:'Playpen Sans';font-size:18px;font-weight:900;color:#005C9E;">Pro + Community</div><div style="font-size:11px;color:var(--text-s);margin-top:2px;">Studio + bilingual Montessori community with Renate</div></div>
       <div style="text-align:right;"><div style="font-family:'Playpen Sans';font-size:28px;font-weight:900;color:#005C9E;">$69</div><div style="font-size:10px;color:var(--text-s);">per month</div></div>
@@ -971,7 +971,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 
   <!-- ANNUAL $690 -->
   <div class="card" style="border:2.5px solid var(--gold);background:linear-gradient(160deg,#FFFCF5 0%,#E6F3FC 100%);margin-bottom:14px;position:relative;">
-    <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,var(--gold),#D9A500);color:white;border-radius:20px;padding:4px 16px;font-size:11px;font-weight:700;white-space:nowrap;">💎 BEST VALUE · COMING SOON</div>
+    <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,var(--gold),#D9A500);color:white;border-radius:20px;padding:4px 16px;font-size:11px;font-weight:700;white-space:nowrap;">BEST VALUE · COMING SOON</div>
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;margin-top:8px;">
       <div><div style="font-family:'Playpen Sans';font-size:18px;font-weight:900;color:var(--gold);">Annual Pro + Community</div><div style="font-size:11px;color:var(--text-s);margin-top:2px;">Everything included — save $138!</div></div>
       <div style="text-align:right;"><div style="font-family:'Playpen Sans';font-size:28px;font-weight:900;color:var(--gold);">$690</div><div style="font-size:10px;color:var(--text-s);">per year</div><div style="font-size:10px;color:var(--sage-d);font-weight:700;">pay for 10, get 12</div></div>
@@ -1005,16 +1005,16 @@ input[type=range]{width:100%;accent-color:var(--rose);}
     <div class="card-title" style="color:var(--gold);">Characters</div>
     <div style="font-size:11px;color:var(--text-s);margin-bottom:10px;line-height:1.6;">Choose which characters to use in your content</div>
     <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px;">
-      <button class="chip" id="char-custom" onclick="selectCharPreset('custom')">✨ Custom characters</button>
+      <button class="chip" id="char-custom" onclick="selectCharPreset('custom')">Custom characters</button>
       <button class="chip" id="char-none" onclick="selectCharPreset('none')">— None</button>
     </div>
     <div id="custom-char-fields" style="background:var(--warm);border-radius:12px;padding:12px;margin-bottom:8px;border:1.5px solid var(--gold);">
-      <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:10px;">✨ Custom characters — name and description</div>
+      <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:10px;">Custom characters — name and description</div>
       <div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Character names</div>
       <input type="text" id="s-char-names" placeholder="E.g. Luna & Max" style="margin-bottom:10px;display:block;width:100%;" oninput="saveSettings()"/>
       <div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Describe the characters (age, appearance, personality)</div>
       <textarea id="s-char-desc" rows="3" style="display:block;width:100%;" placeholder="E.g. Luna is 5 years old, has red curly hair and loves to explore the forest. Max is 7 years old, calm and curious, always with a book in hand." oninput="saveSettings()"></textarea>
-      <div style="font-size:10px;color:var(--text-s);margin-top:6px;">Select <strong>✨ Custom characters</strong> above to use these in content generation</div>
+      <div style="font-size:10px;color:var(--text-s);margin-top:6px;">Select <strong>Custom characters</strong> above to use these in content generation</div>
     </div>
     <div id="char-preview" style="margin-top:8px;background:var(--warm);border-radius:8px;padding:8px 10px;font-size:12px;"></div>
   </div>
@@ -1077,9 +1077,9 @@ input[type=range]{width:100%;accent-color:var(--rose);}
     </div>
   </div>
 
-  <button class="gen-btn sage" onclick="saveSettingsConfirm()">✅ Save settings</button>
+  <button class="gen-btn sage" onclick="saveSettingsConfirm()">Save settings</button>
   <div style="display:flex;gap:10px;margin-top:10px;">
-    <button class="act-btn sage-btn" style="flex:1;padding:12px;" onclick="eksporterSettings()">⬇️ Export settings</button>
+    <button class="act-btn sage-btn" style="flex:1;padding:12px;" onclick="eksporterSettings()">Export settings</button>
     <label class="act-btn sage-btn" style="flex:1;padding:12px;text-align:center;cursor:pointer;">
       ⬆️ Import settings
       <input type="file" accept=".json" style="display:none;" onchange="importerSettings(this)"/>
@@ -1088,7 +1088,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
   <div style="font-size:10px;color:var(--text-s);margin-top:6px;text-align:center;">
     Export your settings as a file — import them again if you switch device or browser
   </div>
-  <div id="settings-ok" style="display:none;background:var(--sage-l);border-radius:10px;padding:10px 14px;color:var(--sage-d);font-size:13px;text-align:center;">✅ Settings saved!</div>
+  <div id="settings-ok" style="display:none;background:var(--sage-l);border-radius:10px;padding:10px 14px;color:var(--sage-d);font-size:13px;text-align:center;">Settings saved!</div>
 </div>
 
 
@@ -1103,7 +1103,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
     </div>
     <div class="canva-import-sub">Design in Canva (1080×1920px) → Share as PNG → paste link OR drag the file here</div>
     <input class="canva-url-input" id="canva-story-url" placeholder="https://www.canva.com/design/... or paste image URL" oninput="canvaUrlPreview('story')"/>
-    <button class="canva-btn" onclick="canvaFetchUrl('story')">🔗 Fetch image from link</button>
+    <button class="canva-btn" onclick="canvaFetchUrl('story')">Fetch image from link</button>
     <div class="canva-drop-zone" id="canva-story-drop">
       <input type="file" class="canva-drop-input" accept="image/*,video/*" onchange="canvaFileLoaded(this,'story')"/>
       <div class="canva-drop-icon">📁</div>
@@ -1116,7 +1116,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 
   <!-- Carousel fra Canva -->
   <div class="canva-import-box" style="background:linear-gradient(135deg,var(--rose-d),#c06060);">
-    <div class="canva-import-title">🎠 Import carousel slides from Canva</div>
+    <div class="canva-import-title">Import carousel slides from Canva</div>
     <div class="canva-import-sub">Design slides in Canva (1080×1080px) → Download as PNG (select pages) → upload all here</div>
     <div class="canva-drop-zone" id="canva-carousel-drop">
       <input type="file" class="canva-drop-input" accept="image/*" multiple onchange="canvaCarouselLoaded(this)"/>
@@ -1130,7 +1130,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 
   <!-- Reel fra Canva -->
   <div class="canva-import-box" style="background:linear-gradient(135deg,#0f172a,#1e1b4b);">
-    <div class="canva-import-title">🎬 Import Reel video from Canva</div>
+    <div class="canva-import-title">Import Reel video from Canva</div>
     <div class="canva-import-sub">Design in Canva → Download as MP4 → drag the file here → opens automatically in Reel editor</div>
     <div class="canva-drop-zone" id="canva-reel-drop">
       <input type="file" class="canva-drop-input" accept="video/mp4,video/mov,video/*" onchange="canvaReelLoaded(this)"/>
@@ -1224,7 +1224,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
       <div class="card-title">Hook / Text</div>
 
       <div style="margin-bottom:6px;">
-        <button class="chip" onclick="renderEmojiPicker('story-headline')" style="font-size:12px;">😊 Emojis</button>
+        <button class="chip" onclick="renderEmojiPicker('story-headline')" style="font-size:12px;">Emojis</button>
       </div>
       <div id="emoji-picker-story-headline" class="emoji-picker-wrap"></div>
       <input class="text-overlay-input" id="story-headline" placeholder="Headline / Hook" oninput="drawStoryCanvas()"/>
@@ -1247,21 +1247,21 @@ input[type=range]{width:100%;accent-color:var(--rose);}
       <!-- Text color -->
       <div style="font-size:11px;color:var(--text-s);margin-bottom:6px;">Text color:</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
-        <button class="chip active" id="txt-color-white" onclick="setTextColor('white')">⬜ White</button>
-        <button class="chip" id="txt-color-dark" onclick="setTextColor('#1A1A1A')">⬛ Dark</button>
-        <button class="chip" id="txt-color-rose" onclick="setTextColor('#F02478')">🌸 Pink</button>
-        <button class="chip" id="txt-color-yellow" onclick="setTextColor('#FCC000')">🌟 Yellow</button>
+        <button class="chip active" id="txt-color-white" onclick="setTextColor('white')">White</button>
+        <button class="chip" id="txt-color-dark" onclick="setTextColor('#1A1A1A')">Dark</button>
+        <button class="chip" id="txt-color-rose" onclick="setTextColor('#F02478')">Pink</button>
+        <button class="chip" id="txt-color-yellow" onclick="setTextColor('#FCC000')">Yellow</button>
       </div>
 
       <!-- Background behind text -->
       <div style="font-size:11px;color:var(--text-s);margin-bottom:6px;">Background behind hook:</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
         <button class="chip active" id="txt-bg-none" onclick="setTextBg('none')">— None</button>
-        <button class="chip" id="txt-bg-black" onclick="setTextBg('rgba(0,0,0,0.55)')">⬛ Black</button>
-        <button class="chip" id="txt-bg-white" onclick="setTextBg('rgba(255,255,255,0.75)')">⬜ White</button>
-        <button class="chip" id="txt-bg-rose" onclick="setTextBg('rgba(240,36,120,0.8)')">🌸 Pink</button>
-        <button class="chip" id="txt-bg-sage" onclick="setTextBg('rgba(156,192,0,0.8)')">🌿 Green</button>
-        <button class="chip" id="txt-bg-gold" onclick="setTextBg('rgba(212,149,106,0.8)')">✨ Gold</button>
+        <button class="chip" id="txt-bg-black" onclick="setTextBg('rgba(0,0,0,0.55)')">Black</button>
+        <button class="chip" id="txt-bg-white" onclick="setTextBg('rgba(255,255,255,0.75)')">White</button>
+        <button class="chip" id="txt-bg-rose" onclick="setTextBg('rgba(240,36,120,0.8)')">Pink</button>
+        <button class="chip" id="txt-bg-sage" onclick="setTextBg('rgba(156,192,0,0.8)')">Green</button>
+        <button class="chip" id="txt-bg-gold" onclick="setTextBg('rgba(212,149,106,0.8)')">Gold</button>
       </div>
 
       <button class="act-btn sage-btn" style="width:100%;" onclick="loadStoryTextFromContent()">
@@ -1279,9 +1279,9 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 
       <!-- Poll -->
       <div style="margin-bottom:12px;">
-        <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:6px;">🗳️ Poll text (shown on story)</div>
+        <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:6px;">Poll text (shown on story)</div>
         <div style="margin-bottom:6px;">
-        <button class="chip" onclick="renderEmojiPicker('story-poll')" style="font-size:12px;">😊 Emojis</button>
+        <button class="chip" onclick="renderEmojiPicker('story-poll')" style="font-size:12px;">Emojis</button>
       </div>
       <div id="emoji-picker-story-poll" class="emoji-picker-wrap"></div>
         <input class="text-overlay-input" id="story-poll" placeholder='E.g. "Outdoor play OR indoor? 👇"' oninput="drawStoryCanvas()"/>
@@ -1295,9 +1295,9 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 
       <!-- CTA -->
       <div style="margin-bottom:12px;">
-        <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:6px;">📢 CTA text (shown on story)</div>
+        <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:6px;">CTA text (shown on story)</div>
         <div style="margin-bottom:6px;">
-        <button class="chip" onclick="renderEmojiPicker('story-cta-overlay')" style="font-size:12px;">😊 Emojis</button>
+        <button class="chip" onclick="renderEmojiPicker('story-cta-overlay')" style="font-size:12px;">Emojis</button>
       </div>
       <div id="emoji-picker-story-cta-overlay" class="emoji-picker-wrap"></div>
         <input class="text-overlay-input" id="story-cta-overlay" placeholder='E.g. "Link in bio 🌿" or "Reply in comments 👇"' oninput="drawStoryCanvas()"/>
@@ -1312,7 +1312,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 
       <!-- Lenke -->
       <div>
-        <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:6px;">🔗 Link (sent in caption)</div>
+        <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:6px;">Link (sent in caption)</div>
         <input class="text-overlay-input" id="story-link" placeholder="https://lmexplorers.com/..."/>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
           <button class="chip" onclick="settLenke('https://lmexplorers.com')">Website</button>
@@ -1327,7 +1327,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
     <div class="card">
       <div class="card-title">Logo and watermark</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="chip active" id="logo-lme" onclick="setLogo('lme')">🌿 LME-logo</button>
+        <button class="chip active" id="logo-lme" onclick="setLogo('lme')">LME-logo</button>
         <button class="chip" id="logo-none" onclick="setLogo('none')">— None</button>
       </div>
       <div style="margin-top:10px;display:flex;gap:8px;align-items:center;">
@@ -1420,7 +1420,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
       <div class="card">
         <div class="card-title">Hook overlay on video</div>
         <div style="margin-bottom:6px;">
-          <button class="chip" onclick="renderEmojiPicker('reel-overlay-text')" style="font-size:12px;">😊 Emojis</button>
+          <button class="chip" onclick="renderEmojiPicker('reel-overlay-text')" style="font-size:12px;">Emojis</button>
         </div>
         <div id="emoji-picker-reel-overlay-text" class="emoji-picker-wrap"></div>
         <input class="text-overlay-input" id="reel-overlay-text" placeholder="Hook text shown on the video..." oninput="updateReelOverlay()"/>
@@ -1452,20 +1452,20 @@ input[type=range]{width:100%;accent-color:var(--rose);}
         <!-- Text color -->
         <div style="font-size:11px;color:var(--text-s);margin-bottom:6px;">Color:</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
-          <button class="chip active" id="reel-txt-white" onclick="setReelTextColor('white')">⬜ White</button>
-          <button class="chip" id="reel-txt-yellow" onclick="setReelTextColor('#FCC000')">🌟 Yellow</button>
-          <button class="chip" id="reel-txt-rose" onclick="setReelTextColor('#FFDDDE')">🌸 Pink</button>
-          <button class="chip" id="reel-txt-black" onclick="setReelTextColor('#000000')">⬛ Black</button>
+          <button class="chip active" id="reel-txt-white" onclick="setReelTextColor('white')">White</button>
+          <button class="chip" id="reel-txt-yellow" onclick="setReelTextColor('#FCC000')">Yellow</button>
+          <button class="chip" id="reel-txt-rose" onclick="setReelTextColor('#FFDDDE')">Pink</button>
+          <button class="chip" id="reel-txt-black" onclick="setReelTextColor('#000000')">Black</button>
         </div>
 
         <!-- Text background -->
         <div style="font-size:11px;color:var(--text-s);margin-bottom:6px;">Background behind hook:</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
           <button class="chip active" id="reel-bg-none" onclick="setReelTextBg('none')">— None</button>
-          <button class="chip" id="reel-bg-black" onclick="setReelTextBg('rgba(0,0,0,0.6)')">⬛ Black</button>
-          <button class="chip" id="reel-bg-white" onclick="setReelTextBg('rgba(255,255,255,0.75)')">⬜ White</button>
-          <button class="chip" id="reel-bg-rose" onclick="setReelTextBg('rgba(240,36,120,0.85)')">🌸 Pink</button>
-          <button class="chip" id="reel-bg-sage" onclick="setReelTextBg('rgba(156,192,0,0.85)')">🌿 Green</button>
+          <button class="chip" id="reel-bg-black" onclick="setReelTextBg('rgba(0,0,0,0.6)')">Black</button>
+          <button class="chip" id="reel-bg-white" onclick="setReelTextBg('rgba(255,255,255,0.75)')">White</button>
+          <button class="chip" id="reel-bg-rose" onclick="setReelTextBg('rgba(240,36,120,0.85)')">Pink</button>
+          <button class="chip" id="reel-bg-sage" onclick="setReelTextBg('rgba(156,192,0,0.85)')">Green</button>
         </div>
 
         <button class="act-btn sage-btn" style="width:100%;" onclick="loadReelTextFromContent()">
@@ -1477,7 +1477,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
       <div class="card">
         <div class="card-title">Caption</div>
         <div style="margin-bottom:6px;">
-        <button class="chip" onclick="renderEmojiPicker('reel-caption')" style="font-size:12px;">😊 Emojis</button>
+        <button class="chip" onclick="renderEmojiPicker('reel-caption')" style="font-size:12px;">Emojis</button>
       </div>
       <div id="emoji-picker-reel-caption" class="emoji-picker-wrap"></div>
         <textarea id="reel-caption" rows="4" placeholder="Write your caption here — sent automatically with the Reel to the publishing service..." style="width:100%;border-radius:10px;border:2px solid var(--border);padding:10px 13px;font-family:'Sasson Montessori';font-size:12px;color:var(--text);outline:none;resize:vertical;" oninput="saveReelCaption()"></textarea>
@@ -1497,14 +1497,14 @@ input[type=range]{width:100%;accent-color:var(--rose);}
       <div class="card">
         <div class="card-title">Hashtags</div>
         <div style="margin-bottom:6px;">
-        <button class="chip" onclick="renderEmojiPicker('reel-hashtags')" style="font-size:12px;">😊 Emojis</button>
+        <button class="chip" onclick="renderEmojiPicker('reel-hashtags')" style="font-size:12px;">Emojis</button>
       </div>
       <div id="emoji-picker-reel-hashtags" class="emoji-picker-wrap"></div>
         <textarea id="reel-hashtags" rows="2" placeholder="#montessori #montessorinorge #barneledet #frilek #merkevarefamilien" style="width:100%;border-radius:10px;border:2px solid var(--border);padding:10px 13px;font-family:'Sasson Montessori';font-size:12px;color:var(--text);outline:none;resize:vertical;"></textarea>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;">
-          <button class="chip" onclick="setHashtagsReel('no')">🇳🇴 Norwegian</button>
-          <button class="chip" onclick="setHashtagsReel('en')">🇺🇸 English</button>
-          <button class="chip" onclick="setHashtagsReel('both')">🌍 Both</button>
+          <button class="chip" onclick="setHashtagsReel('no')">Norwegian</button>
+          <button class="chip" onclick="setHashtagsReel('en')">English</button>
+          <button class="chip" onclick="setHashtagsReel('both')">Both</button>
         </div>
       </div>
 
@@ -1512,7 +1512,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
       <div class="card">
         <div class="card-title">Call to action</div>
         <div style="margin-bottom:6px;">
-        <button class="chip" onclick="renderEmojiPicker('reel-cta')" style="font-size:12px;">😊 Emojis</button>
+        <button class="chip" onclick="renderEmojiPicker('reel-cta')" style="font-size:12px;">Emojis</button>
       </div>
       <div id="emoji-picker-reel-cta" class="emoji-picker-wrap"></div>
         <input class="text-overlay-input" id="reel-cta" placeholder='E.g. "Save this and follow for more! 🌿"'/>
@@ -1530,11 +1530,11 @@ input[type=range]{width:100%;accent-color:var(--rose);}
         <div class="card-title">Color filter / look</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <button class="chip active" id="filter-none" onclick="setReelFilter('none')">Original</button>
-          <button class="chip" id="filter-warm" onclick="setReelFilter('warm')">☀️ Warm</button>
-          <button class="chip" id="filter-cool" onclick="setReelFilter('cool')">❄️ Cool</button>
-          <button class="chip" id="filter-rose" onclick="setReelFilter('rose')">🌸 Pink</button>
-          <button class="chip" id="filter-fade" onclick="setReelFilter('fade')">🌫️ Fade</button>
-          <button class="chip" id="filter-vivid" onclick="setReelFilter('vivid')">⚡ Vivid</button>
+          <button class="chip" id="filter-warm" onclick="setReelFilter('warm')">Warm</button>
+          <button class="chip" id="filter-cool" onclick="setReelFilter('cool')">Cool</button>
+          <button class="chip" id="filter-rose" onclick="setReelFilter('rose')">Pink</button>
+          <button class="chip" id="filter-fade" onclick="setReelFilter('fade')">Fade</button>
+          <button class="chip" id="filter-vivid" onclick="setReelFilter('vivid')">Vivid</button>
         </div>
       </div>
 

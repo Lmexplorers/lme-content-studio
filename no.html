@@ -29,7 +29,7 @@
 body{font-family:'Sasson Montessori';background:var(--cream);color:var(--text);min-height:100vh;}
 
 .app-header{background:linear-gradient(120deg,var(--rose) 0%,var(--rose-d) 100%);padding:14px 12px 0;box-shadow:0 4px 24px rgba(240,36,120,.35);}
-.app-header-inner{max-width:580px;margin:0 auto;}
+.app-header-inner{max-width:640px;margin:0 auto;}
 .app-brand{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
 .app-logo{width:56px;height:56px;border-radius:14px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;border:2px solid rgba(255,255,255,.6);padding:3px;}
 .app-logo img{width:100%;height:100%;object-fit:contain;display:block;}
@@ -37,7 +37,7 @@ body{font-family:'Sasson Montessori';background:var(--cream);color:var(--text);m
 .app-brand-name{font-family:'Sasson Montessori';font-size:21px;font-weight:700;line-height:1.1;}
 .app-brand-tag{font-size:12.5px;opacity:.88;}
 .tabs{display:flex;gap:0;}
-.tab-btn{flex:0 0 auto;padding:8px 10px;background:transparent;color:rgba(255,255,255,.82);border:none;cursor:pointer;font-family:'Sasson Montessori';font-size:10px;font-weight:500;border-radius:10px 10px 0 0;transition:all .2s;white-space:nowrap;}
+.tab-btn{flex:0 0 auto;padding:11px 15px;background:transparent;color:rgba(255,255,255,.82);border:none;cursor:pointer;font-family:'Sasson Montessori';font-size:13px;font-weight:600;border-radius:12px 12px 0 0;transition:all .2s;white-space:nowrap;}
 .tab-btn.active{background:var(--cream);color:var(--rose-d);font-weight:700;}
 /* Hamburger menu */
 .nav-menu-btn{padding:8px 12px;background:rgba(255,255,255,.15);color:white;border:none;cursor:pointer;font-size:18px;border-radius:10px 10px 0 0;flex-shrink:0;}
@@ -49,38 +49,38 @@ body{font-family:'Sasson Montessori';background:var(--cream);color:var(--text);m
 .nav-dropdown-item.active{background:var(--rose-l);color:var(--rose-d);font-weight:700;}
 .nav-wrap{position:relative;display:flex;align-items:flex-end;}
 
-.app-body{max-width:580px;margin:0 auto;padding:20px 16px 80px;}
-.card{background:white;border-radius:20px;border:1px solid #F3E7EE;padding:18px;margin-bottom:16px;box-shadow:0 8px 26px -16px rgba(240,36,120,.28);}
-.card-title{font-size:11px;font-weight:700;color:var(--rose-d);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;}
+.app-body{max-width:640px;margin:0 auto;padding:30px 22px 110px;}
+.card{background:white;border-radius:22px;border:1px solid #F3E7EE;padding:24px 22px;margin-bottom:22px;box-shadow:0 10px 30px -18px rgba(240,36,120,.3);}
+.card-title{font-size:12.5px;font-weight:700;color:var(--rose-d);letter-spacing:.09em;text-transform:uppercase;margin-bottom:16px;}
 
 .format-list{display:flex;flex-direction:column;gap:8px;}
-.format-btn{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:13px;border:2px solid var(--border);background:white;cursor:pointer;text-align:left;transition:all .18s;width:100%;}
+.format-btn{display:flex;align-items:center;gap:14px;padding:15px 16px;border-radius:15px;border:1.5px solid var(--border);background:white;cursor:pointer;text-align:left;transition:all .18s;width:100%;}
 .format-btn.active{border-color:var(--rose);background:var(--rose-l);}
 .format-btn:hover:not(.active){border-color:var(--rose-m);}
 .format-emoji{font-size:20px;flex-shrink:0;}
-.format-label{font-family:'Sasson Montessori';font-weight:700;color:var(--text);font-size:13px;}
-.format-desc{font-size:11px;color:var(--text-s);margin-top:1px;}
+.format-label{font-family:'Sasson Montessori';font-weight:700;color:var(--text);font-size:15px;}
+.format-desc{font-size:12.5px;color:var(--text-s);margin-top:3px;line-height:1.5;}
 .format-check{margin-left:auto;color:var(--rose);font-size:16px;font-weight:700;}
 
-.chip-wrap{display:flex;flex-wrap:wrap;gap:7px;}
-.chip{padding:6px 13px;border-radius:30px;border:2px solid var(--border);background:white;color:var(--text-s);font-size:12px;cursor:pointer;font-family:'Sasson Montessori';transition:all .18s;}
+.chip-wrap{display:flex;flex-wrap:wrap;gap:10px;}
+.chip{padding:10px 18px;border-radius:30px;border:1.5px solid var(--border);background:white;color:var(--text-s);font-size:14px;cursor:pointer;font-family:'Sasson Montessori';transition:all .18s;}
 .chip.active{background:var(--rose);border-color:var(--rose);color:white;}
 .chip:hover:not(.active){border-color:var(--rose-m);}
 .chip.sage.active{background:var(--sage-d);border-color:var(--sage-d);}
 .chip.sage:hover:not(.active){border-color:var(--sage);}
 
 input[type=text],input[type=email],input[type=password],textarea,input[type=date],input[type=time]{
-  width:100%;border-radius:10px;border:2px solid var(--border);padding:10px 13px;
-  font-family:'Sasson Montessori';font-size:13px;color:var(--text);background:white;outline:none;transition:border-color .18s;
+  width:100%;border-radius:13px;border:1.5px solid var(--border);padding:14px 16px;
+  font-family:'Sasson Montessori';font-size:15px;color:var(--text);background:white;outline:none;transition:border-color .18s;
 }
 input:focus,textarea:focus{border-color:var(--rose);}
 textarea{resize:vertical;}
 input[type=range]{width:100%;accent-color:var(--rose);}
 .range-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--text-s);margin-top:3px;}
-.row{display:flex;gap:12px;}
+.row{display:flex;gap:18px;}
 .row>.card{flex:1;margin-bottom:0;}
 
-.gen-btn{width:100%;padding:17px;border:none;border-radius:16px;background:linear-gradient(110deg,var(--rose),var(--rose-d));color:white;font-family:'Playpen Sans';font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 6px 28px rgba(240,36,120,.45);transition:all .3s;margin-bottom:18px;}
+.gen-btn{width:100%;padding:19px;border:none;border-radius:18px;background:linear-gradient(110deg,var(--rose),var(--rose-d));color:white;font-family:'Playpen Sans';font-size:17px;font-weight:700;cursor:pointer;box-shadow:0 10px 30px -8px rgba(240,36,120,.5);transition:all .3s;margin-bottom:24px;}
 .gen-btn:disabled{background:var(--rose-m);box-shadow:none;cursor:not-allowed;}
 .gen-btn:not(:disabled):hover{transform:translateY(-2px);box-shadow:0 10px 32px rgba(240,36,120,.55);}
 .gen-btn.sage{background:linear-gradient(110deg,var(--sage),var(--sage-d));box-shadow:0 6px 28px rgba(156,192,0,.35);}
@@ -93,9 +93,9 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 .slide-nav{display:flex;gap:7px;justify-content:center;margin-top:11px;flex-wrap:wrap;}
 .slide-dot{width:28px;height:28px;border-radius:50%;border:2px solid var(--rose-m);background:white;color:var(--rose);font-size:10px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .18s;}
 .slide-dot.active{background:var(--rose);color:white;border-color:var(--rose);}
-.text-result{background:var(--warm);border-radius:14px;padding:16px;font-size:13px;color:var(--text);line-height:1.85;white-space:pre-wrap;max-height:320px;overflow-y:auto;}
+.text-result{background:var(--warm);border-radius:16px;padding:20px;font-size:15px;color:var(--text);line-height:1.85;white-space:pre-wrap;max-height:360px;overflow-y:auto;}
 .action-row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
-.act-btn{padding:8px 16px;border-radius:10px;font-family:'Sasson Montessori';font-size:12px;cursor:pointer;transition:all .2s;border:2px solid var(--rose);background:white;color:var(--rose);}
+.act-btn{padding:11px 18px;border-radius:12px;font-family:'Sasson Montessori';font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;border:1.5px solid var(--rose);background:white;color:var(--rose);}
 .act-btn.copied{background:var(--sage-d);border-color:var(--sage-d);color:white;}
 .act-btn.sage-btn{border-color:var(--sage-d);color:var(--sage-d);}
 .act-btn.sage-btn:hover{background:var(--sage-l);}
@@ -443,16 +443,16 @@ input[type=range]{width:100%;accent-color:var(--rose);}
       <div style="font-size:13px;color:#6B6470;margin-bottom:20px;font-style:italic;">AI-drevet innhold + autopublisering<br/>AI-powered content + auto-publishing</div>
 
       <div style="background:#FCE4EE;border-radius:14px;padding:16px;margin-bottom:16px;text-align:left;font-size:13px;line-height:1.6;">
-        <strong style="color:#C81860;">✨ Lag og publiser automatisk til alle plattformer</strong><br/>
+        <strong style="color:#C81860;">Lag og publiser automatisk til alle plattformer</strong><br/>
         <span style="color:#6B6470;">Generer bildetekster, bilder, hashtags og reels med AI — så publiseres alt automatisk til Instagram, TikTok, Facebook, Pinterest og flere. Perfekt for innholdsskapere, pedagoger og småbedrifter.</span>
       </div>
 
       <div style="background:#F0FCDB;border-radius:14px;padding:14px;margin-bottom:20px;text-align:left;font-size:12px;line-height:1.6;">
-        <strong style="color:#9CC000;">🌿 Inkluderer Montessori-maler</strong><br/>
+        <strong style="color:#9CC000;">Inkluderer Montessori-maler</strong><br/>
         <span style="color:#6B6470;">Sett din egen merkevarestemme, dine farger og din stil.</span>
       </div>
 
-      <a href="https://link.feacreate.com/payment-link/69dff984557558e89e5202da" style="display:block;background:linear-gradient(120deg,#F02478 0%,#C81860 100%);color:#fff;padding:16px 20px;border-radius:14px;font-size:15px;font-weight:700;text-decoration:none;margin-bottom:16px;box-shadow:0 8px 24px rgba(240,36,120,.25);">🎁 Start 7 dagers gratis prøveperiode</a>
+      <a href="https://link.feacreate.com/payment-link/69dff984557558e89e5202da" style="display:block;background:linear-gradient(120deg,#F02478 0%,#C81860 100%);color:#fff;padding:16px 20px;border-radius:14px;font-size:15px;font-weight:700;text-decoration:none;margin-bottom:16px;box-shadow:0 8px 24px rgba(240,36,120,.25);">Start 7 dagers gratis prøveperiode</a>
 
       <div style="font-size:13px;font-weight:700;color:#C81860;margin-bottom:10px;text-align:center;">Abonnementer</div>
 
@@ -481,8 +481,8 @@ input[type=range]{width:100%;accent-color:var(--rose);}
       <div style="border-top:1px solid #E8E0E5;padding-top:16px;">
         <div style="font-size:12px;color:#6B6470;margin-bottom:10px;">Allerede abonnent? Skriv inn tilgangsnøkkelen din:</div>
         <input type="text" id="lme-access-input" placeholder="Skriv inn nøkkel / Enter access key" style="width:100%;padding:12px 14px;border:2px solid #E8E0E5;border-radius:10px;font-family:'Sasson Montessori';font-size:14px;color:#1A1A1A;outline:none;margin-bottom:10px;text-align:center;" onkeypress="if(event.key==='Enter')lmeCheckAccess()"/>
-        <button onclick="lmeCheckAccess()" style="width:100%;padding:12px;background:#B4D870;color:#fff;border:none;border-radius:10px;font-family:'Sasson Montessori';font-size:14px;font-weight:700;cursor:pointer;">🔓 Lås opp Studio</button>
-        <div id="lme-access-error" style="display:none;color:#C81860;font-size:12px;margin-top:10px;">❌ Ugyldig nøkkel. Sjekk velkomst-e-posten fra Din merkevare.</div>
+        <button onclick="lmeCheckAccess()" style="width:100%;padding:12px;background:#B4D870;color:#fff;border:none;border-radius:10px;font-family:'Sasson Montessori';font-size:14px;font-weight:700;cursor:pointer;">Lås opp Studio</button>
+        <div id="lme-access-error" style="display:none;color:#C81860;font-size:12px;margin-top:10px;">Ugyldig nøkkel. Sjekk velkomst-e-posten fra Din merkevare.</div>
       </div>
 
       <div style="margin-top:20px;font-size:10px;color:#6B6470;opacity:.7;line-height:1.5;">
@@ -511,9 +511,9 @@ input[type=range]{width:100%;accent-color:var(--rose);}
         <div style="font-size:18px;font-weight:900;color:#C81860;">299 kr<span style="font-size:11px;color:#6B6470;font-weight:400;">/mnd</span></div>
       </div>
       <ul style="list-style:none;padding:0;margin:0 0 14px 0;font-size:12px;color:#1A1A1A;line-height:1.8;">
-        <li>✅ AI-innholdsgenerering — alle formater</li>
-        <li>✅ Norsk og engelsk</li>
-        <li>✅ Innholdskalender og 30-dagers plan</li>
+        <li>AI-innholdsgenerering — alle formater</li>
+        <li>Norsk og engelsk</li>
+        <li>Innholdskalender og 30-dagers plan</li>
         <li>✅ <strong>3 plattformer</strong></li>
         <li style="color:#999;">— DALL-E 3 bildegenerering</li>
         <li style="color:#999;">— Automatisk publisering</li>
@@ -523,22 +523,22 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 
     <!-- Proff (mest populær) -->
     <div style="background:linear-gradient(135deg,#fff 0%,#FCE4EE 100%);border:2px solid #F02478;border-radius:16px;padding:18px;margin-bottom:14px;position:relative;box-shadow:0 8px 24px rgba(240,36,120,.15);">
-      <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#F02478;color:#fff;padding:4px 14px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;">⭐ MEST POPULÆR</div>
+      <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#F02478;color:#fff;padding:4px 14px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;">MEST POPULÆR</div>
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;margin-top:6px;">
         <div style="font-family:'Playpen Sans';font-size:20px;font-weight:900;color:#C81860;">Proff</div>
         <div style="font-size:20px;font-weight:900;color:#C81860;">499 kr<span style="font-size:11px;color:#6B6470;font-weight:400;">/mnd</span></div>
       </div>
       <ul style="list-style:none;padding:0;margin:0 0 14px 0;font-size:12px;color:#1A1A1A;line-height:1.8;">
-        <li>✅ Alt i Start</li>
+        <li>Alt i Start</li>
         <li>✅ <strong>6 plattformer</strong></li>
-        <li>✅ DALL-E 3 AI-bildegenerering</li>
-        <li>✅ Karakterkonsistente bilder</li>
+        <li>DALL-E 3 AI-bildegenerering</li>
+        <li>Karakterkonsistente bilder</li>
         <li>✅ <strong>Autopublisering</strong> — planlagt, hands-free</li>
-        <li>✅ Reel-editor med musikk bakt inn</li>
-        <li>✅ Story-editor med Canva-import</li>
-        <li>✅ Prioritert støtte</li>
+        <li>Reel-editor med musikk bakt inn</li>
+        <li>Story-editor med Canva-import</li>
+        <li>Prioritert støtte</li>
       </ul>
-      <a href="https://link.feacreate.com/payment-link/69dff984557558e89e5202da" target="_top" style="display:block;width:100%;padding:14px;border-radius:10px;text-align:center;background:linear-gradient(120deg,#F02478 0%,#C81860 100%);color:#fff;font-size:14px;font-weight:700;text-decoration:none;box-shadow:0 4px 14px rgba(240,36,120,.25);">🎁 Start 7-dagers gratis prøveperiode →</a>
+      <a href="https://link.feacreate.com/payment-link/69dff984557558e89e5202da" target="_top" style="display:block;width:100%;padding:14px;border-radius:10px;text-align:center;background:linear-gradient(120deg,#F02478 0%,#C81860 100%);color:#fff;font-size:14px;font-weight:700;text-decoration:none;box-shadow:0 4px 14px rgba(240,36,120,.25);">Start 7-dagers gratis prøveperiode →</a>
       <div style="text-align:center;font-size:11px;color:#6B6470;margin-top:8px;">eller <a href="https://link.feacreate.com/payment-link/69f08b988e7406bd4d4a3416" target="_top" style="color:#C81860;font-weight:700;">abonner direkte — 499 kr/mnd</a></div>
     </div>
 
@@ -547,28 +547,28 @@ input[type=range]{width:100%;accent-color:var(--rose);}
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
         <div>
           <div style="font-family:'Playpen Sans';font-size:18px;font-weight:700;color:#005C9E;">Proff + Fellesskap</div>
-          <div style="font-size:10px;color:#0084E4;font-weight:700;letter-spacing:0.5px;">🌿 KOMMER SNART</div>
+          <div style="font-size:10px;color:#0084E4;font-weight:700;letter-spacing:0.5px;">KOMMER SNART</div>
         </div>
         <div style="font-size:18px;font-weight:900;color:#005C9E;">699 kr<span style="font-size:11px;color:#6B6470;font-weight:400;">/mnd</span></div>
       </div>
       <ul style="list-style:none;padding:0;margin:0 0 14px 0;font-size:12px;color:#1A1A1A;line-height:1.8;">
-        <li>✅ Alt i Proff</li>
+        <li>Alt i Proff</li>
         <li>✅ <strong>Alle 8 plattformer</strong></li>
-        <li>✅ Tospråklig fellesskap 🇳🇴🇺🇸</li>
-        <li>✅ Månedlig live Q&amp;A med Renate</li>
-        <li>✅ Ressursbibliotek med Canva-maler</li>
-        <li>✅ Månedlig innholdsutfordring</li>
+        <li>Tospråklig fellesskap 🇳🇴🇺🇸</li>
+        <li>Månedlig live Q&amp;A med Renate</li>
+        <li>Ressursbibliotek med Canva-maler</li>
+        <li>Månedlig innholdsutfordring</li>
       </ul>
       <a href="https://link.feacreate.com/payment-link/69f08c488e7406bd4d4a3417" target="_top" style="display:block;width:100%;padding:12px;border-radius:10px;text-align:center;background:linear-gradient(110deg,#0084E4,#339BEA);color:#fff;font-size:13px;font-weight:700;text-decoration:none;">Bli med i Proff + Fellesskap →</a>
     </div>
 
     <!-- Årlig Proff + Fellesskap (beste verdi) -->
     <div style="background:linear-gradient(135deg,#FFF9E5 0%,#FCE4EE 100%);border:2px solid #FCC000;border-radius:16px;padding:18px;margin-bottom:14px;position:relative;box-shadow:0 8px 24px rgba(212,149,106,.2);">
-      <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:linear-gradient(110deg,#FCC000,#D9A500);color:#fff;padding:4px 14px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;">💎 BESTE VERDI</div>
+      <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:linear-gradient(110deg,#FCC000,#D9A500);color:#fff;padding:4px 14px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;">BESTE VERDI</div>
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;margin-top:6px;">
         <div>
           <div style="font-family:'Playpen Sans';font-size:18px;font-weight:900;color:#D9A500;">Årlig Proff + Fellesskap</div>
-          <div style="font-size:10px;color:#FCC000;font-weight:700;letter-spacing:0.5px;">🌿 KOMMER SNART · Spar 1 398 kr</div>
+          <div style="font-size:10px;color:#FCC000;font-weight:700;letter-spacing:0.5px;">KOMMER SNART · Spar 1 398 kr</div>
         </div>
         <div style="text-align:right;">
           <div style="font-size:18px;font-weight:900;color:#D9A500;">6 990 kr<span style="font-size:11px;color:#6B6470;font-weight:400;">/år</span></div>
@@ -576,12 +576,12 @@ input[type=range]{width:100%;accent-color:var(--rose);}
         </div>
       </div>
       <ul style="list-style:none;padding:0;margin:0 0 14px 0;font-size:12px;color:#1A1A1A;line-height:1.8;">
-        <li>✅ Alt i Proff + Fellesskap</li>
-        <li>✅ 🌟 Grunnlegger-medlem-merke</li>
-        <li>✅ 📞 Velkomst-call med Renate (20 min)</li>
-        <li>✅ 🎨 Canva-startpakke</li>
-        <li>✅ 💰 Betal for 10 måneder, få 12</li>
-        <li>✅ Låst pris i 12 måneder</li>
+        <li>Alt i Proff + Fellesskap</li>
+        <li>Grunnlegger-medlem-merke</li>
+        <li>Velkomst-call med Renate (20 min)</li>
+        <li>Canva-startpakke</li>
+        <li>Betal for 10 måneder, få 12</li>
+        <li>Låst pris i 12 måneder</li>
       </ul>
       <a href="https://link.feacreate.com/payment-link/69f3b03bcdfae4ecc1a198c4" target="_top" style="display:block;width:100%;padding:13px;border-radius:10px;text-align:center;background:linear-gradient(110deg,#FCC000,#D9A500);color:#fff;font-size:13px;font-weight:700;text-decoration:none;box-shadow:0 4px 14px rgba(212,149,106,.25);">Velg Årlig →</a>
     </div>
@@ -685,14 +685,14 @@ input[type=range]{width:100%;accent-color:var(--rose);}
         <button class="tab-btn" onclick="showTab('ideas',this);closeNavMenu()">Ideer</button>
         <button class="tab-btn" onclick="showTab('history',this);closeNavMenu()">Historikk</button>
       </div>
-      <button class="nav-menu-btn" onclick="toggleNavMenu()">☰ Mer</button>
+      <button class="nav-menu-btn" onclick="toggleNavMenu()">Mer</button>
       <div class="nav-dropdown" id="nav-dropdown">
-        <button class="nav-dropdown-item" onclick="showTab('variants',this);closeNavMenu()">🎯 Varianter per kanal</button>
-        <button class="nav-dropdown-item" onclick="showTab('plan',this);closeNavMenu()">🗓️ 30-dagers plan</button>
-        <button class="nav-dropdown-item" onclick="showTab('canva',this);closeNavMenu()">🎨 Canva</button>
-        <button class="nav-dropdown-item" onclick="showTab('editor',this);closeNavMenu()">🎬 Editor</button>
-        <button class="nav-dropdown-item" onclick="showTab('pricing',this);closeNavMenu()">💎 Priser</button>
-        <button class="nav-dropdown-item" onclick="showTab('settings',this);closeNavMenu()">⚙️ Innstillinger</button>
+        <button class="nav-dropdown-item" onclick="showTab('variants',this);closeNavMenu()">Varianter per kanal</button>
+        <button class="nav-dropdown-item" onclick="showTab('plan',this);closeNavMenu()">30-dagers plan</button>
+        <button class="nav-dropdown-item" onclick="showTab('canva',this);closeNavMenu()">Canva</button>
+        <button class="nav-dropdown-item" onclick="showTab('editor',this);closeNavMenu()">Editor</button>
+        <button class="nav-dropdown-item" onclick="showTab('pricing',this);closeNavMenu()">Priser</button>
+        <button class="nav-dropdown-item" onclick="showTab('settings',this);closeNavMenu()">Innstillinger</button>
       </div>
     </div>
   </div>
@@ -751,17 +751,17 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 
   <div class="error-box" id="error-box" style="display:none;"></div>
 
-  <button class="gen-btn" id="gen-btn" onclick="generate()">✨ Generer innhold</button>
+  <button class="gen-btn" id="gen-btn" onclick="generate()">Generer innhold</button>
 
   <!-- RESULT BOX -->
   <div class="result-box" id="result-box" style="display:none;">
-    <div class="result-title" id="result-title">✦ Innholdet ditt er klart!</div>
+    <div class="result-title" id="result-title">Innholdet ditt er klart!</div>
     <div id="result-content"></div>
     <div class="action-row" id="action-row"></div>
 
     <!-- HASHTAGS -->
     <div style="margin-top:14px;">
-      <button class="act-btn sage-btn" onclick="generateHashtags()">🔖 Generer hashtags</button>
+      <button class="act-btn sage-btn" onclick="generateHashtags()">Generer hashtags</button>
       <div id="hashtag-result"></div>
     </div>
 
@@ -785,7 +785,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
           <div class="video-info">
             <span class="video-info-name" id="video-name">video.mp4</span>
             <span class="video-info-size" id="video-size">0 MB</span>
-            <button class="video-remove" onclick="removeVideo()">✕ Fjern</button>
+            <button class="video-remove" onclick="removeVideo()">Fjern</button>
           </div>
         </div>
 
@@ -804,8 +804,8 @@ input[type=range]{width:100%;accent-color:var(--rose);}
       </div>
       <div class="chip-wrap" id="img-model-chips" style="margin-bottom:12px;">
         <button type="button" class="chip active" data-imgmodel="dalle3" onclick="selectImgModel('dalle3')">DALL-E 3</button>
-        <button type="button" class="chip" data-imgmodel="nano" onclick="selectImgModel('nano')">🍌 Nano Banana</button>
-        <button type="button" class="chip" data-imgmodel="nano-pro" onclick="selectImgModel('nano-pro')">🍌 Nano Banana Pro</button>
+        <button type="button" class="chip" data-imgmodel="nano" onclick="selectImgModel('nano')">Nano Banana</button>
+        <button type="button" class="chip" data-imgmodel="nano-pro" onclick="selectImgModel('nano-pro')">Nano Banana Pro</button>
       </div>
       <button class="gen-btn purple" id="pub-btn" style="margin-bottom:0;font-size:13px;padding:13px;" onclick="genererBilde()">
         🎨 Generer forsidebilde
@@ -817,12 +817,12 @@ input[type=range]{width:100%;accent-color:var(--rose);}
         <div style="font-size:11px;font-weight:700;color:var(--text-s);margin-bottom:8px;">Forhåndsvisning:</div>
         <img id="bilde-preview-img" src="" style="width:100%;border-radius:12px;border:2px solid var(--rose-m);margin-bottom:12px;"/>
         <div style="display:flex;gap:8px;">
-          <button class="gen-btn purple" style="flex:1;font-size:12px;padding:11px;" onclick="genererBilde()">🔄 Nytt bilde</button>
-          <button class="gen-btn sage" style="flex:1;font-size:12px;padding:11px;" onclick="publiserMedBilde()">🚀 Publiser</button>
+          <button class="gen-btn purple" style="flex:1;font-size:12px;padding:11px;" onclick="genererBilde()">Nytt bilde</button>
+          <button class="gen-btn sage" style="flex:1;font-size:12px;padding:11px;" onclick="publiserMedBilde()">Publiser</button>
         </div>
         <div style="display:flex;gap:8px;margin-top:8px;">
-          <a id="bilde-last-ned" href="" download="lme-bilde.png" style="flex:1;display:block;padding:10px;border-radius:12px;border:1.5px solid var(--border);background:white;color:var(--text);font-family:'Sasson Montessori';font-size:12px;font-weight:600;text-align:center;text-decoration:none;">⬇️ Last ned</a>
-          <button class="act-btn sage-btn" style="flex:1;font-size:12px;" onclick="brukIStoryEditor()">🌸 Åpne i Story-editor</button>
+          <a id="bilde-last-ned" href="" download="lme-bilde.png" style="flex:1;display:block;padding:10px;border-radius:12px;border:1.5px solid var(--border);background:white;color:var(--text);font-family:'Sasson Montessori';font-size:12px;font-weight:600;text-align:center;text-decoration:none;">Last ned</a>
+          <button class="act-btn sage-btn" style="flex:1;font-size:12px;" onclick="brukIStoryEditor()">Åpne i Story-editor</button>
         </div>
         <div id="pub-bilde-status" style="margin-top:10px;"></div>
       </div>
@@ -884,8 +884,8 @@ input[type=range]{width:100%;accent-color:var(--rose);}
   <div id="plan-detail" style="display:none;background:white;border-radius:18px;border:2px solid var(--rose);padding:16px;margin-top:14px;">
     <div id="plan-detail-content"></div>
     <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
-      <button class="act-btn" onclick="generateFromPlan()">✨ Generer innhold for denne dagen</button>
-      <button class="act-btn" style="border-color:var(--border);color:var(--text-s);" onclick="document.getElementById('plan-detail').style.display='none'">✕ Lukk</button>
+      <button class="act-btn" onclick="generateFromPlan()">Generer innhold for denne dagen</button>
+      <button class="act-btn" style="border-color:var(--border);color:var(--text-s);" onclick="document.getElementById('plan-detail').style.display='none'">Lukk</button>
     </div>
   </div>
 </div>
@@ -924,8 +924,8 @@ input[type=range]{width:100%;accent-color:var(--rose);}
     <div class="var-intro">Skriv ett tema, velg kanaler, og få ferdig tekst og bilde tilpasset hver kanal, i riktig format fra start (9:16 til Story/Reel/TikTok, 1:1 til feed, 16:9 til YouTube osv.). Da blir ikke posten avvist på grunn av feil format.</div>
     <input class="var-topic" id="var-topic" type="text" placeholder="Hva skal innholdet handle om? F.eks. «Telling med naturmateriale ute»"/>
     <div class="vmode-row">
-      <button type="button" class="vmode on" data-mode="ai">✨ La AI skrive teksten</button>
-      <button type="button" class="vmode" data-mode="own">✍️ Jeg skriver selv</button>
+      <button type="button" class="vmode on" data-mode="ai">La AI skrive teksten</button>
+      <button type="button" class="vmode" data-mode="own">Jeg skriver selv</button>
     </div>
     <textarea class="var-topic" id="var-owntext" style="display:none;min-height:90px;" placeholder="Skriv eller lim inn teksten din her. Den brukes på alle valgte kanaler, og du kan finpusse per kanal etterpå."></textarea>
     <label class="vstyle-row">Bildestil:
@@ -947,7 +947,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
       </select>
     </label>
     <div class="var-channels" id="var-channels"></div>
-    <button class="gen-btn" id="var-gen-btn" type="button">✨ Generer varianter</button>
+    <button class="gen-btn" id="var-gen-btn" type="button">Generer varianter</button>
     <div id="var-status" style="font-size:12px;color:var(--text-s);margin-top:8px;"></div>
   </div>
   <div id="var-results"></div>
@@ -1156,7 +1156,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
     <div style="font-size:36px;margin-bottom:8px;">🌿</div>
     <div style="font-family:'Playpen Sans';font-size:22px;font-weight:900;margin-bottom:8px;">LME Innholdsstudio</div>
     <div style="font-size:13px;opacity:.92;line-height:1.6;">AI-drevet Montessori-innholdsproduksjon<br/>med automatisk publisering til alle plattformer</div>
-    <div style="margin-top:14px;background:rgba(255,255,255,.2);border-radius:12px;padding:10px 16px;font-size:13px;font-weight:700;">🎁 Prøv Proff gratis i 7 dager — kortopplysninger kreves — avslutt når som helst</div>
+    <div style="margin-top:14px;background:rgba(255,255,255,.2);border-radius:12px;padding:10px 16px;font-size:13px;font-weight:700;">Prøv Proff gratis i 7 dager — kortopplysninger kreves — avslutt når som helst</div>
   </div>
 
   <!-- 7 dager gratis -->
@@ -1186,7 +1186,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 
   <!-- PROFF 499 kr -->
   <div class="card" style="border:2.5px solid var(--rose);background:linear-gradient(160deg,var(--rose-l) 0%,white 100%);margin-bottom:14px;position:relative;">
-    <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,var(--rose),var(--rose-d));color:white;border-radius:20px;padding:4px 16px;font-size:11px;font-weight:700;white-space:nowrap;">⭐ MEST POPULÆR</div>
+    <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,var(--rose),var(--rose-d));color:white;border-radius:20px;padding:4px 16px;font-size:11px;font-weight:700;white-space:nowrap;">MEST POPULÆR</div>
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;margin-top:8px;">
       <div><div style="font-family:'Playpen Sans';font-size:18px;font-weight:900;color:var(--rose-d);">Proff</div><div style="font-size:11px;color:var(--text-s);margin-top:2px;">Det komplette innholdssystemet</div></div>
       <div style="text-align:right;"><div style="font-family:'Playpen Sans';font-size:28px;font-weight:900;color:var(--rose-d);">499 kr</div><div style="font-size:10px;color:var(--text-s);">per måned</div></div>
@@ -1207,7 +1207,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 
   <!-- PROFF + MEDLEMSKAP 699 kr -->
   <div class="card" style="border:2px solid #0084E4;background:linear-gradient(160deg,#E6F3FC 0%,white 100%);margin-bottom:14px;position:relative;">
-    <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,#0084E4,#339BEA);color:white;border-radius:20px;padding:4px 16px;font-size:11px;font-weight:700;white-space:nowrap;">🌿 KOMMER SNART</div>
+    <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,#0084E4,#339BEA);color:white;border-radius:20px;padding:4px 16px;font-size:11px;font-weight:700;white-space:nowrap;">KOMMER SNART</div>
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;margin-top:8px;">
       <div><div style="font-family:'Playpen Sans';font-size:18px;font-weight:900;color:#005C9E;">Proff + Fellesskap</div><div style="font-size:11px;color:var(--text-s);margin-top:2px;">Studio + tospråklig Montessori-fellesskap med Renate</div></div>
       <div style="text-align:right;"><div style="font-family:'Playpen Sans';font-size:28px;font-weight:900;color:#005C9E;">699 kr</div><div style="font-size:10px;color:var(--text-s);">per måned</div></div>
@@ -1225,7 +1225,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 
   <!-- ÅRLIG 6 990 kr -->
   <div class="card" style="border:2.5px solid var(--gold);background:linear-gradient(160deg,#FFFCF5 0%,#E6F3FC 100%);margin-bottom:14px;position:relative;">
-    <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,var(--gold),#D9A500);color:white;border-radius:20px;padding:4px 16px;font-size:11px;font-weight:700;white-space:nowrap;">💎 BESTE VERDI · KOMMER SNART</div>
+    <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,var(--gold),#D9A500);color:white;border-radius:20px;padding:4px 16px;font-size:11px;font-weight:700;white-space:nowrap;">BESTE VERDI · KOMMER SNART</div>
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;margin-top:8px;">
       <div><div style="font-family:'Playpen Sans';font-size:18px;font-weight:900;color:var(--gold);">Årlig Proff + Fellesskap</div><div style="font-size:11px;color:var(--text-s);margin-top:2px;">Alt inkludert — spar 1 398 kr!</div></div>
       <div style="text-align:right;"><div style="font-family:'Playpen Sans';font-size:28px;font-weight:900;color:var(--gold);">6 990 kr</div><div style="font-size:10px;color:var(--text-s);">per år</div><div style="font-size:10px;color:var(--sage-d);font-weight:700;">betal for 10 mnd, få 12</div></div>
@@ -1259,16 +1259,16 @@ input[type=range]{width:100%;accent-color:var(--rose);}
     <div class="card-title" style="color:var(--gold);">Karakterer</div>
     <div style="font-size:11px;color:var(--text-s);margin-bottom:10px;line-height:1.6;">Velg hvilke karakterer som brukes i innholdet ditt</div>
     <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px;">
-      <button class="chip" id="char-custom" onclick="selectCharPreset('custom')">✨ Egne karakterer</button>
+      <button class="chip" id="char-custom" onclick="selectCharPreset('custom')">Egne karakterer</button>
       <button class="chip" id="char-none" onclick="selectCharPreset('none')">— Ingen</button>
     </div>
     <div id="custom-char-fields" style="background:var(--warm);border-radius:12px;padding:12px;margin-bottom:8px;border:1.5px solid var(--gold);">
-      <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:10px;">✨ Egne karakterer — navn og beskrivelse</div>
+      <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:10px;">Egne karakterer — navn og beskrivelse</div>
       <div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Navn på karakterene</div>
       <input type="text" id="s-char-names" placeholder="F.eks. Luna & Max" style="margin-bottom:10px;display:block;width:100%;" oninput="saveSettings()"/>
       <div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Beskriv karakterene (alder, utseende, personlighet)</div>
       <textarea id="s-char-desc" rows="3" style="display:block;width:100%;" placeholder="F.eks. Luna er 5 år, har rødt krøllete hår og elsker å utforske skogen. Max er 7 år, rolig og nysgjerrig, alltid med en bok i hånden." oninput="saveSettings()"></textarea>
-      <div style="font-size:10px;color:var(--text-s);margin-top:6px;">Velg <strong>✨ Egne karakterer</strong> ovenfor for å bruke disse i innholdsgenerering</div>
+      <div style="font-size:10px;color:var(--text-s);margin-top:6px;">Velg <strong>Egne karakterer</strong> ovenfor for å bruke disse i innholdsgenerering</div>
     </div>
     <div id="char-preview" style="margin-top:8px;background:var(--warm);border-radius:8px;padding:8px 10px;font-size:12px;"></div>
   </div>
@@ -1331,9 +1331,9 @@ input[type=range]{width:100%;accent-color:var(--rose);}
     </div>
   </div>
 
-  <button class="gen-btn sage" onclick="saveSettingsConfirm()">✅ Lagre innstillinger</button>
+  <button class="gen-btn sage" onclick="saveSettingsConfirm()">Lagre innstillinger</button>
   <div style="display:flex;gap:10px;margin-top:10px;">
-    <button class="act-btn sage-btn" style="flex:1;padding:12px;" onclick="eksporterInnstillinger()">⬇️ Eksporter innstillinger</button>
+    <button class="act-btn sage-btn" style="flex:1;padding:12px;" onclick="eksporterInnstillinger()">Eksporter innstillinger</button>
     <label class="act-btn sage-btn" style="flex:1;padding:12px;text-align:center;cursor:pointer;">
       ⬆️ Importer innstillinger
       <input type="file" accept=".json" style="display:none;" onchange="importerInnstillinger(this)"/>
@@ -1342,7 +1342,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
   <div style="font-size:10px;color:var(--text-s);margin-top:6px;text-align:center;">
     Eksporter innstillingene dine som fil — importer dem igjen hvis du bytter enhet eller nettleser
   </div>
-  <div id="settings-ok" style="display:none;background:var(--sage-l);border-radius:10px;padding:10px 14px;color:var(--sage-d);font-size:13px;text-align:center;">✅ Settings saved!</div>
+  <div id="settings-ok" style="display:none;background:var(--sage-l);border-radius:10px;padding:10px 14px;color:var(--sage-d);font-size:13px;text-align:center;">Settings saved!</div>
 </div>
 
 
@@ -1357,7 +1357,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
     </div>
     <div class="canva-import-sub">Design i Canva (1080×1920px) → Del som PNG → lim inn lenke ELLER dra filen hit</div>
     <input class="canva-url-input" id="canva-story-url" placeholder="https://www.canva.com/design/... eller lim inn bilde-URL" oninput="canvaUrlPreview('story')"/>
-    <button class="canva-btn" onclick="canvaFetchUrl('story')">🔗 Hent bilde fra lenke</button>
+    <button class="canva-btn" onclick="canvaFetchUrl('story')">Hent bilde fra lenke</button>
     <div class="canva-drop-zone" id="canva-story-drop">
       <input type="file" class="canva-drop-input" accept="image/*,video/*" onchange="canvaFileLoaded(this,'story')"/>
       <div class="canva-drop-icon">📁</div>
@@ -1370,7 +1370,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 
   <!-- Karusell fra Canva -->
   <div class="canva-import-box" style="background:linear-gradient(135deg,var(--rose-d),#c06060);">
-    <div class="canva-import-title">🎠 Importer Karusell-slides fra Canva</div>
+    <div class="canva-import-title">Importer Karusell-slides fra Canva</div>
     <div class="canva-import-sub">Design slides i Canva (1080×1080px) → Last ned som PNG (velg sider) → last opp alle her</div>
     <div class="canva-drop-zone" id="canva-carousel-drop">
       <input type="file" class="canva-drop-input" accept="image/*" multiple onchange="canvaCarouselLoaded(this)"/>
@@ -1384,7 +1384,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 
   <!-- Reel fra Canva -->
   <div class="canva-import-box" style="background:linear-gradient(135deg,#0f172a,#1e1b4b);">
-    <div class="canva-import-title">🎬 Importer Reel-video fra Canva</div>
+    <div class="canva-import-title">Importer Reel-video fra Canva</div>
     <div class="canva-import-sub">Design i Canva → Last ned som MP4 → dra filen hit → åpnes automatisk i Reel-editor</div>
     <div class="canva-drop-zone" id="canva-reel-drop">
       <input type="file" class="canva-drop-input" accept="video/mp4,video/mov,video/*" onchange="canvaReelLoaded(this)"/>
@@ -1478,7 +1478,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
       <div class="card-title">Hook / Tekst</div>
 
       <div style="margin-bottom:6px;">
-        <button class="chip" onclick="renderEmojiPicker('story-headline')" style="font-size:12px;">😊 Emojier</button>
+        <button class="chip" onclick="renderEmojiPicker('story-headline')" style="font-size:12px;">Emojier</button>
       </div>
       <div id="emoji-picker-story-headline" class="emoji-picker-wrap"></div>
       <input class="text-overlay-input" id="story-headline" placeholder="Overskrift / Hook" oninput="drawStoryCanvas()"/>
@@ -1501,21 +1501,21 @@ input[type=range]{width:100%;accent-color:var(--rose);}
       <!-- Text color -->
       <div style="font-size:11px;color:var(--text-s);margin-bottom:6px;">Tekstfarge:</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
-        <button class="chip active" id="txt-color-white" onclick="setTextColor('white')">⬜ Hvit</button>
-        <button class="chip" id="txt-color-dark" onclick="setTextColor('#1A1A1A')">⬛ Mørk</button>
-        <button class="chip" id="txt-color-rose" onclick="setTextColor('#F02478')">🌸 Rosa</button>
-        <button class="chip" id="txt-color-yellow" onclick="setTextColor('#FCC000')">🌟 Gul</button>
+        <button class="chip active" id="txt-color-white" onclick="setTextColor('white')">Hvit</button>
+        <button class="chip" id="txt-color-dark" onclick="setTextColor('#1A1A1A')">Mørk</button>
+        <button class="chip" id="txt-color-rose" onclick="setTextColor('#F02478')">Rosa</button>
+        <button class="chip" id="txt-color-yellow" onclick="setTextColor('#FCC000')">Gul</button>
       </div>
 
       <!-- Background behind text -->
       <div style="font-size:11px;color:var(--text-s);margin-bottom:6px;">Bakgrunn bak hook:</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
         <button class="chip active" id="txt-bg-none" onclick="setTextBg('none')">— Ingen</button>
-        <button class="chip" id="txt-bg-black" onclick="setTextBg('rgba(0,0,0,0.55)')">⬛ Svart</button>
-        <button class="chip" id="txt-bg-white" onclick="setTextBg('rgba(255,255,255,0.75)')">⬜ Hvit</button>
-        <button class="chip" id="txt-bg-rose" onclick="setTextBg('rgba(240,36,120,0.8)')">🌸 Rosa</button>
-        <button class="chip" id="txt-bg-sage" onclick="setTextBg('rgba(156,192,0,0.8)')">🌿 Grønn</button>
-        <button class="chip" id="txt-bg-gold" onclick="setTextBg('rgba(212,149,106,0.8)')">✨ Gull</button>
+        <button class="chip" id="txt-bg-black" onclick="setTextBg('rgba(0,0,0,0.55)')">Svart</button>
+        <button class="chip" id="txt-bg-white" onclick="setTextBg('rgba(255,255,255,0.75)')">Hvit</button>
+        <button class="chip" id="txt-bg-rose" onclick="setTextBg('rgba(240,36,120,0.8)')">Rosa</button>
+        <button class="chip" id="txt-bg-sage" onclick="setTextBg('rgba(156,192,0,0.8)')">Grønn</button>
+        <button class="chip" id="txt-bg-gold" onclick="setTextBg('rgba(212,149,106,0.8)')">Gull</button>
       </div>
 
       <button class="act-btn sage-btn" style="width:100%;" onclick="loadStoryTextFromContent()">
@@ -1533,9 +1533,9 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 
       <!-- Poll -->
       <div style="margin-bottom:12px;">
-        <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:6px;">🗳️ Poll-tekst (vises på storyen)</div>
+        <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:6px;">Poll-tekst (vises på storyen)</div>
         <div style="margin-bottom:6px;">
-        <button class="chip" onclick="renderEmojiPicker('story-poll')" style="font-size:12px;">😊 Emojier</button>
+        <button class="chip" onclick="renderEmojiPicker('story-poll')" style="font-size:12px;">Emojier</button>
       </div>
       <div id="emoji-picker-story-poll" class="emoji-picker-wrap"></div>
         <input class="text-overlay-input" id="story-poll" placeholder='F.eks. "Utendørs lek ELLER innendørs? 👇"' oninput="drawStoryCanvas()"/>
@@ -1549,9 +1549,9 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 
       <!-- CTA -->
       <div style="margin-bottom:12px;">
-        <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:6px;">📢 CTA-tekst (vises på storyen)</div>
+        <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:6px;">CTA-tekst (vises på storyen)</div>
         <div style="margin-bottom:6px;">
-        <button class="chip" onclick="renderEmojiPicker('story-cta-overlay')" style="font-size:12px;">😊 Emojier</button>
+        <button class="chip" onclick="renderEmojiPicker('story-cta-overlay')" style="font-size:12px;">Emojier</button>
       </div>
       <div id="emoji-picker-story-cta-overlay" class="emoji-picker-wrap"></div>
         <input class="text-overlay-input" id="story-cta-overlay" placeholder='F.eks. "Lenke i bio 🌿" eller "Svar i kommentarfeltet 👇"' oninput="drawStoryCanvas()"/>
@@ -1566,7 +1566,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 
       <!-- Lenke -->
       <div>
-        <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:6px;">🔗 Lenke (sendes i bildeteksten)</div>
+        <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:6px;">Lenke (sendes i bildeteksten)</div>
         <input class="text-overlay-input" id="story-link" placeholder="https://lmexplorers.com/..."/>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
           <button class="chip" onclick="settLenke('https://lmexplorers.com')">Nettside</button>
@@ -1581,7 +1581,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
     <div class="card">
       <div class="card-title">Logo og vannmerke</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="chip active" id="logo-lme" onclick="setLogo('lme')">🌿 LME-logo</button>
+        <button class="chip active" id="logo-lme" onclick="setLogo('lme')">LME-logo</button>
         <button class="chip" id="logo-none" onclick="setLogo('none')">— Ingen</button>
       </div>
       <div style="margin-top:10px;display:flex;gap:8px;align-items:center;">
@@ -1674,7 +1674,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
       <div class="card">
         <div class="card-title">Hook-overlay på video</div>
         <div style="margin-bottom:6px;">
-          <button class="chip" onclick="renderEmojiPicker('reel-overlay-text')" style="font-size:12px;">😊 Emojier</button>
+          <button class="chip" onclick="renderEmojiPicker('reel-overlay-text')" style="font-size:12px;">Emojier</button>
         </div>
         <div id="emoji-picker-reel-overlay-text" class="emoji-picker-wrap"></div>
         <input class="text-overlay-input" id="reel-overlay-text" placeholder="Hook-tekst som vises på videoen..." oninput="updateReelOverlay()"/>
@@ -1706,20 +1706,20 @@ input[type=range]{width:100%;accent-color:var(--rose);}
         <!-- Text color -->
         <div style="font-size:11px;color:var(--text-s);margin-bottom:6px;">Farge:</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
-          <button class="chip active" id="reel-txt-white" onclick="setReelTextColor('white')">⬜ Hvit</button>
-          <button class="chip" id="reel-txt-yellow" onclick="setReelTextColor('#FCC000')">🌟 Gul</button>
-          <button class="chip" id="reel-txt-rose" onclick="setReelTextColor('#FFDDDE')">🌸 Rosa</button>
-          <button class="chip" id="reel-txt-black" onclick="setReelTextColor('#000000')">⬛ Svart</button>
+          <button class="chip active" id="reel-txt-white" onclick="setReelTextColor('white')">Hvit</button>
+          <button class="chip" id="reel-txt-yellow" onclick="setReelTextColor('#FCC000')">Gul</button>
+          <button class="chip" id="reel-txt-rose" onclick="setReelTextColor('#FFDDDE')">Rosa</button>
+          <button class="chip" id="reel-txt-black" onclick="setReelTextColor('#000000')">Svart</button>
         </div>
 
         <!-- Text background -->
         <div style="font-size:11px;color:var(--text-s);margin-bottom:6px;">Bakgrunn bak hook:</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
           <button class="chip active" id="reel-bg-none" onclick="setReelTextBg('none')">— Ingen</button>
-          <button class="chip" id="reel-bg-black" onclick="setReelTextBg('rgba(0,0,0,0.6)')">⬛ Svart</button>
-          <button class="chip" id="reel-bg-white" onclick="setReelTextBg('rgba(255,255,255,0.75)')">⬜ Hvit</button>
-          <button class="chip" id="reel-bg-rose" onclick="setReelTextBg('rgba(240,36,120,0.85)')">🌸 Rosa</button>
-          <button class="chip" id="reel-bg-sage" onclick="setReelTextBg('rgba(156,192,0,0.85)')">🌿 Grønn</button>
+          <button class="chip" id="reel-bg-black" onclick="setReelTextBg('rgba(0,0,0,0.6)')">Svart</button>
+          <button class="chip" id="reel-bg-white" onclick="setReelTextBg('rgba(255,255,255,0.75)')">Hvit</button>
+          <button class="chip" id="reel-bg-rose" onclick="setReelTextBg('rgba(240,36,120,0.85)')">Rosa</button>
+          <button class="chip" id="reel-bg-sage" onclick="setReelTextBg('rgba(156,192,0,0.85)')">Grønn</button>
         </div>
 
         <button class="act-btn sage-btn" style="width:100%;" onclick="loadReelTextFromContent()">
@@ -1731,7 +1731,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
       <div class="card">
         <div class="card-title">Bildetekst / Caption</div>
         <div style="margin-bottom:6px;">
-        <button class="chip" onclick="renderEmojiPicker('reel-caption')" style="font-size:12px;">😊 Emojier</button>
+        <button class="chip" onclick="renderEmojiPicker('reel-caption')" style="font-size:12px;">Emojier</button>
       </div>
       <div id="emoji-picker-reel-caption" class="emoji-picker-wrap"></div>
         <textarea id="reel-caption" rows="4" placeholder="Skriv bildeteksten her — sendes automatisk med Reelen til publiseringstjenesten..." style="width:100%;border-radius:10px;border:2px solid var(--border);padding:10px 13px;font-family:'Sasson Montessori';font-size:12px;color:var(--text);outline:none;resize:vertical;" oninput="saveReelCaption()"></textarea>
@@ -1751,14 +1751,14 @@ input[type=range]{width:100%;accent-color:var(--rose);}
       <div class="card">
         <div class="card-title">Hashtags</div>
         <div style="margin-bottom:6px;">
-        <button class="chip" onclick="renderEmojiPicker('reel-hashtags')" style="font-size:12px;">😊 Emojier</button>
+        <button class="chip" onclick="renderEmojiPicker('reel-hashtags')" style="font-size:12px;">Emojier</button>
       </div>
       <div id="emoji-picker-reel-hashtags" class="emoji-picker-wrap"></div>
         <textarea id="reel-hashtags" rows="2" placeholder="#montessori #montessorinorge #barneledet #frilek #merkevarefamilien" style="width:100%;border-radius:10px;border:2px solid var(--border);padding:10px 13px;font-family:'Sasson Montessori';font-size:12px;color:var(--text);outline:none;resize:vertical;"></textarea>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;">
-          <button class="chip" onclick="settHashtagsReel('no')">🇳🇴 Norske</button>
-          <button class="chip" onclick="settHashtagsReel('en')">🇺🇸 Engelske</button>
-          <button class="chip" onclick="settHashtagsReel('both')">🌍 Begge</button>
+          <button class="chip" onclick="settHashtagsReel('no')">Norske</button>
+          <button class="chip" onclick="settHashtagsReel('en')">Engelske</button>
+          <button class="chip" onclick="settHashtagsReel('both')">Begge</button>
         </div>
       </div>
 
@@ -1766,7 +1766,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
       <div class="card">
         <div class="card-title">CTA — oppfordring til handling</div>
         <div style="margin-bottom:6px;">
-        <button class="chip" onclick="renderEmojiPicker('reel-cta')" style="font-size:12px;">😊 Emojier</button>
+        <button class="chip" onclick="renderEmojiPicker('reel-cta')" style="font-size:12px;">Emojier</button>
       </div>
       <div id="emoji-picker-reel-cta" class="emoji-picker-wrap"></div>
         <input class="text-overlay-input" id="reel-cta" placeholder='F.eks. "Lagre dette og følg for mer! 🌿"'/>
@@ -1784,11 +1784,11 @@ input[type=range]{width:100%;accent-color:var(--rose);}
         <div class="card-title">Fargefilter / look</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <button class="chip active" id="filter-none" onclick="setReelFilter('none')">Original</button>
-          <button class="chip" id="filter-warm" onclick="setReelFilter('warm')">☀️ Varm</button>
-          <button class="chip" id="filter-cool" onclick="setReelFilter('cool')">❄️ Kald</button>
-          <button class="chip" id="filter-rose" onclick="setReelFilter('rose')">🌸 Rosa</button>
-          <button class="chip" id="filter-fade" onclick="setReelFilter('fade')">🌫️ Fade</button>
-          <button class="chip" id="filter-vivid" onclick="setReelFilter('vivid')">⚡ Vivid</button>
+          <button class="chip" id="filter-warm" onclick="setReelFilter('warm')">Varm</button>
+          <button class="chip" id="filter-cool" onclick="setReelFilter('cool')">Kald</button>
+          <button class="chip" id="filter-rose" onclick="setReelFilter('rose')">Rosa</button>
+          <button class="chip" id="filter-fade" onclick="setReelFilter('fade')">Fade</button>
+          <button class="chip" id="filter-vivid" onclick="setReelFilter('vivid')">Vivid</button>
         </div>
       </div>
 
@@ -4707,7 +4707,7 @@ if('serviceWorker' in navigator){
 <!-- Schedule Picker Modal -->
 <div id="schedule-picker-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:10000;align-items:center;justify-content:center;padding:20px;">
   <div style="background:white;border-radius:18px;padding:24px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-    <div style="font-family:'Playpen Sans';font-size:18px;font-weight:900;color:var(--rose-d);margin-bottom:18px;">📅 Planlegg når innlegget skal publiseres</div>
+    <div style="font-family:'Playpen Sans';font-size:18px;font-weight:900;color:var(--rose-d);margin-bottom:18px;">Planlegg når innlegget skal publiseres</div>
 
     <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
       <div style="flex:1;min-width:140px;">
@@ -4724,7 +4724,7 @@ if('serviceWorker' in navigator){
 
     <div style="display:flex;gap:10px;">
       <button onclick="closeSchedulePicker()" style="flex:1;padding:12px;border-radius:12px;border:2px solid var(--border);background:white;color:var(--text-s);font-family:'Sasson Montessori';font-size:14px;font-weight:700;cursor:pointer;">Avbryt</button>
-      <button onclick="confirmSchedule()" style="flex:1;padding:12px;border-radius:12px;border:none;background:linear-gradient(120deg,#B4D870,#9CC000);color:white;font-family:'Sasson Montessori';font-size:14px;font-weight:700;cursor:pointer;">📅 Planlegg innlegg</button>
+      <button onclick="confirmSchedule()" style="flex:1;padding:12px;border-radius:12px;border:none;background:linear-gradient(120deg,#B4D870,#9CC000);color:white;font-family:'Sasson Montessori';font-size:14px;font-weight:700;cursor:pointer;">Planlegg innlegg</button>
     </div>
   </div>
 </div>
