@@ -971,24 +971,13 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 
   async function genImageRaw(prompt,dalleSize,gemAspect){
     var c=cfgGet(); var model=c.imgModel||'dalle3';
-    if(model==='dalle3'){
-      if(!c.openaiKey||c.openaiKey.length<10) throw new Error('OpenAI-nøkkel mangler. Legg den inn i Innstillinger.');
-      var res=await fetch('https://api.openai.com/v1/images/generations',{method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.openaiKey},
-        body:JSON.stringify({model:'dall-e-3',prompt:prompt,n:1,size:dalleSize,quality:'standard'})});
-      if(!res.ok){var e=await res.json();throw new Error((e.error&&e.error.message)||('OpenAI '+res.status));}
-      var d=await res.json(); var u=d.data&&d.data[0]&&d.data[0].url; if(!u) throw new Error('Ingen bilde i svaret'); return u;
-    }
-    if(!c.geminiKey||c.geminiKey.length<10) throw new Error('Gemini-nøkkel mangler. Legg den inn i Innstillinger.');
-    var gModel=model==='nano-pro'?'gemini-3-pro-image-preview':'gemini-2.5-flash-image';
-    var r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+gModel+':generateContent',{method:'POST',
-      headers:{'Content-Type':'application/json','x-goog-api-key':c.geminiKey},
-      body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{responseModalities:['TEXT','IMAGE'],imageConfig:{aspectRatio:gemAspect}}})});
-    if(!r.ok){var m;try{m=(await r.json()).error.message;}catch(_){m=null;}throw new Error(m||('Gemini '+r.status));}
-    var dd=await r.json(); var parts=(dd.candidates&&dd.candidates[0]&&dd.candidates[0].content&&dd.candidates[0].content.parts)||[];
-    var ip=parts.find(function(p){return p.inlineData||p.inline_data;}); var inl=ip&&(ip.inlineData||ip.inline_data);
-    if(inl&&inl.data) return 'data:'+(inl.mimeType||inl.mime_type||'image/png')+';base64,'+inl.data;
-    throw new Error('Ingen bilde i svaret');
+    var key = model==='dalle3' ? c.openaiKey : c.geminiKey;
+    var res=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({type:'image',model:model,key:key,prompt:prompt,size:dalleSize,aspectRatio:gemAspect})});
+    var d=await res.json().catch(function(){return {};});
+    if(!res.ok||d.error) throw new Error(d.error||('Feil '+res.status));
+    if(!d.imageUrl) throw new Error('Ingen bilde i svaret');
+    return d.imageUrl;
   }
 
   var lastResults={}; // channelId -> {text, topic}
@@ -2465,30 +2454,14 @@ SCENE: ${topic}. ${hookPart}Outdoor nature setting, soft sunlight, warm playful 
       :`Soft children\'s book illustration, semi-realistic cartoon, clean outlines, soft shading, bright natural colors. Scene: "${topic}". ${hookPart}Little Montessori Explorers brand. Outdoor nature setting, soft sunlight, warm playful atmosphere. No text in image. ${sizePart}`;
 
     let imageUrl;
-    if(imgModel==='dalle3'){
-      const res=await fetch('https://api.openai.com/v1/images/generations',{
-        method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':'Bearer '+cfg.openaiKey},
-        body:JSON.stringify({model:'dall-e-3',prompt,n:1,size,quality:'standard'})
-      });
-      if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'OpenAI feil '+res.status);}
-      const data=await res.json();
-      imageUrl=data.data?.[0]?.url;
-    }else{
-      // Nano Banana / Nano Banana Pro via Google Gemini
-      const gModel=imgModel==='nano-pro'?'gemini-3-pro-image-preview':'gemini-2.5-flash-image';
-      const aspectRatio=is916?'9:16':'1:1';
-      const res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+gModel+':generateContent',{
-        method:'POST',
-        headers:{'Content-Type':'application/json','x-goog-api-key':cfg.geminiKey},
-        body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{responseModalities:['TEXT','IMAGE'],imageConfig:{aspectRatio}}})
-      });
-      if(!res.ok){let m;try{m=(await res.json()).error?.message;}catch(_){m=null;}throw new Error(m||'Gemini feil '+res.status);}
-      const data=await res.json();
-      const parts=data.candidates?.[0]?.content?.parts||[];
-      const imgPart=parts.find(p=>p.inlineData||p.inline_data);
-      const inline=imgPart&&(imgPart.inlineData||imgPart.inline_data);
-      if(inline&&inline.data){imageUrl='data:'+(inline.mimeType||inline.mime_type||'image/png')+';base64,'+inline.data;}
+    {
+      const _key = imgModel==='dalle3' ? cfg.openaiKey : cfg.geminiKey;
+      const _aspect = is916 ? '9:16' : '1:1';
+      const _res = await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({type:'image',model:imgModel,key:_key,prompt,size,aspectRatio:_aspect})});
+      const _d = await _res.json().catch(()=>({}));
+      if(!_res.ok||_d.error) throw new Error(_d.error||('Feil '+_res.status));
+      imageUrl=_d.imageUrl;
     }
     if(!imageUrl)throw new Error('Ingen bilde i svaret');
 
