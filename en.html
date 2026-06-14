@@ -816,7 +816,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
           </div>
         </div>
 
-        <style>.reel-hook-overlay{position:absolute;left:0;right:0;padding:0 18px;text-align:center;font-family:'Playpen Sans';font-weight:800;font-size:22px;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.65);pointer-events:none;line-height:1.2;z-index:3;}.reel-hook-overlay.top{top:20px;}.reel-hook-overlay.center{top:50%;transform:translateY(-50%);}.reel-hook-overlay.bottom{bottom:20px;}.reel-extra{display:flex;flex-direction:column;gap:14px;margin:16px 0;}.re-card{background:#fff;border:1px solid var(--border);border-radius:18px;padding:18px;}.re-title{font-family:'Playpen Sans';font-weight:800;font-size:16px;color:var(--rose-d);margin-bottom:6px;}.re-sub{font-size:12.5px;color:var(--text-s);margin-bottom:12px;line-height:1.5;}.re-chip{font-family:'Sasson Montessori';font-size:13.5px;border:1.5px solid var(--border);background:#fff;color:var(--text-s);border-radius:999px;padding:9px 16px;cursor:pointer;}.re-chip.on{background:var(--rose);border-color:var(--rose);color:#fff;}.re-music{display:flex;align-items:center;gap:12px;border:1.5px solid var(--border);border-radius:13px;padding:12px 14px;cursor:pointer;margin-bottom:8px;}.re-music.on{border-color:var(--rose);background:var(--rose-l);}.re-music .rm-name{flex:1;font-size:14px;font-weight:700;}.re-music .rm-dur{font-size:12px;color:var(--text-s);}.hk-row{margin-top:13px;}.hk-lab{font-size:12px;font-weight:700;color:var(--text-s);margin-bottom:7px;}.hk-fonts{display:flex;gap:7px;flex-wrap:wrap;}.hk-font{border:1.5px solid var(--border);background:#fff;border-radius:10px;padding:6px 13px;cursor:pointer;font-size:15px;color:#1A1A1A;line-height:1.1;}.hk-font.on{border-color:var(--rose);background:var(--rose-l);}.hk-sws{display:flex;gap:9px;flex-wrap:wrap;align-items:center;}.hk-sw{width:27px;height:27px;border-radius:50%;box-shadow:0 0 0 1.5px var(--border);cursor:pointer;}.hk-sw.on{box-shadow:0 0 0 2.5px var(--rose);}.hk-bg{min-width:30px;height:27px;border-radius:8px;box-shadow:0 0 0 1.5px var(--border);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-family:'Sasson Montessori';font-size:11px;font-weight:700;color:var(--text-s);background:#fff;padding:0 8px;}.hk-bg.on{box-shadow:0 0 0 2.5px var(--rose);}</style><div class="reel-extra"><div class="re-card"><div class="re-title">Hook on the video</div><div class="re-sub">Write or pull the hook from your script, it shows on top of the video.</div><input id="reel-hook-text" class="text-overlay-input" placeholder="Hook text shown on the video..." oninput="updateReelHook()"/><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:4px;"><button type="button" class="re-chip" data-hookpos="top" onclick="setReelHookPos('top')">Top</button><button type="button" class="re-chip on" data-hookpos="center" onclick="setReelHookPos('center')">Middle</button><button type="button" class="re-chip" data-hookpos="bottom" onclick="setReelHookPos('bottom')">Bottom</button><button type="button" class="re-chip" onclick="hentHookFraManus()">Pull from script</button></div><div class="hk-row"><div class="hk-lab">Font</div><div class="hk-fonts"><button type="button" class="hk-font on" data-hookfont style="font-family:'Playpen Sans';font-weight:800;" onclick="setHookFont(this,'playpen')">Playpen</button><button type="button" class="hk-font" data-hookfont style="font-family:'Anton';" onclick="setHookFont(this,'anton')">Anton</button><button type="button" class="hk-font" data-hookfont style="font-family:'Luckiest Guy';" onclick="setHookFont(this,'luckiest')">Luckiest</button><button type="button" class="hk-font" data-hookfont style="font-family:'Fredoka';font-weight:700;" onclick="setHookFont(this,'fredoka')">Fredoka</button><button type="button" class="hk-font" data-hookfont style="font-family:'Bebas Neue';letter-spacing:.5px;" onclick="setHookFont(this,'bebas')">Bebas</button></div></div><div class="hk-row"><div class="hk-lab">Size</div><input type="range" min="16" max="56" value="24" id="hook-size" oninput="setHookSize(this.value)" style="width:100%;accent-color:var(--rose);"></div><div class="hk-row"><div class="hk-lab">Text colour</div><div class="hk-sws"><span class="hk-sw on" data-hookcolor style="background:#fff" onclick="setHookColor(this,'#ffffff')"></span><span class="hk-sw" data-hookcolor style="background:#1A1A1A" onclick="setHookColor(this,'#1A1A1A')"></span><span class="hk-sw" data-hookcolor style="background:#F02478" onclick="setHookColor(this,'#F02478')"></span><span class="hk-sw" data-hookcolor style="background:#9CC000" onclick="setHookColor(this,'#9CC000')"></span><span class="hk-sw" data-hookcolor style="background:#FFD43B" onclick="setHookColor(this,'#FFD43B')"></span><span class="hk-sw" data-hookcolor style="background:#5A3825" onclick="setHookColor(this,'#5A3825')"></span></div></div><div class="hk-row"><div class="hk-lab">Background behind text</div><div class="hk-sws"><button type="button" class="hk-bg on" data-hookbg onclick="setHookBg(this,'none')">None</button><span class="hk-bg" data-hookbg style="background:#1A1A1A" onclick="setHookBg(this,'#1A1A1A')"></span><span class="hk-bg" data-hookbg style="background:#F02478" onclick="setHookBg(this,'#F02478')"></span><span class="hk-bg" data-hookbg style="background:#9CC000" onclick="setHookBg(this,'#9CC000')"></span><span class="hk-bg" data-hookbg style="background:#FFD43B" onclick="setHookBg(this,'#FFD43B')"></span><span class="hk-bg" data-hookbg style="background:#5A3825" onclick="setHookBg(this,'#5A3825')"></span></div></div></div><div class="re-card"><div class="re-title">Music</div><div class="re-sub">Pick a sound and press play to preview. It is added on publishing.</div><div class="music-list" id="reel-flow-music-list"></div></div></div>
+        <style>.reel-hook-overlay{position:absolute;left:0;right:0;padding:0 18px;text-align:center;font-family:'Playpen Sans';font-weight:800;font-size:22px;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.65);pointer-events:none;line-height:1.2;z-index:3;}.reel-hook-overlay.top{top:20px;}.reel-hook-overlay.center{top:50%;transform:translateY(-50%);}.reel-hook-overlay.bottom{bottom:20px;}.reel-extra{display:flex;flex-direction:column;gap:14px;margin:16px 0;}.re-card{background:#fff;border:1px solid var(--border);border-radius:18px;padding:18px;}.re-title{font-family:'Playpen Sans';font-weight:800;font-size:16px;color:var(--rose-d);margin-bottom:6px;}.re-sub{font-size:12.5px;color:var(--text-s);margin-bottom:12px;line-height:1.5;}.re-chip{font-family:'Sasson Montessori';font-size:13.5px;border:1.5px solid var(--border);background:#fff;color:var(--text-s);border-radius:999px;padding:9px 16px;cursor:pointer;}.re-chip.on{background:var(--rose);border-color:var(--rose);color:#fff;}.re-music{display:flex;align-items:center;gap:12px;border:1.5px solid var(--border);border-radius:13px;padding:12px 14px;cursor:pointer;margin-bottom:8px;}.re-music.on{border-color:var(--rose);background:var(--rose-l);}.re-music .rm-name{flex:1;font-size:14px;font-weight:700;}.re-music .rm-dur{font-size:12px;color:var(--text-s);}.hk-row{margin-top:13px;}.hk-lab{font-size:12px;font-weight:700;color:var(--text-s);margin-bottom:7px;}.hk-fonts{display:flex;gap:7px;flex-wrap:wrap;}.hk-font{border:1.5px solid var(--border);background:#fff;border-radius:10px;padding:6px 13px;cursor:pointer;font-size:15px;color:#1A1A1A;line-height:1.1;}.hk-font.on{border-color:var(--rose);background:var(--rose-l);}.hk-sws{display:flex;gap:9px;flex-wrap:wrap;align-items:center;}.hk-sw{width:27px;height:27px;border-radius:50%;box-shadow:0 0 0 1.5px var(--border);cursor:pointer;}.hk-sw.on{box-shadow:0 0 0 2.5px var(--rose);}.hk-bg{min-width:30px;height:27px;border-radius:8px;box-shadow:0 0 0 1.5px var(--border);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-family:'Sasson Montessori';font-size:11px;font-weight:700;color:var(--text-s);background:#fff;padding:0 8px;}.hk-bg.on{box-shadow:0 0 0 2.5px var(--rose);}</style><div class="reel-extra"><div class="re-card"><div class="re-title">Hook on the video</div><div class="re-sub">Write or pull the hook from your script, it shows on top of the video.</div><input id="reel-hook-text" class="text-overlay-input" placeholder="Hook text shown on the video..." oninput="updateReelHook()"/><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:4px;"><button type="button" class="re-chip" data-hookpos="top" onclick="setReelHookPos('top')">Top</button><button type="button" class="re-chip on" data-hookpos="center" onclick="setReelHookPos('center')">Middle</button><button type="button" class="re-chip" data-hookpos="bottom" onclick="setReelHookPos('bottom')">Bottom</button><button type="button" class="re-chip" onclick="hentHookFraManus()">Pull from script</button></div><div class="hk-row"><div class="hk-lab">Font</div><div class="hk-fonts"><button type="button" class="hk-font on" data-hookfont style="font-family:'Playpen Sans';font-weight:800;" onclick="setHookFont(this,'playpen')">Playpen</button><button type="button" class="hk-font" data-hookfont style="font-family:'Anton';" onclick="setHookFont(this,'anton')">Anton</button><button type="button" class="hk-font" data-hookfont style="font-family:'Luckiest Guy';" onclick="setHookFont(this,'luckiest')">Luckiest</button><button type="button" class="hk-font" data-hookfont style="font-family:'Fredoka';font-weight:700;" onclick="setHookFont(this,'fredoka')">Fredoka</button><button type="button" class="hk-font" data-hookfont style="font-family:'Bebas Neue';letter-spacing:.5px;" onclick="setHookFont(this,'bebas')">Bebas</button></div></div><div class="hk-row"><div class="hk-lab">Size</div><input type="range" min="16" max="56" value="24" id="hook-size" oninput="setHookSize(this.value)" style="width:100%;accent-color:var(--rose);"></div><div class="hk-row"><div class="hk-lab">Text colour</div><div class="hk-sws"><span class="hk-sw on" data-hookcolor style="background:#fff" onclick="setHookColor(this,'#ffffff')"></span><span class="hk-sw" data-hookcolor style="background:#1A1A1A" onclick="setHookColor(this,'#1A1A1A')"></span><span class="hk-sw" data-hookcolor style="background:#F02478" onclick="setHookColor(this,'#F02478')"></span><span class="hk-sw" data-hookcolor style="background:#9CC000" onclick="setHookColor(this,'#9CC000')"></span><span class="hk-sw" data-hookcolor style="background:#FFD43B" onclick="setHookColor(this,'#FFD43B')"></span><span class="hk-sw" data-hookcolor style="background:#5A3825" onclick="setHookColor(this,'#5A3825')"></span></div></div><div class="hk-row"><div class="hk-lab">Background behind text</div><div class="hk-sws"><button type="button" class="hk-bg on" data-hookbg onclick="setHookBg(this,'none')">None</button><span class="hk-bg" data-hookbg style="background:#1A1A1A" onclick="setHookBg(this,'#1A1A1A')"></span><span class="hk-bg" data-hookbg style="background:#F02478" onclick="setHookBg(this,'#F02478')"></span><span class="hk-bg" data-hookbg style="background:#9CC000" onclick="setHookBg(this,'#9CC000')"></span><span class="hk-bg" data-hookbg style="background:#FFD43B" onclick="setHookBg(this,'#FFD43B')"></span><span class="hk-bg" data-hookbg style="background:#5A3825" onclick="setHookBg(this,'#5A3825')"></span></div></div></div><div class="re-card"><div class="re-title">Music</div><div class="re-sub">Pick a sound and press play to preview. The selected song is baked into the video automatically when you publish.</div><div class="music-list" id="reel-flow-music-list"></div><div class="hk-row"><div class="hk-lab">Music volume</div><input type="range" min="0" max="100" value="40" id="reel-flow-music-volume" style="width:100%;accent-color:var(--rose);"></div><div style="margin-top:12px;background:var(--rose-l);border-radius:12px;padding:11px 13px;font-size:11.5px;color:var(--text-s);line-height:1.55;"><b style="color:var(--rose-d);">Trending sound from Instagram or TikTok?</b> Those songs are only licensed inside their own apps, so they can't be baked in for automatic publishing. To use a specific trending sound, export the reel and add it manually in Instagram or TikTok when you post.</div></div></div>
         <button class="reel-publish-btn" id="reel-publish-btn" onclick="publishReel()" disabled>
           🚀 Publish Reel automatically</button>
         <div id="reel-status"></div>
@@ -2386,12 +2386,26 @@ async function publishReel(){
     return;
   }
 
+  // Bake the selected music in BEFORE upload (auto-posting can't add sound afterwards)
+  let uploadFile = state.videoFile;
+  const musicUrl = editorState.selectedMusicUrl;
+  if(musicUrl){
+    try{
+      const vol = (document.getElementById('reel-flow-music-volume')?.value || 40)/100;
+      uploadFile = await bakeReelMusic(state.videoFile, musicUrl, vol, statusEl);
+    }catch(e){
+      statusEl.innerHTML=`<div class="pub-status error" style="margin-top:10px;">Could not bake in the music: ${e.message}. Make sure the video has an audio track, or pick another song.</div>`;
+      btn.disabled=false; btn.textContent='Publiser Reel automatisk';
+      return;
+    }
+  }
+
   statusEl.innerHTML=`<div class="pub-status loading" style="margin-top:10px;">Uploading video and sending to the publishing service… <span class="loading-dots"><span></span><span></span><span></span></span><br/><span style="font-size:11px;opacity:.8;">Large videos may take 30-60 seconds</span></div>`;
 
   // Convert video to base64 to send via Cloudflare Worker
   // Worker then uploads to the publishing service which handles the media
   try{
-    const base64=await fileToBase64(state.videoFile);
+    const base64=await fileToBase64(uploadFile);
     const payload={
       socialbuKey: cfg.socialbuKey,
       socialbuBody:{
@@ -2400,8 +2414,8 @@ async function publishReel(){
         options:  {post_as_reel:true},
       },
       videoBase64: base64,
-      videoMimeType: state.videoFile.type,
-      videoName: state.videoFile.name,
+      videoMimeType: 'video/mp4',
+      videoName: (state.videoFile.name||'reel').replace(/\.[^.]+$/,'')+'.mp4',
     };
 
     const res=await smartFetch(cfg.makeWebhook,{
@@ -4455,6 +4469,31 @@ async function renderReelToBlob(statusEl){
   try{ await ff.deleteFile('concat.mp4'); }catch(e){}
   try{ await ff.deleteFile(outputName); }catch(e){}
 
+  return new Blob([data.buffer], {type:'video/mp4'});
+}
+
+// ── Bake the selected music into an uploaded reel video (create flow) ──
+async function bakeReelMusic(videoFile, musicUrl, vol, statusEl){
+  const ff = await loadFFmpeg();
+  const { fetchFile } = FFmpegWASM;
+  if(statusEl) statusEl.innerHTML='<div class="pub-status loading" style="margin-top:10px;">Baking the music into the video… <span class="loading-dots"><span></span><span></span><span></span></span></div>';
+  await ff.writeFile('reelin.mp4', await fetchFile(videoFile));
+  const prox = '/api/audio?url=' + encodeURIComponent(musicUrl);
+  let mblob;
+  try{ mblob = await (await fetch(prox)).blob(); }
+  catch(e){ throw new Error('Could not fetch the music'); }
+  await ff.writeFile('reelmus.m4a', await fetchFile(mblob));
+  await ff.exec([
+    '-i','reelin.mp4','-i','reelmus.m4a',
+    '-filter_complex', `[1:a]volume=${vol},aloop=loop=-1:size=2000000000[mus];[0:a][mus]amix=inputs=2:duration=first:dropout_transition=2[aout]`,
+    '-map','0:v','-map','[aout]',
+    '-c:v','copy','-c:a','aac','-b:a','128k',
+    '-movflags','+faststart','-y','reelout.mp4'
+  ]);
+  const data = await ff.readFile('reelout.mp4');
+  try{ await ff.deleteFile('reelin.mp4'); }catch(e){}
+  try{ await ff.deleteFile('reelmus.m4a'); }catch(e){}
+  try{ await ff.deleteFile('reelout.mp4'); }catch(e){}
   return new Blob([data.buffer], {type:'video/mp4'});
 }
 
