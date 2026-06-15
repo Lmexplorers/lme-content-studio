@@ -1067,6 +1067,14 @@ input[type=range]{width:100%;accent-color:var(--rose);}
       <button type="button" class="vt-chip on" data-vs="5" onclick="vidToolSet('secs',5,this)">5 sec</button>
       <button type="button" class="vt-chip" data-vs="8" onclick="vidToolSet('secs',8,this)">8 sec</button>
     </div>
+    <div class="vt-lab">Motion</div>
+    <div class="vt-chips" id="vidtool-motion">
+      <button type="button" class="vt-chip on" data-vm="ken" onclick="vidToolSet('motion','ken',this)">Ken Burns</button>
+      <button type="button" class="vt-chip" data-vm="zoomin" onclick="vidToolSet('motion','zoomin',this)">Zoom in</button>
+      <button type="button" class="vt-chip" data-vm="zoomout" onclick="vidToolSet('motion','zoomout',this)">Zoom out</button>
+      <button type="button" class="vt-chip" data-vm="panlr" onclick="vidToolSet('motion','panlr',this)">Pan ↔</button>
+      <button type="button" class="vt-chip" data-vm="panud" onclick="vidToolSet('motion','panud',this)">Pan ↕</button>
+    </div>
     <button class="gen-btn purple" style="width:100%;margin-top:16px;" onclick="vidToolGenerate()">🎬 Make video</button>
     <div id="vidtool-status" style="margin-top:10px;"></div>
     <video id="vidtool-preview" controls playsinline style="display:none;width:100%;border-radius:12px;margin-top:12px;border:1.5px solid var(--rose-m);"></video>
@@ -2776,7 +2784,7 @@ async function genererBilde(){
 }
 
 // ── AI video tab: Image to video (Ken Burns) ──
-var vidToolFile=null, vidToolAspect='9:16', vidToolSecs=5;
+var vidToolFile=null, vidToolAspect='9:16', vidToolSecs=5, vidToolMotion='ken';
 function vidToolPick(input){
   const f=input.files&&input.files[0]; if(!f)return;
   vidToolFile=f;
@@ -2784,6 +2792,7 @@ function vidToolPick(input){
 }
 function vidToolSet(kind,val,el){
   if(kind==='aspect'){ vidToolAspect=val; document.querySelectorAll('#vidtool-aspect .vt-chip').forEach(c=>c.classList.toggle('on',c===el)); }
+  else if(kind==='motion'){ vidToolMotion=val; document.querySelectorAll('#vidtool-motion .vt-chip').forEach(c=>c.classList.toggle('on',c===el)); }
   else { vidToolSecs=val; document.querySelectorAll('#vidtool-secs .vt-chip').forEach(c=>c.classList.toggle('on',c===el)); }
 }
 function _loadImgEl(src){ return new Promise(function(res,rej){ const im=new Image(); im.crossOrigin='anonymous'; im.onload=function(){res(im);}; im.onerror=function(){rej(new Error('Could not read the image'));}; im.src=src; }); }
@@ -2799,25 +2808,32 @@ async function vidToolGenerate(){
     const W = vidToolAspect==='1:1'?1080:vidToolAspect==='16:9'?1920:1080;
     const H = vidToolAspect==='1:1'?1080:vidToolAspect==='16:9'?1080:1920;
     const cv=document.createElement('canvas'); cv.width=W; cv.height=H; const ctx=cv.getContext('2d');
+    ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
     const fps=30; const dur=vidToolSecs*1000;
     const stream=cv.captureStream(fps);
     const mime = MediaRecorder.isTypeSupported('video/mp4') ? 'video/mp4'
               : MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9'
               : MediaRecorder.isTypeSupported('video/webm;codecs=vp8') ? 'video/webm;codecs=vp8'
               : 'video/webm';
-    const rec=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:7000000});
+    const rec=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:12000000});
     const chunks=[]; rec.ondataavailable=function(e){ if(e.data&&e.data.size) chunks.push(e.data); };
     const stopped=new Promise(function(r){ rec.onstop=r; });
     const base=Math.max(W/img.width, H/img.height);
+    const P={ ken:{z:[1.0,1.20],x:[-0.55,0.55],y:[0.5,-0.5]}, zoomin:{z:[1.0,1.24],x:[0,0],y:[0,0]},
+              zoomout:{z:[1.24,1.0],x:[0,0],y:[0,0]}, panlr:{z:[1.14,1.18],x:[-0.92,0.92],y:[0,0]},
+              panud:{z:[1.14,1.18],x:[0,0],y:[-0.92,0.92]} }[vidToolMotion] || {z:[1.0,1.20],x:[-0.55,0.55],y:[0.5,-0.5]};
+    const ease=t=> t<0.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
     rec.start();
     const t0=performance.now();
     (function frame(now){
-      const p=Math.min(1,(now-t0)/dur);
-      const sc=base*(1+0.18*p);
-      const dw=img.width*sc, dh=img.height*sc;
+      const p=Math.min(1,(now-t0)/dur); const te=ease(p);
+      const z=P.z[0]+(P.z[1]-P.z[0])*te;
+      const sc=base*z; const dw=img.width*sc, dh=img.height*sc;
+      const maxX=Math.max(0,(dw-W)/2), maxY=Math.max(0,(dh-H)/2);
+      const fx=P.x[0]+(P.x[1]-P.x[0])*te, fy=P.y[0]+(P.y[1]-P.y[0])*te;
       ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
-      ctx.drawImage(img,(W-dw)/2,(H-dh)/2,dw,dh);
-      if(p<1) requestAnimationFrame(frame); else setTimeout(function(){ try{rec.stop();}catch(e){} },120);
+      ctx.drawImage(img,(W-dw)/2 - fx*maxX,(H-dh)/2 - fy*maxY,dw,dh);
+      if(p<1) requestAnimationFrame(frame); else setTimeout(function(){ try{rec.stop();}catch(e){} },140);
     })(t0);
     await stopped;
     const ext = mime.indexOf('mp4')>=0?'mp4':'webm';
