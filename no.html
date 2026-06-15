@@ -834,6 +834,49 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
 <!-- ════ CREATE ════ -->
 <div id="tab-create">
 
+<!-- Rullende eksempel-karusell (Zeely-stil) -->
+<style>
+.lme-showcase{margin:2px 0 18px;}
+.lme-showcase-title{font-family:'Playpen Sans';font-weight:800;font-size:16px;color:var(--rose-d);margin-bottom:10px;}
+.lme-mq{overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent);mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent);}
+.lme-mq + .lme-mq{margin-top:11px;}
+.lme-mq-track{display:flex;gap:11px;width:max-content;animation:lme-mq-scroll 40s linear infinite;will-change:transform;}
+.lme-mq-track.rev{animation-direction:reverse;animation-duration:47s;}
+.lme-mq:hover .lme-mq-track{animation-play-state:paused;}
+@keyframes lme-mq-scroll{from{transform:translateX(0)}to{transform:translateX(calc(-50% - 5.5px))}}
+.lme-post{flex:none;width:132px;height:166px;border-radius:18px;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;padding:11px;color:#fff;box-shadow:0 12px 26px -14px rgba(200,24,96,.55);}
+.lme-post::after{content:'';position:absolute;inset:0;background:linear-gradient(160deg,rgba(255,255,255,.20),transparent 55%);pointer-events:none;}
+.lme-post-emoji{font-size:32px;filter:drop-shadow(0 2px 6px rgba(0,0,0,.3));position:relative;z-index:1;}
+.lme-post-cap{font-size:12px;font-weight:700;line-height:1.28;text-shadow:0 1px 7px rgba(0,0,0,.45);position:relative;z-index:1;}
+.lme-post-tag{position:absolute;top:9px;right:9px;background:rgba(255,255,255,.95);color:#1A1A1A;font-size:9px;font-weight:800;padding:2px 8px;border-radius:99px;z-index:1;}
+@media(prefers-reduced-motion:reduce){.lme-mq-track{animation:none;}}
+</style>
+<div class="lme-showcase">
+  <div class="lme-showcase-title">✨ Se hva du kan lage</div>
+  <div class="lme-mq"><div class="lme-mq-track" id="lme-mq-1"></div></div>
+  <div class="lme-mq"><div class="lme-mq-track rev" id="lme-mq-2"></div></div>
+</div>
+<script>
+(function(){
+  var POSTS=[
+    {e:'🌰',c:'Telling med naturmateriale',t:'Karusell',g:'linear-gradient(155deg,#F02478,#C81860)'},
+    {e:'🌱',c:'Sensitive perioder forklart',t:'Reel',g:'linear-gradient(155deg,#9CC000,#6F9000)'},
+    {e:'💧',c:'Praktisk liv: helle vann',t:'Story',g:'linear-gradient(155deg,#2D9CDB,#0066B3)'},
+    {e:'🏡',c:'Forberedt miljø hjemme',t:'Feed',g:'linear-gradient(155deg,#FCC000,#E0A000)',dark:1},
+    {e:'🌙',c:'3 ro-ritualer for kvelden',t:'Karusell',g:'linear-gradient(155deg,#8B5CF6,#6D28D9)'},
+    {e:'⏱️',c:'Montessori på 60 sekunder',t:'Reel',g:'linear-gradient(155deg,#F02478,#8B1048)'},
+    {e:'🍃',c:'Barneledet lek ute',t:'Feed',g:'linear-gradient(155deg,#00B894,#009673)'},
+    {e:'🧩',c:'Konsentrasjon hos barn',t:'Karusell',g:'linear-gradient(155deg,#FF7A3D,#E0561C)'},
+    {e:'👣',c:'Selvstendighet steg for steg',t:'Reel',g:'linear-gradient(155deg,#E84393,#C81860)'},
+    {e:'🍂',c:'Naturens årshjul',t:'Story',g:'linear-gradient(155deg,#E07B39,#B5530F)'}
+  ];
+  function card(p){return '<div class="lme-post" style="background:'+p.g+(p.dark?';color:#1A1A1A':'')+'"><span class="lme-post-tag">'+p.t+'</span><div class="lme-post-emoji">'+p.e+'</div><div class="lme-post-cap">'+p.c+'</div></div>';}
+  function fill(id,arr){var el=document.getElementById(id);if(!el)return;var h=arr.map(card).join('');el.innerHTML=h+h;}
+  fill('lme-mq-1',POSTS);
+  fill('lme-mq-2',POSTS.slice().reverse());
+})();
+</script>
+
   <div class="card">
     <div class="card-title">Velg format</div>
     <div class="format-list" id="format-list"></div>
