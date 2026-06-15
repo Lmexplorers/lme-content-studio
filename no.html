@@ -1202,7 +1202,7 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
   async function genImageRaw(prompt,dalleSize,gemAspect,model){
     var c=cfgGet(); model=model||c.imgModel||'dalle3';
     var key = model==='dalle3' ? c.openaiKey : c.geminiKey;
-    var payload={type:'image',model:model,key:key,prompt:prompt,size:dalleSize,aspectRatio:gemAspect};
+    var payload={type:'image',model:model,key:key,token:lmeToken(),prompt:prompt,size:dalleSize,aspectRatio:gemAspect};
     // Malbilde: DALL-E 3 håndteres via gpt-image-1 (edits) i proxyen, Nano via inlineData.
     if(varRefData){ payload.refData=varRefData; payload.refMime=varRefMime; }
     var res=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
@@ -3131,7 +3131,7 @@ async function genererBilde(){
     const urls=[];
     for(let i=0;i<count;i++){
       statusEl.innerHTML=`<div class="pub-status loading" style="margin-top:10px;">🤖 ${IMG_MODEL_NAMES[useModel]} lager bilde ${count>1?(i+1)+'/'+count:''}…${hasRef?' (malbilde)':''} <span class="loading-dots"><span></span><span></span><span></span></span></div>`;
-      const _body={type:'image',model:useModel,key:_key,prompt,size,aspectRatio:asp,quality};
+      const _body={type:'image',model:useModel,key:_key,token:lmeToken(),prompt,size,aspectRatio:asp,quality};
       if(hasRef){ _body.refData=state.imgRefData; _body.refMime=state.imgRefMime; }
       const _res = await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify(_body)});

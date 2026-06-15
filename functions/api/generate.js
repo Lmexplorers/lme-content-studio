@@ -3,13 +3,19 @@
  * Unngår CORS ("Failed to fetch") og kan skjule nøkler.
  *
  * POST /api/generate
- *  Bilde: { type:"image", model:"dalle3"|"nano"|"nano-pro", key?, prompt, size?, aspectRatio? }
+ *  Bilde: { type:"image", model:"dalle3"|"nano"|"nano-pro", key?, token?, prompt, size?, aspectRatio? }
  *         -> { imageUrl: "data:image/...;base64,..." }
  *  Tekst: { type:"text", provider:"claude"|"openai", key?, prompt, model?, max_tokens? }
  *         -> { text: "..." }
  *
  * Nøkkel hentes fra Cloudflare-hemmelighet hvis satt (OPENAI_API_KEY / GEMINI_API_KEY /
  * ANTHROPIC_API_KEY), ellers fra request-body (BYO-nøkkel fra appen).
+ *
+ * BILDE-TAK PER PLAN: Når bildet lages med LMEs egen nøkkel (Cloudflare-hemmelighet),
+ * håndheves et månedlig tak knyttet til kundens plan FØR OpenAI/Gemini-kallet. Taket
+ * styres av kreditter (user.credits.image i ACCOUNTS_KV), som settes av abonnement-webhooken.
+ * Hver vellykket bilde trekker én kreditt. Bruker kunden sin egen nøkkel, gjelder ikke taket
+ * (da betaler kunden selv, og LME har ingen kostnad).
  */
 
 function json(o, s) {
@@ -29,6 +35,174 @@ function bufToB64(buf) {
   return btoa(bin);
 }
 
+/* ───────── Konto / token / plan-tak ───────── */
+
+// Fallback-tak per plan, brukt til å initialisere kreditter hvis de mangler.
+// Selve den løpende grensen styres av user.credits.image (settes av webhooken).
+const PLAN_IMAGE_CAP = { free: 0, start: 30, proff: 100, proffplus: 150, arlig: 150 };
+
+const _enc = new TextEncoder();
+const _dec = new TextDecoder();
+function _b64urlDecode(s) {
+  s = s.replace(/-/g, "+").replace(/_/g, "/");
+  while (s.length % 4) s += "=";
+  const bin = atob(s);
+  const a = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i);
+  return a;
+}
+function _b64url(bytes) {
+  let bin = "";
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+async function _hmac(secret, data) {
+  const key = await crypto.subtle.importKey("raw", _enc.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const sig = await crypto.subtle.sign("HMAC", key, _enc.encode(data));
+  return _b64url(new Uint8Array(sig));
+}
+// Samme token-format som functions/api/auth.js
+async function verifyToken(env, token) {
+  if (!token || token.indexOf(".") < 0) return null;
+  const secret = env.AUTH_SECRET || "lme-dev-secret-change-me";
+  const [payload, sig] = token.split(".");
+  if (sig !== (await _hmac(secret, payload))) return null;
+  try {
+    const o = JSON.parse(_dec.decode(_b64urlDecode(payload)));
+    if (o.exp && o.exp < Date.now()) return null;
+    return o.email;
+  } catch (e) { return null; }
+}
+async function getUser(env, email) {
+  const raw = await env.ACCOUNTS_KV.get("user:" + email);
+  if (raw) { try { return JSON.parse(raw); } catch (e) {} }
+  return null;
+}
+async function putUser(env, user) {
+  await env.ACCOUNTS_KV.put("user:" + user.email, JSON.stringify(user));
+}
+
+// Sjekker plan-taket FØR generering. Returnerer { user } hvis ok, ellers { error, code }.
+async function checkImageQuota(env, token) {
+  if (!env.ACCOUNTS_KV) {
+    return { error: "Innlogging er ikke konfigurert (ACCOUNTS_KV mangler). Kontakt support." , code: "no_kv" };
+  }
+  const email = await verifyToken(env, token);
+  if (!email) return { error: "Logg inn for å generere bilder.", code: "login_required" };
+  const user = await getUser(env, email);
+  if (!user) return { error: "Logg inn for å generere bilder.", code: "login_required" };
+  const plan = user.plan || "free";
+  if (!user.credits) user.credits = { video: 0, image: PLAN_IMAGE_CAP[plan] != null ? PLAN_IMAGE_CAP[plan] : 0 };
+  const remaining = Number(user.credits.image || 0);
+  if (remaining <= 0) {
+    return {
+      error: "Du har brukt opp bilde-kredittene dine for denne perioden. Oppgrader planen for flere. (You have used all your image credits for this period.)",
+      code: "no_image_credits",
+    };
+  }
+  return { user };
+}
+
+// Trekker én bilde-kreditt etter vellykket generering.
+async function consumeImageCredit(env, user) {
+  user.credits = user.credits || { video: 0, image: 0 };
+  user.credits.image = Math.max(0, Number(user.credits.image || 0) - 1);
+  await putUser(env, user);
+}
+
+/* ───────── Bildegenerering (returnerer {imageUrl} eller {error}) ───────── */
+
+async function generateImage(env, body) {
+  const model = body.model || "dalle3";
+  if (model === "dalle3") {
+    const key = env.OPENAI_API_KEY || body.key;
+    if (!key) return { error: "OpenAI-nøkkel mangler. Legg den inn i Innstillinger." };
+    const sz = body.size || "1024x1024";
+    const gptSize = sz === "1024x1792" ? "1024x1536" : sz === "1792x1024" ? "1536x1024" : "1024x1024";
+    const dalleQuality = body.quality === "hd" ? "hd" : "standard";
+
+    // Malbilde/referanse: DALL-E 3 støtter det ikke, men gpt-image-1 gjør det via /images/edits.
+    if (body.refData) {
+      try {
+        const bin = Uint8Array.from(atob(body.refData), (c) => c.charCodeAt(0));
+        const blob = new Blob([bin], { type: body.refMime || "image/png" });
+        const form = new FormData();
+        form.append("model", "gpt-image-1");
+        form.append("image", blob, "ref.png");
+        form.append("prompt", body.prompt);
+        form.append("size", gptSize);
+        const r = await fetch("https://api.openai.com/v1/images/edits", {
+          method: "POST",
+          headers: { "Authorization": "Bearer " + key },
+          body: form,
+        });
+        const d = await r.json().catch(() => ({}));
+        if (r.ok && d.data && d.data[0] && d.data[0].b64_json) {
+          return { imageUrl: "data:image/png;base64," + d.data[0].b64_json };
+        }
+        return { error: (d.error && d.error.message) || ("OpenAI edits " + r.status) };
+      } catch (e) {
+        return { error: "Malbilde-feil: " + String((e && e.message) || e) };
+      }
+    }
+
+    const attempts = [
+      { model: "dall-e-3", prompt: body.prompt, n: 1, size: sz, quality: dalleQuality },
+      { model: "gpt-image-1", prompt: body.prompt, n: 1, size: gptSize },
+    ];
+    let lastErr = "Ingen bilde i svaret";
+    for (const a of attempts) {
+      const r = await fetch("https://api.openai.com/v1/images/generations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + key },
+        body: JSON.stringify(a),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok) {
+        const item = d.data && d.data[0];
+        if (item && item.b64_json) return { imageUrl: "data:image/png;base64," + item.b64_json };
+        if (item && item.url) {
+          try {
+            const ir = await fetch(item.url);
+            const buf = await ir.arrayBuffer();
+            return { imageUrl: "data:image/png;base64," + bufToB64(buf) };
+          } catch (e) { return { imageUrl: item.url }; }
+        }
+        lastErr = "Ingen bilde i svaret";
+      } else {
+        lastErr = (d.error && d.error.message) || ("OpenAI " + r.status);
+      }
+    }
+    return { error: lastErr };
+  } else {
+    const key = env.GEMINI_API_KEY || body.key;
+    if (!key) return { error: "Gemini-nøkkel mangler. Legg den inn i Innstillinger." };
+    const gModel = model === "nano-pro" ? "gemini-3-pro-image-preview" : "gemini-2.5-flash-image";
+    const reqParts = [];
+    if (body.refData) reqParts.push({ inlineData: { mimeType: body.refMime || "image/jpeg", data: body.refData } });
+    reqParts.push({ text: body.prompt });
+    const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + gModel + ":generateContent", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+      body: JSON.stringify({ contents: [{ parts: reqParts }], generationConfig: { responseModalities: ["TEXT", "IMAGE"], imageConfig: { aspectRatio: body.aspectRatio || "1:1" } } }),
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) return { error: (d.error && d.error.message) || ("Gemini " + r.status) };
+    const parts = (d.candidates && d.candidates[0] && d.candidates[0].content && d.candidates[0].content.parts) || [];
+    const ip = parts.find((p) => p.inlineData || p.inline_data);
+    const inl = ip && (ip.inlineData || ip.inline_data);
+    if (!inl || !inl.data) return { error: "Ingen bilde i svaret" };
+    return { imageUrl: "data:" + (inl.mimeType || inl.mime_type || "image/png") + ";base64," + inl.data };
+  }
+}
+
+// Bruker LME sin egen nøkkel for dette bildet? (Da gjelder plan-taket.)
+function usesOwnerKey(env, model) {
+  return (model || "dalle3") === "dalle3" ? !!env.OPENAI_API_KEY : !!env.GEMINI_API_KEY;
+}
+
+/* ───────── Handler ───────── */
+
 export async function onRequestPost(context) {
   const { request, env } = context;
   let body = {};
@@ -37,87 +211,23 @@ export async function onRequestPost(context) {
 
   try {
     if (type === "image") {
-      const model = body.model || "dalle3";
-      if (model === "dalle3") {
-        const key = env.OPENAI_API_KEY || body.key;
-        if (!key) return json({ error: "OpenAI-nøkkel mangler. Legg den inn i Innstillinger." }, 400);
-        const sz = body.size || "1024x1024";
-        const gptSize = sz === "1024x1792" ? "1024x1536" : sz === "1792x1024" ? "1536x1024" : "1024x1024";
-        const dalleQuality = body.quality === "hd" ? "hd" : "standard";
-
-        // Malbilde/referanse: DALL-E 3 støtter det ikke, men gpt-image-1 gjør det via /images/edits.
-        if (body.refData) {
-          try {
-            const bin = Uint8Array.from(atob(body.refData), (c) => c.charCodeAt(0));
-            const blob = new Blob([bin], { type: body.refMime || "image/png" });
-            const form = new FormData();
-            form.append("model", "gpt-image-1");
-            form.append("image", blob, "ref.png");
-            form.append("prompt", body.prompt);
-            form.append("size", gptSize);
-            const r = await fetch("https://api.openai.com/v1/images/edits", {
-              method: "POST",
-              headers: { "Authorization": "Bearer " + key },
-              body: form,
-            });
-            const d = await r.json().catch(() => ({}));
-            if (r.ok && d.data && d.data[0] && d.data[0].b64_json) {
-              return json({ imageUrl: "data:image/png;base64," + d.data[0].b64_json });
-            }
-            return json({ error: (d.error && d.error.message) || ("OpenAI edits " + r.status) }, 200);
-          } catch (e) {
-            return json({ error: "Malbilde-feil: " + String((e && e.message) || e) }, 200);
-          }
-        }
-
-        const attempts = [
-          { model: "dall-e-3", prompt: body.prompt, n: 1, size: sz, quality: dalleQuality },
-          { model: "gpt-image-1", prompt: body.prompt, n: 1, size: gptSize },
-        ];
-        let lastErr = "Ingen bilde i svaret";
-        for (const a of attempts) {
-          const r = await fetch("https://api.openai.com/v1/images/generations", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "Authorization": "Bearer " + key },
-            body: JSON.stringify(a),
-          });
-          const d = await r.json().catch(() => ({}));
-          if (r.ok) {
-            const item = d.data && d.data[0];
-            if (item && item.b64_json) return json({ imageUrl: "data:image/png;base64," + item.b64_json });
-            if (item && item.url) {
-              try {
-                const ir = await fetch(item.url);
-                const buf = await ir.arrayBuffer();
-                return json({ imageUrl: "data:image/png;base64," + bufToB64(buf) });
-              } catch (e) { return json({ imageUrl: item.url }); }
-            }
-            lastErr = "Ingen bilde i svaret";
-          } else {
-            lastErr = (d.error && d.error.message) || ("OpenAI " + r.status);
-          }
-        }
-        return json({ error: lastErr }, 200);
-      } else {
-        const key = env.GEMINI_API_KEY || body.key;
-        if (!key) return json({ error: "Gemini-nøkkel mangler. Legg den inn i Innstillinger." }, 400);
-        const gModel = model === "nano-pro" ? "gemini-3-pro-image-preview" : "gemini-2.5-flash-image";
-        const reqParts = [];
-        if (body.refData) reqParts.push({ inlineData: { mimeType: body.refMime || "image/jpeg", data: body.refData } });
-        reqParts.push({ text: body.prompt });
-        const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + gModel + ":generateContent", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "x-goog-api-key": key },
-          body: JSON.stringify({ contents: [{ parts: reqParts }], generationConfig: { responseModalities: ["TEXT", "IMAGE"], imageConfig: { aspectRatio: body.aspectRatio || "1:1" } } }),
-        });
-        const d = await r.json().catch(() => ({}));
-        if (!r.ok) return json({ error: (d.error && d.error.message) || ("Gemini " + r.status) }, 200);
-        const parts = (d.candidates && d.candidates[0] && d.candidates[0].content && d.candidates[0].content.parts) || [];
-        const ip = parts.find((p) => p.inlineData || p.inline_data);
-        const inl = ip && (ip.inlineData || ip.inline_data);
-        if (!inl || !inl.data) return json({ error: "Ingen bilde i svaret" }, 200);
-        return json({ imageUrl: "data:" + (inl.mimeType || inl.mime_type || "image/png") + ";base64," + inl.data });
+      // Håndhev plan-tak FØR generering, men kun når LMEs egen nøkkel brukes.
+      const enforce = usesOwnerKey(env, body.model);
+      let gateUser = null;
+      if (enforce) {
+        const gate = await checkImageQuota(env, body.token);
+        if (gate.error) return json({ error: gate.error, code: gate.code }, 200);
+        gateUser = gate.user;
       }
+
+      const result = await generateImage(env, body);
+      if (result.imageUrl) {
+        if (enforce && gateUser) {
+          try { await consumeImageCredit(env, gateUser); } catch (e) {}
+        }
+        return json({ imageUrl: result.imageUrl });
+      }
+      return json({ error: result.error || "Ingen bilde i svaret" }, 200);
     }
 
     if (type === "text") {
