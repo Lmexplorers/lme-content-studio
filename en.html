@@ -731,7 +731,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
   <div class="auth-user" id="auth-user">
     <span class="auth-credits" id="auth-credits"></span>
     <span class="auth-email" id="auth-email"></span>
-    <button class="auth-logout" onclick="lmeLogout()">Log out</button>
+    <button class="auth-logout" onclick="lmeAuthLogout()">Log out</button>
   </div>
 </div>
 <div class="auth-modal" id="auth-modal" onclick="if(event.target===this)closeAuthModal()">
@@ -780,7 +780,7 @@ async function lmeVerifyCode(){
   if(d.error){ msg.textContent=d.error; return; }
   localStorage.setItem(LME_TOKEN_KEY,d.token); renderAuth(d.account); closeAuthModal();
 }
-function lmeLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(null); }
+function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(null); }
 (async function(){ try{ renderAuth(await lmeAuthMe()); }catch(e){} })();
 </script>
 

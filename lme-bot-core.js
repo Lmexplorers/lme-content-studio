@@ -29,6 +29,7 @@
     en: {
       title: 'LME AI',
       subtitle: 'Your publishing & Montessori helper',
+      fabLabel: 'Ask LME AI',
       placeholder: 'Ask LME AI...',
       send: 'Send',
       clear: 'Clear chat',
@@ -47,6 +48,7 @@
     no: {
       title: 'LME AI',
       subtitle: 'Din publiserings- og Montessori-hjelper',
+      fabLabel: 'Spør LME AI',
       placeholder: 'Spør LME AI...',
       send: 'Send',
       clear: 'Tøm chat',
@@ -102,7 +104,7 @@
       background: #FFFFFF; border-radius: 18px;
       box-shadow: 0 18px 50px rgba(74, 26, 35, 0.18);
       display: none; flex-direction: column;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      font-family: 'Sasson Montessori', 'Playpen Sans', system-ui, sans-serif;
       overflow: hidden; border: 1px solid #FCE9EC;
     }
     .lme-bot-panel.open { display: flex; animation: lmeSlideUp 0.25s ease; }
@@ -112,7 +114,7 @@
       padding: 16px; background: linear-gradient(135deg, #F8D7DA 0%, #E4A0A8 100%);
       color: #4A1A23;
     }
-    .lme-bot-header h3 { margin: 0; font-size: 16px; font-weight: 600; }
+    .lme-bot-header h3 { margin: 0; font-size: 16px; font-weight: 600; font-family: 'Playpen Sans', system-ui, sans-serif; }
     .lme-bot-header p  { margin: 2px 0 0; font-size: 12px; opacity: 0.8; }
     .lme-bot-app-badge {
       display: inline-block; margin-top: 6px; padding: 2px 8px;
@@ -179,6 +181,25 @@
       padding: 8px 10px; border: 1px solid #F8D7DA; border-radius: 10px;
       background: white; color: #B07480; cursor: pointer; font-size: 12px;
     }
+
+    /* Form controls do not inherit font-family — force LME body font (Sasson Montessori) everywhere */
+    .lme-bot-panel select,
+    .lme-bot-panel textarea,
+    .lme-bot-panel button,
+    .lme-bot-fab-label {
+      font-family: 'Sasson Montessori', 'Playpen Sans', system-ui, sans-serif;
+    }
+
+    /* Liten etikett ved siden av knappen, sa folk ser hva den er */
+    .lme-bot-fab-label {
+      position: fixed; bottom: 38px; right: 92px; z-index: 99998;
+      background: #FFFFFF; color: #6B3540; border: 1px solid #FCE9EC;
+      border-radius: 999px; padding: 7px 14px; font-size: 12.5px; font-weight: 700;
+      box-shadow: 0 6px 18px rgba(74,26,35,0.16); white-space: nowrap;
+      pointer-events: none; max-width: calc(100vw - 110px);
+      overflow: hidden; text-overflow: ellipsis;
+    }
+    .lme-bot-fab-label.hidden { display: none; }
   `;
 
   // ============================================================
@@ -192,7 +213,7 @@
   let isLoading = false;
 
   // DOM refs (created once on init)
-  let fab, panel, $messages, $suggestions, $textarea, $sendBtn, $clearBtn,
+  let fab, fabLabel, panel, $messages, $suggestions, $textarea, $sendBtn, $clearBtn,
       $taskSelect, $provSelect, $brainToggle;
 
   function lsKey(name) { return `lme_bot_${cfg.appId}_${name}_v1`; }
@@ -305,8 +326,14 @@
     fab = document.createElement('button');
     fab.className = 'lme-bot-fab';
     fab.setAttribute('aria-label', T.title);
+    fab.setAttribute('title', T.fabLabel);
     fab.innerHTML = '🩷';
     document.body.appendChild(fab);
+
+    fabLabel = document.createElement('div');
+    fabLabel.className = 'lme-bot-fab-label';
+    fabLabel.textContent = T.fabLabel;
+    document.body.appendChild(fabLabel);
 
     panel = document.createElement('div');
     panel.className = 'lme-bot-panel';
@@ -491,6 +518,7 @@
       const open = !panel.classList.contains('open');
       panel.classList.toggle('open', open);
       fab.classList.toggle('open', open);
+      if (fabLabel) fabLabel.classList.toggle('hidden', open);
       if (open) { renderHistory(); renderSuggestions(); $textarea.focus(); }
     });
 
