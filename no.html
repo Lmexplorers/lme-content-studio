@@ -5722,5 +5722,21 @@ if('serviceWorker' in navigator){
 <script src="/lme-bot-core.js"></script>
 <script src="/lme-bot-shell-content-studio.js"></script>
 
+<script>
+/* MIDLERTIDIG FONT-MAALER (v61) - fjernes etterpa */
+window.addEventListener('load', function(){
+  setTimeout(function(){
+    var out='';
+    try{
+      var ok=false; try{ ok=document.fonts.check("16px 'Sasson Montessori'"); }catch(e){}
+      var list=[]; try{ document.fonts.forEach(function(f){ list.push(f.family.replace(/['"]/g,'')+'='+f.status); }); }catch(e){}
+      var bf=getComputedStyle(document.body).fontFamily;
+      out='v61 Sasson='+ok+' body=['+bf+'] | '+list.join(', ');
+    }catch(e){ out='v61 ERR '+e; }
+    var el=document.querySelector('.app-brand-tag');
+    if(el){ el.style.fontSize='10px'; el.style.lineHeight='1.3'; el.style.whiteSpace='normal'; el.style.opacity='1'; el.textContent=out; }
+  }, 1400);
+});
+</script>
 </body>
 </html>
