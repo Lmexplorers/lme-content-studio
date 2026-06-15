@@ -710,6 +710,80 @@ input[type=range]{width:100%;accent-color:var(--rose);}
   </div>
 </div>
 
+<style>
+.auth-box{position:fixed;top:9px;right:12px;z-index:60;font-family:'Sasson Montessori';}
+.auth-btn{background:#fff;color:var(--rose-d);border:1.5px solid var(--rose);border-radius:999px;padding:7px 15px;font-size:12.5px;font-weight:700;cursor:pointer;}
+.auth-user{display:none;align-items:center;gap:8px;background:rgba(255,255,255,.94);border:1px solid var(--border);border-radius:999px;padding:5px 6px 5px 12px;font-size:12px;box-shadow:0 4px 14px -8px rgba(90,56,37,.5);}
+.auth-user .auth-credits{font-weight:700;color:var(--rose-d);white-space:nowrap;}
+.auth-user .auth-email{color:var(--text-s);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.auth-user .auth-logout{background:var(--rose-l);border:none;color:var(--rose-d);border-radius:999px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;}
+.auth-modal{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9998;display:none;align-items:center;justify-content:center;padding:18px;}
+.auth-card{background:#fff;border-radius:20px;padding:24px;max-width:360px;width:100%;}
+.auth-card h3{font-family:'Playpen Sans';font-weight:900;font-size:20px;color:var(--rose-d);margin-bottom:6px;}
+.auth-card p{font-size:13px;color:var(--text-s);line-height:1.5;margin-bottom:14px;}
+.auth-card input{width:100%;border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;font-family:'Sasson Montessori';font-size:14px;margin-bottom:10px;box-sizing:border-box;}
+.auth-card .auth-go{width:100%;padding:12px;border:none;border-radius:12px;background:linear-gradient(110deg,var(--rose),var(--rose-d));color:#fff;font-family:'Playpen Sans';font-weight:800;font-size:14px;cursor:pointer;}
+.auth-card .auth-msg{font-size:12px;color:var(--rose-d);margin-top:10px;min-height:16px;line-height:1.4;}
+.auth-card .auth-x{float:right;background:none;border:none;font-size:22px;color:var(--text-s);cursor:pointer;line-height:1;}
+</style>
+<div class="auth-box">
+  <button class="auth-btn" id="auth-login-btn" onclick="openAuthModal()">Logg inn</button>
+  <div class="auth-user" id="auth-user">
+    <span class="auth-credits" id="auth-credits"></span>
+    <span class="auth-email" id="auth-email"></span>
+    <button class="auth-logout" onclick="lmeLogout()">Logg ut</button>
+  </div>
+</div>
+<div class="auth-modal" id="auth-modal" onclick="if(event.target===this)closeAuthModal()">
+  <div class="auth-card">
+    <button class="auth-x" onclick="closeAuthModal()">&times;</button>
+    <h3>Logg inn</h3>
+    <p>Skriv e-posten din, så sender vi en engangskode du logger inn med. Ingen passord.</p>
+    <div id="auth-step-email">
+      <input type="email" id="auth-email-input" placeholder="din@epost.no" autocomplete="email"/>
+      <button class="auth-go" onclick="lmeSendCode()">Send kode</button>
+    </div>
+    <div id="auth-step-code" style="display:none;">
+      <input type="text" id="auth-code-input" placeholder="6-sifret kode" inputmode="numeric" autocomplete="one-time-code"/>
+      <button class="auth-go" onclick="lmeVerifyCode()">Logg inn</button>
+    </div>
+    <div class="auth-msg" id="auth-msg"></div>
+  </div>
+</div>
+<script>
+const LME_TOKEN_KEY='lme_cs_token';
+function lmeToken(){ return localStorage.getItem(LME_TOKEN_KEY)||''; }
+async function lmeAuthApi(payload){ const r=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}); return r.json(); }
+async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d=await lmeAuthApi({action:'me',token:t}); return d.account||null; }catch(e){ return null; } }
+function renderAuth(acc){
+  const lb=document.getElementById('auth-login-btn'), us=document.getElementById('auth-user');
+  window.lmeAccount=acc||null;
+  if(acc){ lb.style.display='none'; us.style.display='flex'; document.getElementById('auth-email').textContent=acc.email; document.getElementById('auth-credits').textContent='🎬 '+(acc.credits.video||0)+' · 🖼 '+(acc.credits.image||0); }
+  else { lb.style.display='inline-block'; us.style.display='none'; }
+}
+function openAuthModal(){ document.getElementById('auth-modal').style.display='flex'; document.getElementById('auth-step-email').style.display='block'; document.getElementById('auth-step-code').style.display='none'; document.getElementById('auth-msg').textContent=''; }
+function closeAuthModal(){ document.getElementById('auth-modal').style.display='none'; }
+async function lmeSendCode(){
+  const email=document.getElementById('auth-email-input').value.trim(); const msg=document.getElementById('auth-msg');
+  if(!email){ msg.textContent='Skriv e-posten din.'; return; }
+  msg.textContent='Sender kode…';
+  const d=await lmeAuthApi({action:'request',email});
+  if(d.error){ msg.textContent=d.error; return; }
+  window._lmeAuthEmail=email;
+  document.getElementById('auth-step-email').style.display='none';
+  document.getElementById('auth-step-code').style.display='block';
+  msg.textContent = d.devCode ? ('Testkode: '+d.devCode) : (d.sent ? 'Kode sendt til e-posten din.' : (d.note||'Kunne ikke sende e-post.'));
+}
+async function lmeVerifyCode(){
+  const code=document.getElementById('auth-code-input').value.trim(); const msg=document.getElementById('auth-msg');
+  const d=await lmeAuthApi({action:'verify',email:window._lmeAuthEmail,code});
+  if(d.error){ msg.textContent=d.error; return; }
+  localStorage.setItem(LME_TOKEN_KEY,d.token); renderAuth(d.account); closeAuthModal();
+}
+function lmeLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(null); }
+(async function(){ try{ renderAuth(await lmeAuthMe()); }catch(e){} })();
+</script>
+
 <div class="app-body">
 
 <!-- ════ CREATE ════ -->
