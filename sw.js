@@ -1,17 +1,17 @@
 // LME Content Studio — Service Worker
 // Enables PWA installation + basic offline support for app shell.
 
-const CACHE_VERSION = 'lme-v56';
+const CACHE_VERSION = 'lme-v57';
 const APP_SHELL = [
   '/',
   '/index.html',
-  '/no/',
-  '/no/index.html',
-  '/en/',
-  '/en/index.html',
+  '/no.html',
+  '/en.html',
   '/manifest.json',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
+  '/SassoonMontessori.woff2',
+  '/SassoonMontessori.ttf',
   '/lme-bot-core.js',
   '/lme-bot-shell-content-studio.js'
 ];
@@ -20,9 +20,12 @@ const APP_SHELL = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_VERSION).then((cache) => {
-      return cache.addAll(APP_SHELL).catch(() => {
-        return Promise.resolve();
-      });
+      // Cache hver fil for seg, sa en enkelt 404 ikke velter hele precache-en.
+      return Promise.all(APP_SHELL.map((url) =>
+        fetch(url, { cache: 'reload' })
+          .then((res) => { if (res && res.ok) return cache.put(url, res); })
+          .catch(() => {})
+      ));
     })
   );
   self.skipWaiting();
@@ -57,8 +60,7 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(req)
         .then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE_VERSION).then((c) => c.put(req, copy));
+          if (res && res.ok) { const copy = res.clone(); caches.open(CACHE_VERSION).then((c) => c.put(req, copy)); }
           return res;
         })
         .catch(() => caches.match(req).then((r) => r || caches.match('/index.html')))
@@ -67,8 +69,7 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       caches.match(req).then((cached) => {
         return cached || fetch(req).then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE_VERSION).then((c) => c.put(req, copy));
+          if (res && res.ok) { const copy = res.clone(); caches.open(CACHE_VERSION).then((c) => c.put(req, copy)); }
           return res;
         }).catch(() => cached);
       })
