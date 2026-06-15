@@ -728,7 +728,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
       <div class="app-logo"><img src="/images/lme-logo.png" alt="LME"></div>
       <div class="app-brand-text">
         <div class="app-brand-name">LME Innholdsstudio</div>
-        <div class="app-brand-tag">Lag innhold for alle kanaler ✨ · v60</div>
+        <div class="app-brand-tag">Lag innhold for alle kanaler ✨</div>
       </div>
     </div>
     <div class="nav-wrap">
@@ -5722,20 +5722,5 @@ if('serviceWorker' in navigator){
 <script src="/lme-bot-core.js"></script>
 <script src="/lme-bot-shell-content-studio.js"></script>
 
-<script>
-/* MIDLERTIDIG FONT-MAALER (v62) - stort gult felt, fjernes etterpa */
-window.addEventListener('load', function(){
-  setTimeout(function(){
-    var ok='?', sasson='INGEN', bf='?', err='';
-    try{ ok=document.fonts.check("16px 'Sasson Montessori'"); }catch(e){ err+=' check:'+e; }
-    try{ var sf=[]; document.fonts.forEach(function(f){ if(/sasso/i.test(f.family)) sf.push(f.family.replace(/['"]/g,'')+'='+f.status); }); if(sf.length) sasson=sf.join(' , '); }catch(e){ err+=' list:'+e; }
-    try{ bf=getComputedStyle(document.body).fontFamily; }catch(e){ err+=' body:'+e; }
-    var b=document.createElement('div');
-    b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:2147483647;background:#FFE100;color:#000;font:bold 17px monospace;padding:12px 14px;white-space:normal;word-break:break-word;border-bottom:4px solid #000;';
-    b.textContent='v62 | Sasson lastet? '+ok+'  ||  Sasson-font funnet: '+sasson+'  ||  brodtekst-font: '+bf+(err?(' || FEIL'+err):'');
-    document.body.appendChild(b);
-  }, 1400);
-});
-</script>
 </body>
 </html>
