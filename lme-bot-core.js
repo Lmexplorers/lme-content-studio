@@ -27,10 +27,10 @@
   // ============================================================
   const STRINGS = {
     en: {
-      title: 'LME AI',
+      title: 'Renate AI',
       subtitle: 'Your publishing & Montessori helper',
-      fabLabel: 'Ask LME AI',
-      placeholder: 'Ask LME AI...',
+      fabLabel: 'Ask Renate AI',
+      placeholder: 'Ask Renate AI...',
       send: 'Send',
       clear: 'Clear chat',
       useBrain: 'Use Project Brain as context',
@@ -46,10 +46,10 @@
       noInsert: 'No insert handler configured for this app.',
     },
     no: {
-      title: 'LME AI',
+      title: 'Renate AI',
       subtitle: 'Din publiserings- og Montessori-hjelper',
-      fabLabel: 'Spør LME AI',
-      placeholder: 'Spør LME AI...',
+      fabLabel: 'Spør Renate AI',
+      placeholder: 'Spør Renate AI...',
       send: 'Send',
       clear: 'Tøm chat',
       useBrain: 'Bruk Project Brain som kontekst',
