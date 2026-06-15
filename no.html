@@ -5723,18 +5723,17 @@ if('serviceWorker' in navigator){
 <script src="/lme-bot-shell-content-studio.js"></script>
 
 <script>
-/* MIDLERTIDIG FONT-MAALER (v61) - fjernes etterpa */
+/* MIDLERTIDIG FONT-MAALER (v62) - stort gult felt, fjernes etterpa */
 window.addEventListener('load', function(){
   setTimeout(function(){
-    var out='';
-    try{
-      var ok=false; try{ ok=document.fonts.check("16px 'Sasson Montessori'"); }catch(e){}
-      var list=[]; try{ document.fonts.forEach(function(f){ list.push(f.family.replace(/['"]/g,'')+'='+f.status); }); }catch(e){}
-      var bf=getComputedStyle(document.body).fontFamily;
-      out='v61 Sasson='+ok+' body=['+bf+'] | '+list.join(', ');
-    }catch(e){ out='v61 ERR '+e; }
-    var el=document.querySelector('.app-brand-tag');
-    if(el){ el.style.fontSize='10px'; el.style.lineHeight='1.3'; el.style.whiteSpace='normal'; el.style.opacity='1'; el.textContent=out; }
+    var ok='?', sasson='INGEN', bf='?', err='';
+    try{ ok=document.fonts.check("16px 'Sasson Montessori'"); }catch(e){ err+=' check:'+e; }
+    try{ var sf=[]; document.fonts.forEach(function(f){ if(/sasso/i.test(f.family)) sf.push(f.family.replace(/['"]/g,'')+'='+f.status); }); if(sf.length) sasson=sf.join(' , '); }catch(e){ err+=' list:'+e; }
+    try{ bf=getComputedStyle(document.body).fontFamily; }catch(e){ err+=' body:'+e; }
+    var b=document.createElement('div');
+    b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:2147483647;background:#FFE100;color:#000;font:bold 17px monospace;padding:12px 14px;white-space:normal;word-break:break-word;border-bottom:4px solid #000;';
+    b.textContent='v62 | Sasson lastet? '+ok+'  ||  Sasson-font funnet: '+sasson+'  ||  brodtekst-font: '+bf+(err?(' || FEIL'+err):'');
+    document.body.appendChild(b);
   }, 1400);
 });
 </script>
