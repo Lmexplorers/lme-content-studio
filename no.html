@@ -1322,7 +1322,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 
   <h3 class="vid-grp">Tilgjengelig nå</h3>
   <div class="vid-grid">
-    <div class="vid-card"><div class="vid-badge" style="background:linear-gradient(135deg,#F02478,#9CC000)">KB</div><div class="vid-name">Ken Burns-animasjon</div><div class="vid-desc">Gjør et bilde om til en levende video med rolig zoom og panorering. Lages i nettleseren.</div><span class="vid-status vid-on">Klar til bruk</span></div>
+    <div class="vid-card" style="cursor:pointer;" onclick="document.getElementById('vidtool-card').scrollIntoView({behavior:'smooth',block:'center'})"><div class="vid-badge" style="background:linear-gradient(135deg,#F02478,#9CC000)">KB</div><div class="vid-name">Ken Burns-animasjon</div><div class="vid-desc">Gjør et bilde om til en levende video med rolig zoom og panorering. Lages i nettleseren.</div><span class="vid-status vid-on">Klar til bruk ↓</span></div>
   </div>
 
   <h3 class="vid-grp">Kommer snart</h3>
@@ -1334,7 +1334,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
   </div>
 
   <h3 class="vid-grp">Bilde til video</h3>
-  <div class="vid-tool">
+  <div class="vid-tool" id="vidtool-card">
     <div class="vt-title">Lag video av et bilde</div>
     <div class="vt-sub">Last opp et bilde (eller bruk et du har generert), så lager studioet en kort, levende video med rolig zoom. Klar til reels og stories.</div>
     <div style="display:flex;align-items:center;gap:12px;">
@@ -3081,29 +3081,46 @@ function vidToolSet(kind,val,el){
   if(kind==='aspect'){ vidToolAspect=val; document.querySelectorAll('#vidtool-aspect .vt-chip').forEach(c=>c.classList.toggle('on',c===el)); }
   else { vidToolSecs=val; document.querySelectorAll('#vidtool-secs .vt-chip').forEach(c=>c.classList.toggle('on',c===el)); }
 }
+function _loadImgEl(src){ return new Promise(function(res,rej){ const im=new Image(); im.crossOrigin='anonymous'; im.onload=function(){res(im);}; im.onerror=function(){rej(new Error('Kunne ikke lese bildet'));}; im.src=src; }); }
 async function vidToolGenerate(){
   if(!vidToolFile){ alert('Last opp et bilde først.'); return; }
   const st=document.getElementById('vidtool-status');
-  st.innerHTML='<div class="pub-status loading">Lager video… (FFmpeg lastes første gang, kan ta litt tid) <span class="loading-dots"><span></span><span></span><span></span></span></div>';
+  if(typeof MediaRecorder==='undefined'||!document.createElement('canvas').captureStream){
+    st.innerHTML='<div class="pub-status error">Nettleseren din støtter ikke videoopptak. Prøv Chrome eller Safari.</div>'; return;
+  }
+  st.innerHTML='<div class="pub-status loading">Lager video… <span class="loading-dots"><span></span><span></span><span></span></span></div>';
   try{
-    const ff=await loadFFmpeg(); const {fetchFile}=FFmpegWASM;
-    await ff.writeFile('vt.png', await fetchFile(vidToolFile));
+    const img=await _loadImgEl(URL.createObjectURL(vidToolFile));
     const W = vidToolAspect==='1:1'?1080:vidToolAspect==='16:9'?1920:1080;
     const H = vidToolAspect==='1:1'?1080:vidToolAspect==='16:9'?1080:1920;
-    const preW=Math.round(W*1.25), preH=Math.round(H*1.25);
-    const d=vidToolSecs*25;
-    const zoomVf=`scale=${preW}:${preH}:force_original_aspect_ratio=increase,crop=${preW}:${preH},zoompan=z='min(zoom+0.0010,1.2)':d=${d}:s=${W}x${H}:fps=25,format=yuv420p`;
-    const statVf=`scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},format=yuv420p`;
-    const mk=vf=>['-loop','1','-i','vt.png','-t',String(vidToolSecs),'-vf',vf,'-r','25','-c:v','libx264','-preset','ultrafast','-pix_fmt','yuv420p','-movflags','+faststart','-y','vt.mp4'];
-    try{ await ff.exec(mk(zoomVf)); }catch(e){ await ff.exec(mk(statVf)); }
-    const data=await ff.readFile('vt.mp4');
-    try{ await ff.deleteFile('vt.png'); }catch(e){}
-    try{ await ff.deleteFile('vt.mp4'); }catch(e){}
-    const url=URL.createObjectURL(new Blob([data.buffer],{type:'video/mp4'}));
+    const cv=document.createElement('canvas'); cv.width=W; cv.height=H; const ctx=cv.getContext('2d');
+    const fps=30; const dur=vidToolSecs*1000;
+    const stream=cv.captureStream(fps);
+    const mime = MediaRecorder.isTypeSupported('video/mp4') ? 'video/mp4'
+              : MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9'
+              : MediaRecorder.isTypeSupported('video/webm;codecs=vp8') ? 'video/webm;codecs=vp8'
+              : 'video/webm';
+    const rec=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:7000000});
+    const chunks=[]; rec.ondataavailable=function(e){ if(e.data&&e.data.size) chunks.push(e.data); };
+    const stopped=new Promise(function(r){ rec.onstop=r; });
+    const base=Math.max(W/img.width, H/img.height);
+    rec.start();
+    const t0=performance.now();
+    (function frame(now){
+      const p=Math.min(1,(now-t0)/dur);
+      const s=base*(1+0.18*p);
+      const dw=img.width*s, dh=img.height*s;
+      ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
+      ctx.drawImage(img,(W-dw)/2,(H-dh)/2,dw,dh);
+      if(p<1) requestAnimationFrame(frame); else setTimeout(function(){ try{rec.stop();}catch(e){} },120);
+    })(t0);
+    await stopped;
+    const ext = mime.indexOf('mp4')>=0?'mp4':'webm';
+    const url=URL.createObjectURL(new Blob(chunks,{type:mime}));
     const v=document.getElementById('vidtool-preview'); v.src=url; v.style.display='block';
-    const a=document.getElementById('vidtool-download'); a.href=url; a.style.display='block';
-    st.innerHTML='<div class="pub-status success">Video klar! Forhåndsvis og last ned under.</div>';
-  }catch(e){ st.innerHTML='<div class="pub-status error">Kunne ikke lage video: '+esc(e.message)+'</div>'; }
+    const a=document.getElementById('vidtool-download'); a.href=url; a.download='lme-video.'+ext; a.style.display='block';
+    st.innerHTML='<div class="pub-status success">Video klar! Forhåndsvis og last ned under'+(ext==='webm'?' (WebM-format)':'')+'.</div>';
+  }catch(e){ st.innerHTML='<div class="pub-status error">Kunne ikke lage video: '+esc(e&&e.message?e.message:e)+'</div>'; }
 }
 
 // ── Gjør et generert bilde om til en kort animert reel (Ken Burns-zoom) ──
@@ -5156,9 +5173,20 @@ async function loadFFmpeg(){
     ff.on('progress', ({progress}) => {
       if(statusEl) statusEl.textContent = `Prosesserer video… ${Math.round(progress*100)}%`;
     });
+    // Last core/wasm/worker som same-origin blob-URLer. Nettleseren blokkerer
+    // Worker fra en kryss-origin CDN-URL direkte, men blob:-URLer er tillatt.
+    const _toBlobURL = async (url, type) => {
+      const r = await fetch(url, { mode: 'cors' });
+      if(!r.ok) throw new Error('CDN '+r.status+' '+url);
+      const b = await r.blob();
+      return URL.createObjectURL(new Blob([b], { type }));
+    };
+    const FF = 'https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/umd';
+    const CORE = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
     await ff.load({
-      coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js',
-      wasmURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.wasm',
+      classWorkerURL: await _toBlobURL(FF + '/814.ffmpeg.js', 'text/javascript'),
+      coreURL: await _toBlobURL(CORE + '/ffmpeg-core.js', 'text/javascript'),
+      wasmURL: await _toBlobURL(CORE + '/ffmpeg-core.wasm', 'application/wasm'),
     });
     ffmpegInstance = ff;
     ffmpegLoaded   = true;
