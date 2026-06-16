@@ -1,7 +1,7 @@
 // LME Content Studio — Service Worker
 // Enables PWA installation + basic offline support for app shell.
 
-const CACHE_VERSION = 'lme-v66';
+const CACHE_VERSION = 'lme-v67';
 const APP_SHELL = [
   '/',
   '/index.html',
