@@ -5332,6 +5332,89 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
+<!-- Telefon-mockup i venstre marg: appen demonstreres steg for steg (Zeely-stil) -->
+<style>
+.lme-phone{position:fixed;left:40px;top:50%;transform:translateY(-50%);width:208px;height:430px;background:linear-gradient(160deg,#2A2A2E,#161618);border-radius:36px;padding:9px;box-shadow:0 34px 64px -26px rgba(60,12,35,.55),0 0 0 2px rgba(255,255,255,.05) inset;z-index:5;}
+.lme-phone-notch{position:absolute;top:15px;left:50%;transform:translateX(-50%);width:66px;height:17px;background:#0c0c0e;border-radius:11px;z-index:4;}
+.lme-phone-screen{position:relative;width:100%;height:100%;border-radius:28px;overflow:hidden;background:#FFFAFA;}
+.lme-pscrub{position:absolute;top:0;left:0;height:3px;background:linear-gradient(90deg,#F02478,#FCC000);width:0;z-index:6;border-radius:0 3px 3px 0;}
+.lme-app-screen{position:absolute;inset:0;opacity:0;transition:opacity .5s ease;display:flex;flex-direction:column;background:#FFFAFA;}
+.lme-app-screen.on{opacity:1;}
+.lme-pbar{height:34px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 16px 3px;font-size:9px;font-weight:700;color:#1A1A1A;flex:none;}
+.lme-pbody{flex:1;padding:10px 15px;overflow:hidden;}
+.lme-peye{font-size:8.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:#C81860;}
+.lme-ptitle{font-family:'Playpen Sans';font-weight:800;font-size:15px;color:#1A1A1A;margin:5px 0 11px;}
+.lme-pchip{display:inline-block;font-size:10px;font-weight:600;padding:6px 11px;border-radius:99px;border:1.5px solid #F0D0DC;color:#6B6470;margin:0 5px 7px 0;background:#fff;}
+.lme-pchip.on{background:#F02478;border-color:#F02478;color:#fff;}
+.lme-pinput{background:#fff;border:1.5px solid #F0D0DC;border-radius:11px;padding:11px 12px;font-size:11px;color:#1A1A1A;margin-bottom:12px;line-height:1.4;}
+.lme-pgen{background:linear-gradient(110deg,#F02478,#C81860);color:#fff;text-align:center;padding:12px;border-radius:12px;font-family:'Playpen Sans';font-weight:800;font-size:12.5px;box-shadow:0 8px 18px -8px rgba(240,36,120,.6);}
+.lme-ploading{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;color:#6B6470;}
+.lme-ploading .em{font-size:40px;}
+.lme-ploading .tx{font-size:11px;font-weight:600;}
+.lme-pdot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#F02478;margin:0 2px;animation:lme-pd 1s infinite;}
+.lme-pdot:nth-child(2){animation-delay:.15s}.lme-pdot:nth-child(3){animation-delay:.3s}
+@keyframes lme-pd{0%,100%{opacity:.3;transform:translateY(0)}50%{opacity:1;transform:translateY(-3px)}}
+.lme-presult{border-radius:14px;overflow:hidden;height:152px;position:relative;display:flex;align-items:flex-end;padding:11px;color:#fff;box-shadow:0 10px 22px -12px rgba(0,0,0,.4);}
+.lme-presult .em{position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);font-size:46px;filter:drop-shadow(0 4px 10px rgba(0,0,0,.35));}
+.lme-presult::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 45%,rgba(0,0,0,.4));}
+.lme-presult .cap{position:relative;z-index:1;font-size:11px;font-weight:700;text-shadow:0 1px 6px rgba(0,0,0,.5);}
+.lme-ptags{color:#C81860;font-size:10px;font-weight:700;margin-top:9px;}
+@media(max-width:1699px){.lme-phone{display:none;}}
+</style>
+<div class="lme-phone" aria-hidden="true">
+  <div class="lme-phone-notch"></div>
+  <div class="lme-phone-screen">
+    <div class="lme-pscrub"></div>
+    <div class="lme-app-screen on">
+      <div class="lme-pbar"><span>9:41</span><span>&#9679;&#9679;&#9679; &#9646;</span></div>
+      <div class="lme-pbody">
+        <div class="lme-peye">LME Content Studio</div>
+        <div class="lme-ptitle">Choose format</div>
+        <div><span class="lme-pchip on">Carousel</span><span class="lme-pchip">Reel</span><span class="lme-pchip">Story</span><span class="lme-pchip">Feed</span></div>
+        <div class="lme-ptitle" style="margin-top:14px">Topic</div>
+        <div><span class="lme-pchip">Practical life</span><span class="lme-pchip on">Nature materials</span><span class="lme-pchip">The senses</span></div>
+      </div>
+    </div>
+    <div class="lme-app-screen">
+      <div class="lme-pbar"><span>9:41</span><span>&#9679;&#9679;&#9679; &#9646;</span></div>
+      <div class="lme-pbody">
+        <div class="lme-peye">Your idea</div>
+        <div class="lme-ptitle">Write one sentence</div>
+        <div class="lme-pinput">Counting with nature outdoors, in a warm Pixar style 🌰</div>
+        <div class="lme-pgen">Generate ✨</div>
+      </div>
+    </div>
+    <div class="lme-app-screen">
+      <div class="lme-pbar"><span>9:41</span><span>&#9679;&#9679;&#9679; &#9646;</span></div>
+      <div class="lme-ploading"><div class="em">&#129302;</div><div class="tx">Creating your content</div><div><span class="lme-pdot"></span><span class="lme-pdot"></span><span class="lme-pdot"></span></div></div>
+    </div>
+    <div class="lme-app-screen">
+      <div class="lme-pbar"><span>9:41</span><span>&#9679;&#9679;&#9679; &#9646;</span></div>
+      <div class="lme-pbody">
+        <div class="lme-peye">Done ✨</div>
+        <div class="lme-ptitle">Ready to publish</div>
+        <div class="lme-presult" style="background:linear-gradient(160deg,#FC2D7E,#C81860)"><div class="em">🌰</div><div class="cap">Counting with nature</div></div>
+        <div class="lme-ptags">#montessori #learning #natureplay</div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var ph=document.querySelector('.lme-phone'); if(!ph) return;
+  var scrs=ph.querySelectorAll('.lme-app-screen'), scrub=ph.querySelector('.lme-pscrub');
+  var DUR=[3000,3000,1900,3700], i=0, t, reduce=false;
+  try{reduce=window.matchMedia('(prefers-reduced-motion:reduce)').matches;}catch(e){}
+  function show(){
+    scrs.forEach(function(s,k){s.classList.toggle('on',k===i);});
+    if(scrub){scrub.style.transition='none';scrub.style.width='0%';void scrub.offsetWidth;
+      if(reduce){scrub.style.width='100%';}else{scrub.style.transition='width '+(DUR[i]/1000)+'s linear';scrub.style.width='100%';}}
+  }
+  function next(){i=(i+1)%scrs.length;show();sched();}
+  function sched(){clearTimeout(t);if(reduce)return;t=setTimeout(next,DUR[i]);}
+  show();sched();
+})();
+</script>
 <!-- ══ LME BOT ══ -->
 <script src="/lme-bot-core.js"></script>
 <script src="/lme-bot-shell-content-studio.js"></script>
