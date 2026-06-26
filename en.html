@@ -2475,7 +2475,7 @@ function renderPlanDays(){
     card.innerHTML=`<div class="plan-day-num">${d.day}</div>
       <div class="plan-day-info"><div class="plan-day-weekday">${d.weekday}</div>
       <div class="plan-day-title">${d.post.substring(0,55)}${d.post.length>55?'…':''}</div>
-      <div class="plan-day-format">${fmtE} ${d.format==='none'?'Hviledag':d.format}</div></div>
+      <div class="plan-day-format">${fmtE} ${({carousel:'Carousel',reel:'Reel',story:'Story',post:'Post',none:'Rest day'})[d.format]||d.format}</div></div>
       <span class="plan-day-check" onclick="event.stopPropagation();toggleDone(${d.day},this)">${done?'✅':'⬜'}</span>`;
     card.onclick=()=>showPlanDay(d);
     el.appendChild(card);

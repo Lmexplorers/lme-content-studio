@@ -2768,7 +2768,7 @@ function renderPlanDays(){
     card.innerHTML=`<div class="plan-day-num">${d.day}</div>
       <div class="plan-day-info"><div class="plan-day-weekday">${d.weekday}</div>
       <div class="plan-day-title">${d.post.substring(0,55)}${d.post.length>55?'…':''}</div>
-      <div class="plan-day-format">${fmtE} ${d.format==='none'?'Hviledag':d.format}</div></div>
+      <div class="plan-day-format">${fmtE} ${({carousel:'Karusell',reel:'Reel',story:'Story',post:'Innlegg',none:'Hviledag'})[d.format]||d.format}</div></div>
       <span class="plan-day-check" onclick="event.stopPropagation();toggleDone(${d.day},this)">${done?'✅':'⬜'}</span>`;
     card.onclick=()=>showPlanDay(d);
     el.appendChild(card);
@@ -2779,13 +2779,13 @@ function showPlanDay(d){
   selectedPlanDay=d;
   const fmtE=d.format==='carousel'?'🎠':d.format==='reel'?'🎬':d.format==='story'?'🌸':d.format==='post'?'🌿':'📅';
   document.getElementById('plan-detail-content').innerHTML=`
-    <div style="font-family:'Playpen Sans';font-size:16px;font-weight:800;color:var(--rose-d);margin-bottom:12px;">Day ${d.day}, ${d.weekday} ${fmtE}</div>
+    <div style="font-family:'Playpen Sans';font-size:16px;font-weight:800;color:var(--rose-d);margin-bottom:12px;">Dag ${d.day}, ${d.weekday} ${fmtE}</div>
     <div style="background:var(--rose-l);border-radius:12px;padding:12px 14px;margin-bottom:10px;">
-      <div style="font-size:10px;font-weight:700;color:var(--rose-d);text-transform:uppercase;margin-bottom:6px;">Story idea</div>
+      <div style="font-size:10px;font-weight:700;color:var(--rose-d);text-transform:uppercase;margin-bottom:6px;">Idé</div>
       <div style="font-size:13px;line-height:1.7;">${esc(d.story)}</div>
     </div>
     <div style="background:var(--warm);border-radius:12px;padding:12px 14px;">
-      <div style="font-size:10px;font-weight:700;color:var(--rose-d);text-transform:uppercase;margin-bottom:6px;">${fmtE} Post</div>
+      <div style="font-size:10px;font-weight:700;color:var(--rose-d);text-transform:uppercase;margin-bottom:6px;">${fmtE} Innlegg</div>
       <div style="font-size:13px;font-weight:600;line-height:1.7;">${esc(d.post)}</div>
     </div>`;
   const det=document.getElementById('plan-detail');
