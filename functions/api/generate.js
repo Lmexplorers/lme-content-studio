@@ -41,6 +41,16 @@ function bufToB64(buf) {
 // Selve den løpende grensen styres av user.credits.image (settes av webhooken).
 const PLAN_IMAGE_CAP = { free: 0, start: 30, proff: 100, proffplus: 150, arlig: 150 };
 
+// Eieren skal aldri stoppes av bilde-taket. Kan utvides via env.OWNER_EMAIL.
+const OWNER_EMAILS = ["renateshobby@hotmail.com"];
+function isOwner(env, email) {
+  if (!email) return false;
+  const e = String(email).toLowerCase();
+  if (OWNER_EMAILS.includes(e)) return true;
+  if (env.OWNER_EMAIL && e === String(env.OWNER_EMAIL).toLowerCase()) return true;
+  return false;
+}
+
 const _enc = new TextEncoder();
 const _dec = new TextDecoder();
 function _b64urlDecode(s) {
@@ -89,6 +99,10 @@ async function checkImageQuota(env, token) {
   }
   const email = await verifyToken(env, token);
   if (!email) return { error: "Logg inn for å generere bilder.", code: "login_required" };
+  // Eieren har alltid ubegrenset bildegenerering.
+  if (isOwner(env, email)) {
+    return { user: (await getUser(env, email)) || { email, plan: "owner" }, owner: true };
+  }
   const user = await getUser(env, email);
   if (!user) return { error: "Logg inn for å generere bilder.", code: "login_required" };
   const plan = user.plan || "free";
@@ -214,15 +228,17 @@ export async function onRequestPost(context) {
       // Håndhev plan-tak FØR generering, men kun når LMEs egen nøkkel brukes.
       const enforce = usesOwnerKey(env, body.model);
       let gateUser = null;
+      let gateOwner = false;
       if (enforce) {
         const gate = await checkImageQuota(env, body.token);
         if (gate.error) return json({ error: gate.error, code: gate.code }, 200);
         gateUser = gate.user;
+        gateOwner = !!gate.owner;
       }
 
       const result = await generateImage(env, body);
       if (result.imageUrl) {
-        if (enforce && gateUser) {
+        if (enforce && gateUser && !gateOwner) {
           try { await consumeImageCredit(env, gateUser); } catch (e) {}
         }
         return json({ imageUrl: result.imageUrl });
