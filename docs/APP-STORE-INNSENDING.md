@@ -4,9 +4,8 @@ Praktisk sjekkliste for å sende LME Content Studio til de to butikkene. Appen e
 PWA (nettapp), så vi pakker den inn i en app-fil med PWABuilder. Det er gratis og
 samme verktøy dekker begge butikkene.
 
-> Fyll inn: appens URL. Skriv inn den nøyaktige adressen appen ligger på (samme sted
-> du åpner appen fra i dag). Alt under bruker denne som "appens domene". Personvern-
-> siden ligger da på `https://APPENS-DOMENE/personvern`.
+> Appens URL: `https://lme-contentstudio.pages.dev`
+> Personvern-siden ligger på `https://lme-contentstudio.pages.dev/personvern`.
 
 ## Status: hva er klart nå
 
@@ -50,7 +49,7 @@ Android-appen viser en adresselinje øverst helt til domenet er verifisert. Slik
    SHA-256-fingeravtrykket.
 2. Lim det inn i `assetlinks.json` fra PWABuilder (eller send det til meg, så lager
    jeg filen ferdig).
-3. Filen skal ligge offentlig på `https://APPENS-DOMENE/.well-known/assetlinks.json`.
+3. Filen skal ligge offentlig på `https://lme-contentstudio.pages.dev/.well-known/assetlinks.json`.
    Jeg legger den i repoet når jeg har fingeravtrykket, så publiseres den automatisk.
 
 ## Steg 4: App Store (ny innsending)
@@ -114,7 +113,7 @@ montessori, innhold, sosiale medier, reels, AI, bildetekst, instagram, pedagog, 
 4+ / Alle. Appen er for voksne, men har ikke noe upassende innhold.
 
 ### Personvernlenke (kreves)
-- `https://APPENS-DOMENE/personvern`
+- `https://lme-contentstudio.pages.dev/personvern`
 
 ## Skjermbilder
 
