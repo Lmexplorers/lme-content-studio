@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Personvern · LME Content Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/><link href="https://fonts.googleapis.com/css2?family=Playpen+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+@font-face{font-family:'Sasson Montessori';src:url('/SassoonMontessori.woff2') format('woff2'),url('/SassoonMontessori.ttf') format('truetype');font-weight:normal;font-style:normal;font-display:swap;}
+:root{--rose:#F02478;--rose-d:#C81860;--ink:#3A3340;--soft:#6B6470;--line:#F0D9E4;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Sasson Montessori',system-ui,sans-serif;color:var(--ink);background:linear-gradient(135deg,#FCE4EE 0%,#FFFBEF 100%);line-height:1.7;padding:28px 18px 60px;}
+.wrap{max-width:760px;margin:0 auto;background:#fff;border-radius:18px;padding:34px 30px;box-shadow:0 10px 40px rgba(200,24,96,.10);}
+h1,h2,h3{font-family:'Playpen Sans',system-ui,sans-serif;color:var(--rose);}
+h1{font-size:30px;margin-bottom:6px;}
+h2{font-size:20px;margin:26px 0 8px;color:var(--rose-d);}
+p,li{font-size:15px;color:var(--ink);}
+ul{margin:6px 0 6px 22px;}
+li{margin-bottom:5px;}
+a{color:var(--rose);font-weight:700;text-decoration:none;}
+.meta{font-size:13px;color:var(--soft);margin-bottom:18px;}
+.lang{display:flex;gap:8px;justify-content:flex-end;margin-bottom:14px;}
+.lang button{font-family:'Sasson Montessori',system-ui,sans-serif;font-size:13px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--soft);padding:7px 14px;border-radius:999px;cursor:pointer;}
+.lang button.on{background:var(--rose);color:#fff;border-color:var(--rose);}
+.back{display:inline-block;margin-top:24px;font-size:14px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="lang">
+    <button id="b-no" class="on" onclick="setLang('no')">Norsk</button>
+    <button id="b-en" onclick="setLang('en')">English</button>
+  </div>
+
+  <h1 data-no="Personvernerklæring" data-en="Privacy policy">Personvernerklæring</h1>
+  <p class="meta" data-no="Sist oppdatert: 29. juni 2026" data-en="Last updated: 29 June 2026">Sist oppdatert: 29. juni 2026</p>
+
+  <p data-no="LME Content Studio er en app fra Little Montessori Explorers, drevet av Renate Dahl. Vi tar personvernet ditt på alvor og samler inn så lite data som mulig. Denne erklæringen forklarer hva appen lagrer, hvorfor, og hvem vi deler det med."
+     data-en="LME Content Studio is an app from Little Montessori Explorers, run by Renate Dahl. We take your privacy seriously and collect as little data as possible. This policy explains what the app stores, why, and who we share it with.">LME Content Studio er en app fra Little Montessori Explorers, drevet av Renate Dahl. Vi tar personvernet ditt på alvor og samler inn så lite data som mulig. Denne erklæringen forklarer hva appen lagrer, hvorfor, og hvem vi deler det med.</p>
+
+  <h2 data-no="Hva vi lagrer" data-en="What we store">Hva vi lagrer</h2>
+  <ul>
+    <li data-no="Konto: e-postadressen din og hvilken plan du har, slik at du kan logge inn og bruke kreditter." data-en="Account: your email address and your plan, so you can log in and use credits.">Konto: e-postadressen din og hvilken plan du har, slik at du kan logge inn og bruke kreditter.</li>
+    <li data-no="Innholdet du lager: tekst, bilder og innstillinger du selv legger inn i appen." data-en="The content you create: text, images and settings you enter into the app yourself.">Innholdet du lager: tekst, bilder og innstillinger du selv legger inn i appen.</li>
+    <li data-no="Nøkler og valg du legger inn under Innstillinger, lagres lokalt i nettleseren din (localStorage) på enheten din." data-en="Keys and choices you enter under Settings are stored locally in your browser (localStorage) on your device.">Nøkler og valg du legger inn under Innstillinger, lagres lokalt i nettleseren din (localStorage) på enheten din.</li>
+  </ul>
+
+  <h2 data-no="Hva vi ikke gjør" data-en="What we do not do">Hva vi ikke gjør</h2>
+  <ul>
+    <li data-no="Vi selger aldri dataene dine." data-en="We never sell your data.">Vi selger aldri dataene dine.</li>
+    <li data-no="Vi viser ikke reklame i appen." data-en="We do not show ads in the app.">Vi viser ikke reklame i appen.</li>
+    <li data-no="Vi sporer deg ikke på tvers av andre apper og nettsteder." data-en="We do not track you across other apps and websites.">Vi sporer deg ikke på tvers av andre apper og nettsteder.</li>
+  </ul>
+
+  <h2 data-no="Tjenester vi bruker" data-en="Services we use">Tjenester vi bruker</h2>
+  <p data-no="For at appen skal fungere, sender vi data til noen utvalgte underleverandører:"
+     data-en="For the app to work, we send data to a few selected providers:">For at appen skal fungere, sender vi data til noen utvalgte underleverandører:</p>
+  <ul>
+    <li data-no="Cloudflare: hosting og lagring av konto og innhold." data-en="Cloudflare: hosting and storage of account and content.">Cloudflare: hosting og lagring av konto og innhold.</li>
+    <li data-no="AI-leverandører (Anthropic, OpenAI og Google) for å lage tekst og bilder ut fra det du skriver." data-en="AI providers (Anthropic, OpenAI and Google) to generate text and images from what you type.">AI-leverandører (Anthropic, OpenAI og Google) for å lage tekst og bilder ut fra det du skriver.</li>
+    <li data-no="Blotato: publisering til sosiale medier når du selv velger å publisere." data-en="Blotato: publishing to social media when you choose to publish.">Blotato: publisering til sosiale medier når du selv velger å publisere.</li>
+    <li data-no="Stripe: betaling, hvis du kjøper en plan. Vi lagrer aldri kortnummeret ditt." data-en="Stripe: payment, if you buy a plan. We never store your card number.">Stripe: betaling, hvis du kjøper en plan. Vi lagrer aldri kortnummeret ditt.</li>
+  </ul>
+
+  <h2 data-no="Dine rettigheter" data-en="Your rights">Dine rettigheter</h2>
+  <p data-no="Du kan be om innsyn i, retting av eller sletting av dataene dine når som helst. Send en e-post til oss, så ordner vi det. Du kan også tømme alt som er lagret lokalt ved å slette nettleserdataene for appen."
+     data-en="You can request access to, correction of or deletion of your data at any time. Send us an email and we will sort it out. You can also clear everything stored locally by deleting the app's browser data.">Du kan be om innsyn i, retting av eller sletting av dataene dine når som helst. Send en e-post til oss, så ordner vi det. Du kan også tømme alt som er lagret lokalt ved å slette nettleserdataene for appen.</p>
+
+  <h2 data-no="Barn" data-en="Children">Barn</h2>
+  <p data-no="Appen er laget for voksne: foreldre og pedagoger. Den er ikke ment for barn, og vi samler ikke bevisst inn data om barn."
+     data-en="The app is made for adults: parents and educators. It is not intended for children, and we do not knowingly collect data about children.">Appen er laget for voksne: foreldre og pedagoger. Den er ikke ment for barn, og vi samler ikke bevisst inn data om barn.</p>
+
+  <h2 data-no="Kontakt" data-en="Contact">Kontakt</h2>
+  <p><span data-no="Har du spørsmål om personvern, kontakt Renate Dahl på " data-en="If you have questions about privacy, contact Renate Dahl at ">Har du spørsmål om personvern, kontakt Renate Dahl på </span><a href="mailto:renateshobby@hotmail.com">renateshobby@hotmail.com</a></p>
+
+  <a class="back" href="/" data-no="← Tilbake til appen" data-en="← Back to the app">← Tilbake til appen</a>
+</div>
+
+<script>
+function setLang(l){
+  document.documentElement.lang = l;
+  document.getElementById('b-no').classList.toggle('on', l==='no');
+  document.getElementById('b-en').classList.toggle('on', l==='en');
+  document.querySelectorAll('[data-no][data-en]').forEach(function(el){
+    var v = l==='en' ? el.getAttribute('data-en') : el.getAttribute('data-no');
+    if(el.children.length===0){ el.textContent = v; }
+  });
+}
+</script>
+</body>
+</html>
