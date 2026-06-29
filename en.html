@@ -43,12 +43,13 @@ button,input,select,textarea{font-family:inherit;}
 /* Hamburger menu */
 .nav-menu-btn{padding:8px 12px;background:rgba(255,255,255,.15);color:white;border:none;cursor:pointer;font-size:18px;border-radius:10px 10px 0 0;flex-shrink:0;}
 .nav-menu-btn:hover{background:rgba(255,255,255,.25);}
-.nav-dropdown{display:none;position:absolute;top:100%;right:0;background:white;border-radius:0 0 14px 14px;box-shadow:0 8px 32px rgba(0,0,0,.2);z-index:999;min-width:180px;overflow:hidden;}
+.nav-dropdown{display:none;position:fixed;top:60px;right:8px;background:white;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.2);z-index:1000;min-width:180px;max-height:75vh;overflow-y:auto;}
 .nav-dropdown.open{display:block;}
 .nav-dropdown-item{display:block;width:100%;padding:12px 16px;background:none;border:none;text-align:left;font-family:'Sasson Montessori';font-size:13px;color:var(--text);cursor:pointer;transition:background .15s;}
 .nav-dropdown-item:hover{background:var(--rose-l);}
 .nav-dropdown-item.active{background:var(--rose-l);color:var(--rose-d);font-weight:700;}
-.nav-wrap{position:relative;display:flex;align-items:flex-end;}
+.nav-wrap{position:relative;display:flex;align-items:flex-end;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+.nav-wrap::-webkit-scrollbar{display:none;}
 
 .app-body{max-width:640px;margin:0 auto;padding:30px 22px 110px;}
 .card{background:white;border-radius:22px;border:1px solid #F3E7EE;padding:24px 22px;margin-bottom:22px;box-shadow:0 10px 30px -18px rgba(240,36,120,.3);}
@@ -229,7 +230,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 .canva-status.ok{background:rgba(255,255,255,.15);color:white;}
 .canva-status.err{background:rgba(220,38,38,.3);color:#fca5a5;}
 
-@media(max-width:480px){.app-body{padding:16px 12px 80px;}.row{flex-direction:column;}.row>.card{margin-bottom:0;}}
+@media(max-width:480px){.app-body{padding:16px 12px 80px;}.row{flex-direction:column;}.row>.card{margin-bottom:0;}.tab-btn{padding:11px 11px;font-size:13px;}.nav-menu-btn{padding:9px 12px;font-size:14px;}}
 /* Desktop / platform view: fill the width instead of a narrow mobile column */
 @media(min-width:820px){
   .app-header{padding-left:24px;padding-right:24px;}
@@ -251,7 +252,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
   .app-brand-tag{font-size:15px;}
   .tabs{gap:4px;}
   .tab-btn{font-size:14px;padding:11px 18px;}
-  .nav-menu-btn{margin-left:auto;font-size:14px;padding:11px 18px;}
+  .nav-menu-btn{margin-left:6px;font-size:14px;padding:11px 18px;}
   #lme-ob.show{display:flex;align-items:center;justify-content:center;background:radial-gradient(130% 90% at 50% -10%,#FCE4EE,#FFF6E9 55%,#FFFAFA);}
   #lme-ob .obapp{max-width:960px;height:min(94dvh,720px);border-radius:40px;box-shadow:0 40px 100px -40px rgba(240,36,120,.55);overflow:hidden;}
   #lme-ob .obshot{height:150px;width:252px;}
@@ -3840,6 +3841,14 @@ function canvaReelLoaded(input){
 // ── Nav menu ──
 function toggleNavMenu(){
   const dd = document.getElementById('nav-dropdown');
+  const btn = document.querySelector('.nav-menu-btn');
+  const willOpen = !dd.classList.contains('open');
+  if(willOpen && btn){
+    const r = btn.getBoundingClientRect();
+    dd.style.top = (r.bottom + 4) + 'px';
+    dd.style.right = Math.max(8, window.innerWidth - r.right) + 'px';
+    dd.style.left = 'auto';
+  }
   dd.classList.toggle('open');
 }
 function closeNavMenu(){
