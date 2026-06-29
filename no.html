@@ -1821,11 +1821,27 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
   </div>
 
     <div class="card">
-    <div class="card-title">Publisering</div>
-    <div style="background:var(--rose-l);border-radius:10px;padding:14px;font-size:12px;color:var(--text);line-height:1.7;">
-      <strong style="color:var(--rose-d);">Automatisk publisering kommer snart.</strong><br/>
-      Snart kan du sende innholdet ditt rett til Instagram, TikTok, Facebook og flere herfra. Inntil da laster du ned innholdet og deler det selv.<br/><br/>
-      <em>Automatic publishing is coming soon. For now, download your content and share it yourself.</em>
+    <div class="card-title">Automatisk publisering</div>
+    <div style="font-size:12px;color:var(--text-s);line-height:1.7;margin-bottom:12px;">
+      Koble appen til Blotato, så publiserer du rett til Instagram, TikTok og Facebook herfra. Lim inn API-nøkkelen fra Blotato (Settings, så API keys), og fyll inn konto-ID-en for profilen du vil poste til.
+    </div>
+    <label style="font-size:12px;color:var(--text);font-weight:600;">Blotato API-nøkkel</label>
+    <input type="password" id="s-blotato-key" placeholder="blotato-api-key" oninput="saveSettings()" style="margin:5px 0 12px;"/>
+    <label style="font-size:12px;color:var(--text);font-weight:600;">Konto-ID</label>
+    <input type="text" id="s-blotato-account" placeholder="f.eks. 12345" oninput="saveSettings()" style="margin:5px 0 12px;"/>
+    <label style="font-size:12px;color:var(--text);font-weight:600;">Plattform</label>
+    <select id="s-blotato-platform" onchange="saveSettings()" style="margin:5px 0 0;width:100%;padding:10px;border-radius:8px;border:1px solid var(--line);">
+      <option value="instagram">Instagram</option>
+      <option value="tiktok">TikTok</option>
+      <option value="facebook">Facebook</option>
+      <option value="youtube">YouTube</option>
+      <option value="threads">Threads</option>
+      <option value="pinterest">Pinterest</option>
+      <option value="linkedin">LinkedIn</option>
+      <option value="twitter">X (Twitter)</option>
+    </select>
+    <div style="font-size:10px;color:var(--text-s);margin-top:10px;line-height:1.6;">
+      API-tilgang krever et betalt Blotato-abonnement. Gratisversjonen har alle funksjoner unntatt API.
     </div>
     <div style="display:none;" aria-hidden="true">
       <input type="password" id="s-socialbu-key" oninput="saveSettings()"/>
@@ -2496,6 +2512,9 @@ const DEFAULTS = {
   socialbuKey:'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiMDY4NTIzNDJjYWE3ZWY5NjI3MDdkOWE2ZjViM2FjZTVhZGY3YjE5MzEyMjM4ZDUxNDlmOWRhN2E2NmFhMjUyYmQ3MGYwNTY0Yjc1NjFkZDIiLCJpYXQiOjE3NzYzNTM4OTAuODYyNTAyLCJuYmYiOjE3NzYzNTM4OTAuODYyNTA2LCJleHAiOjE4MDc4ODk4OTAuODM2NDg5LCJzdWIiOiIxNjQ2NDgiLCJzY29wZXMiOltdfQ.j_u84vOrZs0wlgxDHjr_hOLh1PjH_RkZfkOw9hValFMT5FzwPwP32f8S8m0tAR3rkXdcC9XvYSWpWuuSHiKUVM3hKgz8z9ZfGoVRbmz6eMi3QIs_3Gx9vqWhwn7VWikKYeNJ6C0QRaLb4T9Wn-AL_bMoAogqEAdbmLNCB1rKxyMJx6OCCpemAYcxf9Ry6eAp4GJ-G3S6CW9FzRMcbjmWuxwDYciSfBsqoKbIV6fKK6B7AXY509kJ9Elsmwt7tJ6JIWKmTnTLE32xZ7sMFQmvW0El5Z_0Jcc2aovY68PQvdVyI_6X2Zqi5AE1kxDwU8uiEtlBd_jCp9e5hdh3tfN2Jz0-PAygxmhAoyK5yHrx33nfam2k2KYvHoEiXObEpptEy3dJge2Ci7GAlPMr-MwZd4l-gzYhMPbwKHOdUVP_l2QHhuHeFDaOmecM2hCloZQgRA_mBYsh0Li6LgVecyxqwWhSz2ze95MsRnh19t4I3U1LxjA-VJ1XorspIpPMbULnskh7TcOI3mCDqKr8IFtyCjZGId-gtwScG6rsf2McOomWSgWLXFdMbIklCRBUD_YMuG8cc05I4xyA1WqOn0F2Gm0rBP0XntuJzSpG1yfJm9z0RYyKfkx1Pda49v1FzIvhR2lyANh8GbNwOui8I8zaFVT4PRUmt-DgmTcjJNhMye8',
   socialbuAccounts:[178202,178203],
   makeWebhook:'https://lme-proxy.renateshobby.workers.dev',
+  blotatoKey:'',
+  blotatoAccount:'',
+  blotatoPlatform:'instagram',
 };
 let cfg = {...DEFAULTS};
 
@@ -3365,7 +3384,41 @@ function brukIStoryEditor(){
 // Keep old function name for compatibility
 async function generateAndPublish(){ await genererBilde(); }
 
+// Sentral publisering via Blotato (Pages Function /api/publish).
+// mediaUrls maa vaere offentlige URL-er; Blotato laster dem ned og re-hoster.
+async function blotatoPublish({text, mediaUrls, scheduledTime}){
+  if(!cfg.blotatoKey) return {ok:false, error:'Mangler Blotato-nøkkel. Legg den inn i Innstillinger.'};
+  if(!cfg.blotatoAccount) return {ok:false, error:'Mangler konto-ID. Legg den inn i Innstillinger.'};
+  try{
+    const res=await fetch('/api/publish',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        blotatoKey: cfg.blotatoKey,
+        accountId: cfg.blotatoAccount,
+        targetType: cfg.blotatoPlatform||'instagram',
+        text: text||'',
+        mediaUrls: (mediaUrls||[]).filter(Boolean),
+        scheduledTime: scheduledTime||undefined,
+      }),
+    });
+    const data=await res.json().catch(()=>({}));
+    if(data&&data.ok) return {ok:true, data};
+    return {ok:false, error:(data&&data.error)||('Publisering feilet ('+res.status+').'), detail:data};
+  }catch(e){ return {ok:false, error:String((e&&e.message)||e)}; }
+}
+// Konverter SocialBu-tid 'YYYY-MM-DD HH:MM:SS' til ISO for Blotato.
+function blotatoTime(publishAt){
+  if(!publishAt) return undefined;
+  try{ return new Date(publishAt.replace(' ','T')).toISOString(); }catch(e){ return undefined; }
+}
+
 async function sendToSocialBu(text,mediaUrls,format,publishAt){
+  // Ny vei: Blotato naar nokkel finnes. Faller tilbake til gammel proxy ellers.
+  if(cfg.blotatoKey){
+    const r=await blotatoPublish({text, mediaUrls:mediaUrls||[], scheduledTime: blotatoTime(publishAt)});
+    return r.ok;
+  }
   if(!cfg.socialbuKey||!cfg.makeWebhook||!(cfg.socialbuAccounts||[]).length)return false;
   const body={accounts:cfg.socialbuAccounts||[],content:text};
   if(mediaUrls&&mediaUrls.length)body.media_urls=mediaUrls;
@@ -3401,7 +3454,7 @@ async function schedulePost(){
   ok.style.display='block'; ok.className='sched-ok';
   const platStr=schedPlatforms.join(', ');
 
-  if(cfg.socialbuKey&&cfg.makeWebhook&&(cfg.socialbuAccounts||[]).length){
+  if(cfg.blotatoKey||(cfg.socialbuKey&&cfg.makeWebhook&&(cfg.socialbuAccounts||[]).length)){
     ok.innerHTML='<span style="color:#0084E4;">Sending to publiseringstjenesten with scheduled time…</span>';
     const planDt=new Date(date+'T'+time+':00');
     const publishAt=planDt.getFullYear()+'-'+String(planDt.getMonth()+1).padStart(2,'0')+'-'+String(planDt.getDate()).padStart(2,'0')+' '+String(planDt.getHours()).padStart(2,'0')+':'+String(planDt.getMinutes()).padStart(2,'0')+':00';
@@ -3753,6 +3806,9 @@ function applySettingsToUI(){
   s('s-socialbu-key',cfg.socialbuKey);
   s('s-socialbu-accounts',(cfg.socialbuAccounts||[]).join(', '));
   s('s-make-webhook',cfg.makeWebhook);
+  s('s-blotato-key',cfg.blotatoKey);
+  s('s-blotato-account',cfg.blotatoAccount);
+  { const el=document.getElementById('s-blotato-platform'); if(el)el.value=cfg.blotatoPlatform||'instagram'; }
   s('s-char-names',cfg.charNames); s('s-char-desc',cfg.charDesc);
   selectCharPreset(cfg.charPreset||'none');
   loadNotificationState();
@@ -3770,6 +3826,9 @@ function saveSettings(){
   const accStr=g('s-socialbu-accounts');
   cfg.socialbuAccounts=accStr?accStr.split(',').map(s=>s.trim()).filter(Boolean).map(Number):[];
   cfg.makeWebhook=g('s-make-webhook');
+  cfg.blotatoKey=g('s-blotato-key');
+  cfg.blotatoAccount=g('s-blotato-account');
+  cfg.blotatoPlatform=g('s-blotato-platform')||'instagram';
   cfg.charNames=g('s-char-names'); cfg.charDesc=g('s-char-desc');
   updateCharPreview();
   try{
