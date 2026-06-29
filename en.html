@@ -232,10 +232,9 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 .canva-status.err{background:rgba(220,38,38,.3);color:#fca5a5;}
 
 @media(max-width:480px){.app-body{padding:16px 12px 80px;}.row{flex-direction:column;}.row>.card{margin-bottom:0;}
-  .nav-wrap{display:block;}
-  .tabs{padding-right:62px;}
+  .tabs{flex:1 1 0;min-width:0;}
   .tab-btn{padding:11px 11px;font-size:13px;}
-  .nav-menu-btn{position:absolute;right:0;bottom:0;margin-left:0;padding:10px 13px;font-size:14px;box-shadow:-8px 0 12px -4px rgba(200,24,96,.45);}
+  .nav-menu-btn{margin-left:6px;padding:10px 13px;font-size:14px;}
 }
 /* Desktop / platform view: fill the width instead of a narrow mobile column */
 @media(min-width:820px){
