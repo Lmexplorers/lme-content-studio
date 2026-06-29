@@ -2873,7 +2873,7 @@ async function callClaude(prompt,key){
   const res=await fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
     headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1500,messages:[{role:'user',content:prompt}]})
+    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1500,messages:[{role:'user',content:prompt}]})
   });
   if(!res.ok){const t=await res.text();throw new Error('API error '+res.status+': '+t.substring(0,200));}
   const data=await res.json();
@@ -3486,7 +3486,7 @@ async function generateHashtags(){
     const res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,messages:[{role:'user',content:`Generate 20 niche Norwegian Instagram hashtags for Din merkevare about "${topic}". Mix: 5 large (1M+), 8 medium (100k-1M), 7 small niche (<100k). Return only hashtags separated by spaces, no explanation.`}]})
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:400,messages:[{role:'user',content:`Generate 20 niche Norwegian Instagram hashtags for Din merkevare about "${topic}". Mix: 5 large (1M+), 8 medium (100k-1M), 7 small niche (<100k). Return only hashtags separated by spaces, no explanation.`}]})
     });
     const data=await res.json();
     const tags=data.content?.map(b=>b.text||'').join('').trim()||'';
@@ -3511,7 +3511,7 @@ async function generateHook(){
     const res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:300,messages:[{role:'user',content:`Lag 5 korte, fengende hooks for en reel om: "${desc}". Hver hook maks 8 ord og under 60 tegn, og skal stoppe scrollingen. Skriv på norsk bokmål, uten anførselstegn, uten punktum på slutten. Returner som en nummerert liste, én hook per linje, ingen forklaring.`}]})
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:300,messages:[{role:'user',content:`Lag 5 korte, fengende hooks for en reel om: "${desc}". Hver hook maks 8 ord og under 60 tegn, og skal stoppe scrollingen. Skriv på norsk bokmål, uten anførselstegn, uten punktum på slutten. Returner som en nummerert liste, én hook per linje, ingen forklaring.`}]})
     });
     const data=await res.json();
     const raw=(data.content?.map(b=>b.text||'').join('')||'');
