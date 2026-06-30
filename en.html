@@ -1223,10 +1223,19 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
   #tab-video .vt-chip.on{background:var(--rose);border-color:var(--rose);color:#fff;}
   #tab-video .vt-thumb{width:60px;height:60px;border-radius:10px;object-fit:cover;border:1.5px solid var(--border);}
   </style>
-  <div class="vid-hero"><h2>AI video 🎬</h2><p>Turn your images into living video, right in the browser.</p></div>
+  <div class="vid-hero"><h2>AI video 🎬</h2><p>The best video models in one place.</p></div>
 
+  <h3 class="vid-grp">Available now</h3>
   <div class="vid-grid">
     <div class="vid-card" style="cursor:pointer;" onclick="document.getElementById('vidtool-card').scrollIntoView({behavior:'smooth',block:'center'})"><div class="vid-badge" style="background:linear-gradient(135deg,#F02478,#9CC000)">KB</div><div class="vid-name">Ken Burns animation</div><div class="vid-desc">Turn an image into a living video with gentle zoom and pan. Made in the browser.</div><span class="vid-status vid-on">Ready to use ↓</span></div>
+  </div>
+
+  <h3 class="vid-grp">Can be connected</h3>
+  <div class="vid-grid">
+    <div class="vid-card"><div class="vid-badge" style="background:#4285F4">V</div><div class="vid-name">Veo</div><div class="vid-desc">Google, video with built-in audio. Runs on your Gemini key.</div><span class="vid-status vid-soon">Can be activated</span></div>
+    <div class="vid-card"><div class="vid-badge" style="background:#15151A">S</div><div class="vid-name">Sora</div><div class="vid-desc">OpenAI, cinematic clips from text.</div><span class="vid-status vid-soon">Needs OpenAI access</span></div>
+    <div class="vid-card"><div class="vid-badge" style="background:#15151A">K</div><div class="vid-name">Kling</div><div class="vid-desc">Smooth, cinematic motion from text or image.</div><span class="vid-status vid-soon">Needs its own account</span></div>
+    <div class="vid-card"><div class="vid-badge" style="background:#7C3AED">P</div><div class="vid-name">PixVerse</div><div class="vid-desc">Short, eye-catching video clips.</div><span class="vid-status vid-soon">Needs its own account</span></div>
   </div>
 
   <h3 class="vid-grp">Image to video</h3>

@@ -1508,10 +1508,19 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
   #tab-video .vt-chip.on{background:var(--rose);border-color:var(--rose);color:#fff;}
   #tab-video .vt-thumb{width:60px;height:60px;border-radius:10px;object-fit:cover;border:1.5px solid var(--border);}
   </style>
-  <div class="vid-hero"><h2>AI-video 🎬</h2><p>Gjør bildene dine om til levende video, rett i nettleseren.</p></div>
+  <div class="vid-hero"><h2>AI-video 🎬</h2><p>De beste video-modellene samlet på ett sted.</p></div>
 
+  <h3 class="vid-grp">Tilgjengelig nå</h3>
   <div class="vid-grid">
     <div class="vid-card" style="cursor:pointer;" onclick="document.getElementById('vidtool-card').scrollIntoView({behavior:'smooth',block:'center'})"><div class="vid-badge" style="background:linear-gradient(135deg,#F02478,#9CC000)">KB</div><div class="vid-name">Ken Burns-animasjon</div><div class="vid-desc">Gjør et bilde om til en levende video med rolig zoom og panorering. Lages i nettleseren.</div><span class="vid-status vid-on">Klar til bruk ↓</span></div>
+  </div>
+
+  <h3 class="vid-grp">Kan kobles til</h3>
+  <div class="vid-grid">
+    <div class="vid-card"><div class="vid-badge" style="background:#4285F4">V</div><div class="vid-name">Veo</div><div class="vid-desc">Google, video med innebygd lyd. Kjører på Gemini-nøkkelen din.</div><span class="vid-status vid-soon">Kan aktiveres</span></div>
+    <div class="vid-card"><div class="vid-badge" style="background:#15151A">S</div><div class="vid-name">Sora</div><div class="vid-desc">OpenAI, kinematiske klipp fra tekst.</div><span class="vid-status vid-soon">Krever OpenAI-tilgang</span></div>
+    <div class="vid-card"><div class="vid-badge" style="background:#15151A">K</div><div class="vid-name">Kling</div><div class="vid-desc">Jevn, filmatisk bevegelse fra tekst eller bilde.</div><span class="vid-status vid-soon">Krever egen konto</span></div>
+    <div class="vid-card"><div class="vid-badge" style="background:#7C3AED">P</div><div class="vid-name">PixVerse</div><div class="vid-desc">Korte, fengende videoklipp.</div><span class="vid-status vid-soon">Krever egen konto</span></div>
   </div>
 
   <h3 class="vid-grp">Bilde til video</h3>
