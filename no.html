@@ -883,6 +883,8 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
 })();
 </script>
 
+  <button class="wiz-launch" onclick="openWizard()">✨ Bygg planen din steg for steg</button>
+
   <div class="card">
     <div class="card-title">Hva vil du lage innhold for?</div>
     <div style="font-size:12px;color:var(--text-s);margin:-2px 0 10px;">Velg nisjen din, så tilpasses temaer, hashtags og tekst til den.</div>
@@ -2579,7 +2581,7 @@ const PLAN_DAYS = [
 
 // ══ STATE ══
 const state = {
-  niche:'', goal:'',
+  niche:'', goal:'', timeLevel:'',
   format:'carousel', topic:'Ny innholdsidé', customTopic:'',
   ageGroup:'3-6 år', char:'Ingen karakter', tone:'Varm og personlig',
   slideCount:5, cta:'', extra:'',
@@ -2637,6 +2639,7 @@ function init(){
   renderPlatformChips(); renderSchedPlatforms();
   renderIdeas(); renderCalendar(); renderHistory();
   updateSlidesCard(); updateReelSection();
+  maybeAutoWizard();
 }
 
 // ══ RENDER HELPERS ══
@@ -2691,11 +2694,11 @@ function renderNiches(){
 function selectNiche(id){
   state.niche=id;
   const n=currentNiche();
-  if(n && n.id!=='custom'){ cfg.niche=n.label; try{saveSettings();}catch(e){} }
+  if(n && n.id!=='custom'){ cfg.niche=n.label; const e=document.getElementById('s-niche'); if(e)e.value=cfg.niche; try{saveSettings();}catch(e){} }
   state.topic=''; // tving brukeren til å velge tema fra den nye nisjen
   renderNiches(); renderTopics();
 }
-function onCustomNiche(v){ cfg.niche=(v||'').trim(); try{saveSettings();}catch(e){} }
+function onCustomNiche(v){ cfg.niche=(v||'').trim(); const e=document.getElementById('s-niche'); if(e)e.value=cfg.niche; try{saveSettings();}catch(e){} }
 
 // ── Mål ──
 function renderGoals(){
@@ -2704,6 +2707,95 @@ function renderGoals(){
     <button class="chip${state.goal===g.label?' active':''}" onclick="selectGoal(this.dataset.g)" data-g="${g.label.replace(/"/g,'&quot;')}">${g.emoji} ${g.label}</button>`).join('');
 }
 function selectGoal(l){ state.goal = (state.goal===l ? '' : l); renderGoals(); }
+
+// ══ GUIDET VEIVISER (strategi steg for steg) ══
+const WIZ_TIME = ['10 minutter om dagen','30 minutter om dagen','1 time om dagen','Mest automatisk','Helt planlagt og satt opp'];
+const WIZ_VOICE = ['Profesjonell','Vennlig','Pedagogisk','Modig','Inspirerende','Luksuriøs','Enkel og tydelig','Varm og personlig'];
+const WIZ_STEPS = [
+  {key:'niche',     q:'Hva vil du lage innhold for?', sub:'Velg nisjen din, eller skriv din egen.'},
+  {key:'goal',      q:'Hva er hovedmålet ditt?',      sub:'Innholdet skrives for å hjelpe deg å nå dette.'},
+  {key:'platforms', q:'Hvor vil du publisere?',       sub:'Velg en eller flere plattformer.'},
+  {key:'format',    q:'Hva vil du starte med?',       sub:'Du kan lage flere formater senere.'},
+  {key:'time',      q:'Hvor mye tid har du?',         sub:'Så foreslår vi en passende rytme.'},
+  {key:'voice',     q:'Hvilken stemme passer deg?',   sub:'Tonen i alt innholdet ditt.'},
+];
+let wizStep = 0;
+const wizPick = { niche:'', goal:'', platforms:[], format:'', time:'', voice:'', customNiche:'' };
+
+function openWizard(){ wizStep=0; syncWizFromState(); const w=document.getElementById('lme-wiz'); if(!w)return; w.classList.add('show'); document.body.style.overflow='hidden'; renderWizard(); }
+function closeWizard(){ const w=document.getElementById('lme-wiz'); if(w)w.classList.remove('show'); document.body.style.overflow=''; }
+function skipWizard(){ try{localStorage.setItem('lme_wizard_done','1');}catch(e){} closeWizard(); }
+function syncWizFromState(){
+  wizPick.niche=state.niche||''; wizPick.goal=state.goal||''; wizPick.platforms=(state.platforms||[]).slice();
+  wizPick.format=state.format||''; wizPick.time=state.timeLevel||''; wizPick.voice=cfg.voice||''; wizPick.customNiche=(state.niche==='custom'?(cfg.niche||''):'');
+}
+function wizOptions(){
+  const s=WIZ_STEPS[wizStep].key;
+  if(s==='niche') return NICHES.map(n=>({v:n.id,label:n.emoji+' '+n.label}));
+  if(s==='goal') return GOALS.map(g=>({v:g.label,label:g.emoji+' '+g.label}));
+  if(s==='platforms') return PLATFORMS.map(p=>({v:p,label:p}));
+  if(s==='format') return FORMATS.map(f=>({v:f.id,label:f.emoji+' '+f.label}));
+  if(s==='time') return WIZ_TIME.map(t=>({v:t,label:t}));
+  if(s==='voice') return WIZ_VOICE.map(v=>({v:v,label:v}));
+  return [];
+}
+function wizIsSelected(val){
+  const s=WIZ_STEPS[wizStep].key;
+  if(s==='platforms') return wizPick.platforms.indexOf(val)>=0;
+  return wizPick[s]===val;
+}
+function wizSelect(val){
+  const s=WIZ_STEPS[wizStep].key;
+  if(s==='platforms'){ const i=wizPick.platforms.indexOf(val); if(i<0)wizPick.platforms.push(val); else wizPick.platforms.splice(i,1); }
+  else if(s==='goal'){ wizPick.goal = wizPick.goal===val?'':val; }
+  else { wizPick[s]=val; }
+  renderWizard();
+}
+function wizCustomNiche(v){ wizPick.customNiche=(v||'').trim(); }
+function renderWizard(){
+  const step=WIZ_STEPS[wizStep];
+  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  set('wiz-step-num',(wizStep+1)+' / '+WIZ_STEPS.length);
+  set('wiz-q',step.q); set('wiz-sub',step.sub);
+  const prog=document.getElementById('wiz-prog'); if(prog) prog.innerHTML=WIZ_STEPS.map((s,i)=>`<span class="wiz-seg${i<=wizStep?' on':''}"></span>`).join('');
+  const opts=document.getElementById('wiz-opts'); if(opts) opts.innerHTML=wizOptions().map(o=>`<button class="wiz-opt${wizIsSelected(o.v)?' on':''}" onclick="wizSelect(this.dataset.v)" data-v="${String(o.v).replace(/"/g,'&quot;')}">${o.label}</button>`).join('');
+  const ci=document.getElementById('wiz-custom-niche'); if(ci){ ci.style.display=(step.key==='niche'&&wizPick.niche==='custom')?'block':'none'; if(ci.style.display==='block'&&ci.value!==wizPick.customNiche) ci.value=wizPick.customNiche||''; }
+  const back=document.getElementById('wiz-back'); if(back) back.style.visibility = wizStep===0?'hidden':'visible';
+  const next=document.getElementById('wiz-next'); if(next) next.textContent = wizStep===WIZ_STEPS.length-1?'Lag planen min':'Neste';
+}
+function wizNext(){ if(wizStep<WIZ_STEPS.length-1){ wizStep++; renderWizard(); } else { applyWizard(); } }
+function wizBack(){ if(wizStep>0){ wizStep--; renderWizard(); } }
+function applyWizard(){
+  state.niche=wizPick.niche||'';
+  const n=NICHES.find(x=>x.id===state.niche);
+  if(state.niche==='custom'){ cfg.niche=wizPick.customNiche||'din nisje'; }
+  else if(n){ cfg.niche=n.label; }
+  state.goal=wizPick.goal||'';
+  if(wizPick.platforms.length) state.platforms=wizPick.platforms.slice();
+  if(wizPick.format) state.format=wizPick.format;
+  state.timeLevel=wizPick.time||'';
+  if(wizPick.voice) cfg.voice=wizPick.voice;
+  state.topic='';
+  const setEl=(id,v)=>{const e=document.getElementById(id); if(e) e.value=v||'';};
+  setEl('s-niche', cfg.niche); setEl('s-voice', cfg.voice);
+  try{ saveSettings(); }catch(e){}
+  try{ localStorage.setItem('lme_wizard_done','1'); }catch(e){}
+  try{ renderNiches(); renderGoals(); renderFormats(); renderTopics(); if(window.renderPlatformChips)renderPlatformChips(); if(window.updateSlidesCard)updateSlidesCard(); if(window.updateReelSection)updateReelSection(); }catch(e){}
+  closeWizard();
+  try{ showTab('create', document.querySelectorAll('.tab-btn')[0]); }catch(e){}
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function maybeAutoWizard(){
+  try{
+    if(localStorage.getItem('lme_wizard_done')) return;
+    setTimeout(function(){
+      const ob=document.getElementById('lme-ob'); const lk=document.getElementById('lme-lock-screen');
+      const obShown=ob&&getComputedStyle(ob).display!=='none';
+      const lkShown=lk&&getComputedStyle(lk).display!=='none';
+      if(!obShown&&!lkShown) openWizard();
+    }, 700);
+  }catch(e){}
+}
 
 function renderChips(elId, items, key){
   const el = document.getElementById(elId); if(!el) return;
@@ -6043,6 +6135,52 @@ if('serviceWorker' in navigator){
   show();sched();
 })();
 </script>
+<!-- ══ GUIDET VEIVISER ══ -->
+<style>
+.wiz-launch{display:block;width:100%;margin:0 0 16px;padding:15px 18px;border:none;border-radius:16px;background:linear-gradient(110deg,var(--rose),var(--rose-d));color:#fff;font-family:'Sasson Montessori',sans-serif;font-weight:800;font-size:15px;cursor:pointer;box-shadow:0 10px 26px -10px rgba(240,36,120,.5);}
+#lme-wiz{position:fixed;inset:0;z-index:100000;display:none;background:radial-gradient(130% 90% at 50% -10%,#FCE4EE,#FFF6E9 55%,#FFFAFA);font-family:'Sasson Montessori',sans-serif;}
+#lme-wiz.show{display:flex;align-items:center;justify-content:center;padding:16px;}
+#lme-wiz .wizcard{background:#fff;border-radius:28px;max-width:560px;width:100%;max-height:94dvh;display:flex;flex-direction:column;box-shadow:0 30px 80px -30px rgba(240,36,120,.5);overflow:hidden;}
+#lme-wiz .wiztop{padding:22px 26px 0;}
+#lme-wiz .wizhead{display:flex;justify-content:space-between;align-items:center;}
+#lme-wiz .wizeyebrow{font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--rose-d);}
+#lme-wiz .wizprog{display:flex;gap:6px;margin:12px 0 0;}
+#lme-wiz .wiz-seg{flex:1;height:5px;border-radius:99px;background:#FCE4EE;}
+#lme-wiz .wiz-seg.on{background:linear-gradient(90deg,#F02478,#C81860);}
+#lme-wiz h2.wizq{font-family:'Playpen Sans',sans-serif;font-weight:800;font-size:23px;color:#1A1A1A;margin:16px 0 4px;line-height:1.15;}
+#lme-wiz .wizsub{font-size:14px;color:var(--text-s);}
+#lme-wiz .wizopts{padding:18px 26px 6px;overflow-y:auto;display:flex;flex-wrap:wrap;gap:9px;}
+#lme-wiz .wiz-opt{font-family:'Sasson Montessori',sans-serif;font-size:14px;font-weight:600;color:var(--text);background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:12px 16px;cursor:pointer;transition:all .15s;}
+#lme-wiz .wiz-opt.on{background:var(--rose);border-color:var(--rose);color:#fff;}
+#lme-wiz .wizcustom-wrap{padding:0 26px;}
+#lme-wiz input.wiz-custom{width:100%;border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;font-family:'Sasson Montessori',sans-serif;font-size:14px;margin-top:4px;box-sizing:border-box;}
+#lme-wiz .wizfoot{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px 26px 22px;border-top:1px solid var(--border);margin-top:10px;}
+#lme-wiz .wizbtn{font-family:'Sasson Montessori',sans-serif;font-weight:800;font-size:15px;border:none;border-radius:14px;padding:13px 24px;cursor:pointer;}
+#lme-wiz .wizbtn.next{background:linear-gradient(110deg,var(--rose),var(--rose-d));color:#fff;}
+#lme-wiz .wizbtn.back{background:transparent;color:var(--text-s);}
+#lme-wiz .wizskip{background:none;border:none;color:var(--text-s);font-size:13px;cursor:pointer;text-decoration:underline;font-family:'Sasson Montessori',sans-serif;}
+</style>
+<div id="lme-wiz">
+  <div class="wizcard">
+    <div class="wiztop">
+      <div class="wizhead">
+        <div class="wizeyebrow">Bygg planen din</div>
+        <div class="wizeyebrow" id="wiz-step-num" style="color:var(--text-s);">1 / 6</div>
+      </div>
+      <div class="wizprog" id="wiz-prog"></div>
+      <h2 class="wizq" id="wiz-q"></h2>
+      <div class="wizsub" id="wiz-sub"></div>
+    </div>
+    <div class="wizopts" id="wiz-opts"></div>
+    <div class="wizcustom-wrap"><input id="wiz-custom-niche" class="wiz-custom" placeholder="Skriv din egen nisje, f.eks. &quot;yogastudio&quot;" style="display:none;" oninput="wizCustomNiche(this.value)"/></div>
+    <div class="wizfoot">
+      <button class="wizbtn back" id="wiz-back" onclick="wizBack()">Tilbake</button>
+      <button class="wizskip" onclick="skipWizard()">Hopp over</button>
+      <button class="wizbtn next" id="wiz-next" onclick="wizNext()">Neste</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══ LME BOT ══ -->
 <script src="/lme-bot-core.js"></script>
 <script src="/lme-bot-shell-content-studio.js"></script>
