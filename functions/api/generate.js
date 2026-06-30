@@ -138,10 +138,10 @@ async function consumeImageCredit(env, user) {
 
 /* ───────── Bildegenerering (returnerer {imageUrl} eller {error}) ───────── */
 
-async function generateImage(env, body) {
+async function generateImage(env, body, forceUserKey) {
   const model = body.model || "dalle3";
   if (model === "dalle3") {
-    const key = env.OPENAI_API_KEY || body.key;
+    const key = forceUserKey ? body.key : (env.OPENAI_API_KEY || body.key);
     if (!key) return { error: "OpenAI-nøkkel mangler. Legg den inn i Innstillinger." };
     const sz = body.size || "1024x1024";
     const gptSize = sz === "1024x1792" ? "1024x1536" : sz === "1792x1024" ? "1536x1024" : "1024x1024";
@@ -201,7 +201,7 @@ async function generateImage(env, body) {
     }
     return { error: lastErr };
   } else {
-    const key = env.GEMINI_API_KEY || body.key;
+    const key = forceUserKey ? body.key : (env.GEMINI_API_KEY || body.key);
     if (!key) return { error: "Gemini-nøkkel mangler. Legg den inn i Innstillinger." };
     const gModel = model === "nano-pro" ? "gemini-3-pro-image-preview" : "gemini-2.5-flash-image";
     const reqParts = [];
@@ -237,20 +237,31 @@ export async function onRequestPost(context) {
 
   try {
     if (type === "image") {
-      // Håndhev plan-tak FØR generering, men kun når LMEs egen nøkkel brukes.
-      const enforce = usesOwnerKey(env, body.model);
-      let gateUser = null;
-      let gateOwner = false;
-      if (enforce) {
+      // Modell: inkluderte bilder går på LMEs egen nøkkel (med tak). Over taket,
+      // eller uten innlogging, bruker appen kundens egen nøkkel (BYOK), så det
+      // ikke koster LME noe.
+      const serverHasKey = usesOwnerKey(env, body.model);
+      let useServerKey = false, gateUser = null, gateOwner = false;
+      if (serverHasKey) {
         const gate = await checkImageQuota(env, body.token);
-        if (gate.error) return json({ error: gate.error, code: gate.code }, 200);
-        gateUser = gate.user;
-        gateOwner = !!gate.owner;
+        if (gate.error) {
+          if (gate.code === "no_kv") return json({ error: gate.error, code: gate.code }, 200);
+          // Kvote brukt opp eller ikke innlogget: krev kundens egen nøkkel.
+          if (!body.key) {
+            const msg = gate.code === "no_image_credits"
+              ? "Du har brukt opp de inkluderte bildene. Legg inn din egen OpenAI- eller Gemini-nøkkel i Innstillinger for å fortsette."
+              : "Logg inn for å bruke de inkluderte bildene, eller legg inn din egen nøkkel i Innstillinger.";
+            return json({ error: msg, code: gate.code }, 200);
+          }
+          // Faller tilbake til kundens egen nøkkel.
+        } else {
+          useServerKey = true; gateUser = gate.user; gateOwner = !!gate.owner;
+        }
       }
 
-      const result = await generateImage(env, body);
+      const result = await generateImage(env, body, !useServerKey);
       if (result.imageUrl) {
-        if (enforce && gateUser && !gateOwner) {
+        if (useServerKey && gateUser && !gateOwner) {
           try { await consumeImageCredit(env, gateUser); } catch (e) {}
         }
         return json({ imageUrl: result.imageUrl });
