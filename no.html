@@ -751,7 +751,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
         <button class="nav-dropdown-item" onclick="showTab('variants',this);closeNavMenu()">Varianter per kanal</button>
         <button class="nav-dropdown-item" onclick="showTab('models',this);closeNavMenu()">AI-modeller</button>
         <button class="nav-dropdown-item" onclick="showTab('video',this);closeNavMenu()">AI-video</button>
-        <button class="nav-dropdown-item" onclick="showTab('plan',this);closeNavMenu()">30-dagers plan</button>
+        <button class="nav-dropdown-item" onclick="showTab('plan',this);closeNavMenu()">90-dagers plan</button>
         <button class="nav-dropdown-item" onclick="showTab('canva',this);closeNavMenu()">Canva</button>
         <button class="nav-dropdown-item" onclick="showTab('editor',this);closeNavMenu()">Editor</button>
         <button class="nav-dropdown-item" onclick="showTab('pricing',this);closeNavMenu()">Priser</button>
@@ -1158,8 +1158,16 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
 <!-- ════ 30-DAY PLAN ════ -->
 <div id="tab-plan" style="display:none;">
   <div class="card">
-    <div class="card-title" style="font-size:14px;color:var(--rose-d);">30-dagers innholdsplan</div>
-    <p style="font-size:12px;color:var(--text-s);margin-bottom:14px;line-height:1.6;">Klikk på en dag for å se story-ideen og innlegget, generer deretter innholdet direkte! 🌸</p>
+    <div class="card-title">90-dagers strategi</div>
+    <p style="font-size:12px;color:var(--text-s);margin-bottom:12px;line-height:1.6;">Bygget på nisjen, målet og stemmen din. Du får innholdspilarer, ukestemaer og ferdige innleggsideer med salgs- og leadsmomenter. Klikk en idé for å lage selve innlegget.</p>
+    <button class="gen-btn" id="strat-gen-btn" onclick="generateStrategy()">Generer 90-dagers strategi</button>
+    <div style="font-size:11px;color:var(--text-s);margin-top:8px;text-align:center;">Velg nisje og mål under Lag innhold først, eller kjør veiviseren.</div>
+  </div>
+  <div id="strategy-out"></div>
+
+  <div class="card">
+    <div class="card-title" style="font-size:14px;color:var(--rose-d);">Ferdig 30-dagers mal</div>
+    <p style="font-size:12px;color:var(--text-s);margin-bottom:14px;line-height:1.6;">En klar mal du kan bruke med en gang. Klikk på en dag for å se ideen og innlegget, og generer innholdet direkte.</p>
     <div id="plan-week-tabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;"></div>
     <div id="plan-days-list"></div>
   </div>
@@ -2639,6 +2647,7 @@ function init(){
   renderPlatformChips(); renderSchedPlatforms();
   renderIdeas(); renderCalendar(); renderHistory();
   updateSlidesCard(); updateReelSection();
+  loadStrategy();
   maybeAutoWizard();
 }
 
@@ -3039,6 +3048,75 @@ function generateFromPlan(){
   state.topic='Custom topic...';
   state.customTopic=d.post.replace(/^(Karusell|Reel|Statisk innlegg|Story|Statisk):\s*/i,'');
   document.getElementById('custom-topic').value=state.customTopic;
+  renderFormats(); renderTopics(); updateSlidesCard(); updateReelSection();
+  showTab('create', document.querySelectorAll('.tab-btn')[0]);
+  window.scrollTo({top:0,behavior:'smooth'});
+  setTimeout(()=>generate(),300);
+}
+
+// ══ 90-DAGERS STRATEGI (AI) ══
+function strategyPrompt(){
+  const niche = cfg.niche || (currentNiche()&&currentNiche().label) || 'din nisje';
+  const goal = state.goal || 'vekst og synlighet';
+  const plats = (state.platforms&&state.platforms.length)?state.platforms.join(', '):'Instagram';
+  const voice = cfg.voice || state.tone || 'vennlig, tydelig og profesjonell';
+  const brand = cfg.brand || 'merkevaren';
+  const time = state.timeLevel || '30 minutter om dagen';
+  return `Du er en strateg for innholdsmarkedsføring. Lag en 90-dagers innholdsstrategi (13 uker) for "${brand}" i nisjen "${niche}". Hovedmål: ${goal}. Plattformer: ${plats}. Stemme: ${voice}. Tilgjengelig tid: ${time}.
+
+Returner KUN gyldig JSON, ingen forklaring, på dette formatet:
+{"pillars":["pilar 1","pilar 2","pilar 3","pilar 4"],"rhythm":"én kort setning om posterytme tilpasset tiden","weeks":[{"week":1,"theme":"ukens tema","posts":[{"day":"Man","idea":"kort konkret innleggsidé","format":"reel","purpose":"Verdi"}]}]}
+
+Krav:
+- Nøyaktig 13 uker (week 1 til 13).
+- 4 til 5 poster per uke fordelt på ukedager (Man, Tir, Ons, Tor, Fre, Lør, Søn).
+- format er én av: reel, carousel, story, post, caption, email, pinterest.
+- purpose er én av: Verdi, Engasjement, Salg, Leads, Autoritet, E-post. Inkluder jevnlig Salg og Leads, og minst én E-post-idé hver måned.
+- idé er kort (maks 12 ord), konkret og tilpasset nisjen og målet.
+- Norske skriveregler: rette anførselstegn, ingen lange bindestreker, riktig kolonbruk.`;
+}
+let strategy90 = null, stratFlat = [];
+function loadStrategy(){ try{ const s=localStorage.getItem('lme_strategy_90'); if(s) strategy90=JSON.parse(s); }catch(e){} renderStrategy(); }
+function saveStrategy(){ try{ localStorage.setItem('lme_strategy_90', JSON.stringify(strategy90)); }catch(e){} }
+async function generateStrategy(){
+  const btn=document.getElementById('strat-gen-btn'); if(!btn)return;
+  const key=getApiKey();
+  if(!key||key.length<20){ alert('API-nøkkel mangler. Legg den inn i Innstillinger.'); return; }
+  btn.disabled=true; const old=btn.innerHTML; btn.innerHTML='AI bygger strategien din…';
+  try{
+    const raw=await callClaude(strategyPrompt(), key);
+    let txt=String(raw||'').trim().replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/```$/,'').trim();
+    const a=txt.indexOf('{'), b=txt.lastIndexOf('}');
+    if(a>=0&&b>a) txt=txt.slice(a,b+1);
+    const parsed=JSON.parse(txt);
+    if(!parsed||!parsed.weeks||!parsed.weeks.length) throw new Error('Uventet svar');
+    strategy90=parsed; saveStrategy(); renderStrategy();
+    const out=document.getElementById('strategy-out'); if(out) out.scrollIntoView({behavior:'smooth',block:'start'});
+  }catch(e){ alert('Kunne ikke lage strategien akkurat nå. Prøv igjen. ('+(e.message||e)+')'); }
+  btn.disabled=false; btn.innerHTML=old;
+}
+const PURPOSE_COLOR={Verdi:'#9CC000',Engasjement:'#2D9CDB',Salg:'#F02478',Leads:'#8B5CF6',Autoritet:'#E07B39','E-post':'#00B894'};
+function renderStrategy(){
+  const host=document.getElementById('strategy-out'); if(!host)return;
+  if(!strategy90||!strategy90.weeks){ host.innerHTML=''; return; }
+  stratFlat=[];
+  const pillars=(strategy90.pillars||[]).map(p=>`<span class="strat-pill">${esc(p)}</span>`).join('');
+  const weeks=(strategy90.weeks||[]).map(w=>{
+    const posts=(w.posts||[]).map(p=>{
+      const idx=stratFlat.push(p)-1;
+      const col=PURPOSE_COLOR[p.purpose]||'#999';
+      const fmtE={reel:'🎬',carousel:'🎠',story:'🌸',post:'🌿',caption:'✍️',email:'💌',pinterest:'📌'}[p.format]||'📄';
+      return `<div class="strat-post" onclick="generateFromStrategy(${idx})"><span class="strat-day">${esc(p.day||'')}</span><span class="strat-idea">${fmtE} ${esc(p.idea||'')}</span><span class="strat-purpose" style="background:${col}">${esc(p.purpose||'')}</span></div>`;
+    }).join('');
+    return `<div class="strat-week"><div class="strat-week-head"><b>Uke ${esc(String(w.week||''))}</b> · ${esc(w.theme||'')}</div>${posts}</div>`;
+  }).join('');
+  host.innerHTML=`<div class="strat-card"><div class="strat-h">Innholdspilarer</div><div class="strat-pillars">${pillars}</div>${strategy90.rhythm?`<div class="strat-rhythm">📅 ${esc(strategy90.rhythm)}</div>`:''}<button class="act-btn" style="margin-top:14px;" onclick="generateStrategy()">Lag ny strategi</button></div><div class="strat-weeks">${weeks}</div>`;
+}
+function generateFromStrategy(i){
+  const p=stratFlat[i]; if(!p)return;
+  state.format=(['reel','carousel','story','post','caption','email','pinterest'].includes(p.format))?p.format:'post';
+  state.topic='Eget tema...'; state.customTopic=p.idea||'';
+  const ci=document.getElementById('custom-topic'); if(ci) ci.value=state.customTopic;
   renderFormats(); renderTopics(); updateSlidesCard(); updateReelSection();
   showTab('create', document.querySelectorAll('.tab-btn')[0]);
   window.scrollTo({top:0,behavior:'smooth'});
@@ -6138,6 +6216,20 @@ if('serviceWorker' in navigator){
 <!-- ══ GUIDET VEIVISER ══ -->
 <style>
 .wiz-launch{display:block;width:100%;margin:0 0 16px;padding:15px 18px;border:none;border-radius:16px;background:linear-gradient(110deg,var(--rose),var(--rose-d));color:#fff;font-family:'Sasson Montessori',sans-serif;font-weight:800;font-size:15px;cursor:pointer;box-shadow:0 10px 26px -10px rgba(240,36,120,.5);}
+.strat-card{background:#fff;border:1.5px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px;}
+.strat-h{font-family:'Playpen Sans',sans-serif;font-weight:800;color:var(--rose-d);font-size:15px;margin-bottom:10px;}
+.strat-pillars{display:flex;flex-wrap:wrap;gap:8px;}
+.strat-pill{background:var(--rose-l);color:var(--rose-d);font-weight:700;font-size:12.5px;padding:7px 12px;border-radius:999px;}
+.strat-rhythm{margin-top:12px;font-size:13px;color:var(--text-s);line-height:1.5;}
+.strat-weeks{display:flex;flex-direction:column;gap:12px;}
+.strat-week{background:#fff;border:1.5px solid var(--border);border-radius:16px;padding:14px 16px;}
+.strat-week-head{font-size:13.5px;color:var(--text);margin-bottom:8px;}
+.strat-week-head b{font-family:'Playpen Sans',sans-serif;color:var(--rose-d);}
+.strat-post{display:flex;align-items:center;gap:10px;padding:10px 6px;border-top:1px solid var(--border);cursor:pointer;transition:background .12s;}
+.strat-post:hover{background:var(--rose-l);}
+.strat-day{font-size:11px;font-weight:700;color:var(--text-s);min-width:28px;}
+.strat-idea{flex:1;font-size:13px;line-height:1.4;}
+.strat-purpose{font-size:10px;font-weight:700;color:#fff;padding:3px 8px;border-radius:999px;white-space:nowrap;}
 #lme-wiz{position:fixed;inset:0;z-index:100000;display:none;background:radial-gradient(130% 90% at 50% -10%,#FCE4EE,#FFF6E9 55%,#FFFAFA);font-family:'Sasson Montessori',sans-serif;}
 #lme-wiz.show{display:flex;align-items:center;justify-content:center;padding:16px;}
 #lme-wiz .wizcard{background:#fff;border-radius:28px;max-width:560px;width:100%;max-height:94dvh;display:flex;flex-direction:column;box-shadow:0 30px 80px -30px rgba(240,36,120,.5);overflow:hidden;}
