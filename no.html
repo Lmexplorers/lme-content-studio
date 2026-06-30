@@ -2861,6 +2861,35 @@ function useIdea(i){
 }
 
 // ══ DASHBOARD ══
+function goTab(id){ let btn=null; document.querySelectorAll('.tab-btn,.nav-dropdown-item').forEach(function(b){ const o=b.getAttribute('onclick')||''; if(o.indexOf("'"+id+"'")>=0&&!btn) btn=b; }); showTab(id,btn); window.scrollTo({top:0,behavior:'smooth'}); }
+function dashQuickHTML(){
+  const items=[
+    {e:'🗺️',t:'90-dagers plan',d:'Strategi og ukestemaer',id:'plan'},
+    {e:'✍️',t:'Lag innhold',d:'Generer innlegg',id:'create'},
+    {e:'📅',t:'Kalender',d:'Planlegg innleggene',id:'calendar'},
+    {e:'💾',t:'Lagrede innlegg',d:'Historikken din',id:'history'},
+    {e:'🚀',t:'Schedule / autopost',d:'Koble til Blotato',id:'settings'},
+    {e:'🎙️',t:'Merkevarestemme',d:'Stil og tone',id:'settings'},
+  ];
+  return `<div class="dash-card"><h3>Snarveier</h3><div class="dash-quick">${items.map(i=>`<button class="dq" onclick="goTab('${i.id}')"><span class="dq-e">${i.e}</span><span class="dq-t">${i.t}</span><span class="dq-d">${i.d}</span></button>`).join('')}</div></div>`;
+}
+function dashEcoHTML(){
+  const tools=[
+    {e:'🎨',t:'Content Studio',d:'Du er her: lag strategi og innhold',here:true},
+    {e:'🔍',t:'AI Visibility',d:'Bli synlig i AI og søk',url:'https://lmexplorers.com/ai-visibility'},
+    {e:'🚦',t:'Traffic Engine',d:'Få mer trafikk',url:'https://lmexplorers.com/ai-traffic-engine'},
+    {e:'💰',t:'Inntekt',d:'Gjør trafikk til inntekt',url:'https://lmexplorers.com/lme-inntektskalkulator'},
+    {e:'📚',t:'Bookly',d:'Lag bøker og produkter',url:'https://lmexplorers.com/bookly'},
+    {e:'🌟',t:'Inner Circle',d:'Støtte, maler og vekst',url:'https://lmexplorers.com/grupper/inner-circle'},
+  ];
+  return `<div class="dash-card"><h3>LME-økosystemet</h3><p class="dash-eco-sub">Content Studio er starten. Resten av LME hjelper deg å bli synlig, få trafikk og tjene på den.</p><div class="dash-eco">${tools.map(i=>i.here?`<div class="deco here"><span class="deco-e">${i.e}</span><span class="deco-t">${i.t}</span><span class="deco-d">${i.d}</span></div>`:`<a class="deco" href="${i.url}" target="_blank" rel="noopener"><span class="deco-e">${i.e}</span><span class="deco-t">${i.t}</span><span class="deco-d">${i.d}</span></a>`).join('')}</div></div>`;
+}
+function dashContextHTML(){
+  const n=currentNiche(); const niche=(n&&n.label)||cfg.niche||'';
+  if(!niche && !state.goal) return '';
+  const bits=[]; if(niche) bits.push('Nisje: '+esc(niche)); if(state.goal) bits.push('Mål: '+esc(state.goal));
+  return `<div class="dash-context">${bits.join(' · ')} <button class="dash-context-edit" onclick="openWizard()">Endre</button></div>`;
+}
 function renderDashboard(){
   const host=document.getElementById('dashboard-body'); if(!host) return;
   const h=state.history||[];
@@ -2869,7 +2898,10 @@ function renderDashboard(){
 
   if(!h.length){
     host.innerHTML=`<div class="dash-hero"><h2>${esc(greet)}</h2><p>Her får du oversikten over alt innholdet ditt: laget, planlagt og publisert.</p></div>
-      <div class="dash-card"><div class="dash-empty">Du har ikke laget noe innhold ennå.<br/>Lag ditt første innlegg, så fyller oversikten seg opp.<br/><button class="dash-cta" onclick="showTab('create',document.querySelectorAll('.tab-btn')[0])">Lag innhold →</button></div></div>`;
+      ${dashContextHTML()}
+      <div class="dash-card"><div class="dash-empty">Du har ikke laget noe innhold ennå.<br/>Lag ditt første innlegg, så fyller oversikten seg opp.<br/><button class="dash-cta" onclick="showTab('create',document.querySelectorAll('.tab-btn')[0])">Lag innhold →</button></div></div>
+      ${dashQuickHTML()}
+      ${dashEcoHTML()}`;
     return;
   }
 
@@ -2905,15 +2937,18 @@ function renderDashboard(){
 
   host.innerHTML=`
     <div class="dash-hero"><h2>${esc(greet)}</h2><p>Oversikt over innholdsproduksjonen din. Alt oppdateres mens du lager og planlegger.</p></div>
+    ${dashContextHTML()}
     <div class="dash-stats">
       ${stat(h.length,'Innhold laget')}
       ${stat(scheduled.length,'Planlagt')}
       ${stat(published,'Publisert')}
       ${stat(platSet.size,'Plattformer')}
     </div>
+    ${dashQuickHTML()}
     <div class="dash-card"><h3>Fordeling per format</h3>${fmtBars}</div>
     <div class="dash-card"><h3>Kommende planlagte innlegg</h3>${upRows}</div>
-    <div class="dash-card"><h3>Siste aktivitet</h3>${recRows}</div>`;
+    <div class="dash-card"><h3>Siste aktivitet</h3>${recRows}</div>
+    ${dashEcoHTML()}`;
 }
 
 function renderHistory(){
@@ -6230,6 +6265,22 @@ if('serviceWorker' in navigator){
 .strat-day{font-size:11px;font-weight:700;color:var(--text-s);min-width:28px;}
 .strat-idea{flex:1;font-size:13px;line-height:1.4;}
 .strat-purpose{font-size:10px;font-weight:700;color:#fff;padding:3px 8px;border-radius:999px;white-space:nowrap;}
+.dash-context{display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-size:12.5px;font-weight:700;color:var(--rose-d);background:var(--rose-l);border-radius:12px;padding:10px 14px;margin-bottom:14px;}
+.dash-context-edit{margin-left:auto;background:#fff;border:1px solid var(--rose);color:var(--rose-d);border-radius:999px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sasson Montessori',sans-serif;}
+.dash-quick{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.dq{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:13px 14px;cursor:pointer;font-family:'Sasson Montessori',sans-serif;transition:all .15s;}
+.dq:hover{border-color:var(--rose);background:var(--rose-l);}
+.dq-e{font-size:20px;}
+.dq-t{font-weight:700;color:var(--text);font-size:13.5px;}
+.dq-d{font-size:11px;color:var(--text-s);}
+.dash-eco-sub{font-size:12px;color:var(--text-s);line-height:1.5;margin:-4px 0 12px;}
+.dash-eco{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.deco{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-decoration:none;background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:13px 14px;transition:all .15s;}
+.deco:hover{border-color:var(--rose);transform:translateY(-1px);box-shadow:0 8px 18px -10px rgba(240,36,120,.4);}
+.deco.here{background:linear-gradient(135deg,var(--rose-l),#fff);border-color:var(--rose);}
+.deco-e{font-size:20px;}
+.deco-t{font-weight:700;color:var(--rose-d);font-size:13.5px;}
+.deco-d{font-size:11px;color:var(--text-s);line-height:1.35;}
 #lme-wiz{position:fixed;inset:0;z-index:100000;display:none;background:radial-gradient(130% 90% at 50% -10%,#FCE4EE,#FFF6E9 55%,#FFFAFA);font-family:'Sasson Montessori',sans-serif;}
 #lme-wiz.show{display:flex;align-items:center;justify-content:center;padding:16px;}
 #lme-wiz .wizcard{background:#fff;border-radius:28px;max-width:560px;width:100%;max-height:94dvh;display:flex;flex-direction:column;box-shadow:0 30px 80px -30px rgba(240,36,120,.5);overflow:hidden;}
