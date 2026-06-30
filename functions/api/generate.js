@@ -37,9 +37,21 @@ function bufToB64(buf) {
 
 /* ───────── Konto / token / plan-tak ───────── */
 
-// Fallback-tak per plan, brukt til å initialisere kreditter hvis de mangler.
-// Selve den løpende grensen styres av user.credits.image (settes av webhooken).
-const PLAN_IMAGE_CAP = { free: 0, start: 30, proff: 100, proffplus: 150, arlig: 150 };
+// Inkluderte mengder per plan (dekket av abonnementet, på LMEs egen nøkkel).
+// Over taket bruker appen kundens egen nøkkel, så det koster ikke LME noe.
+// App-planen (699 kr/mnd, 6 990 kr/år): 500 tekster, 100 bilder, 5 videoklipp.
+const PLAN_CAPS = {
+  free:      { text: 0,   image: 0,   video: 0 },
+  app:       { text: 500, image: 100, video: 5 },
+  // Bakoverkompatible aliaser, alle betalte planer = app-planen:
+  start:     { text: 500, image: 100, video: 5 },
+  proff:     { text: 500, image: 100, video: 5 },
+  proffplus: { text: 500, image: 100, video: 5 },
+  arlig:     { text: 500, image: 100, video: 5 },
+};
+function planCaps(plan) { return PLAN_CAPS[plan] || PLAN_CAPS.free; }
+// Beholdt for bakoverkompatibilitet i eksisterende kode.
+const PLAN_IMAGE_CAP = { free: 0, start: 100, proff: 100, proffplus: 100, arlig: 100, app: 100 };
 
 // Eieren skal aldri stoppes av bilde-taket. Kan utvides via env.OWNER_EMAIL.
 const OWNER_EMAILS = ["renateshobby@hotmail.com"];
