@@ -1569,9 +1569,12 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
       Connect the app to Blotato to publish straight to Instagram, TikTok and Facebook from here. Paste the API key from Blotato (Settings, then API keys), and enter the account ID for the profile you want to post to.
     </div>
     <label style="font-size:12px;color:var(--text);font-weight:600;">Blotato API key</label>
-    <input type="password" id="s-blotato-key" placeholder="blotato-api-key" oninput="saveSettings()" style="margin:5px 0 12px;"/>
+    <input type="password" id="s-blotato-key" placeholder="blotato-api-key" oninput="saveSettings()" style="margin:5px 0 10px;"/>
+    <button type="button" class="act-btn sage-btn" id="s-blotato-fetch" onclick="blotatoFetchAccounts()" style="width:100%;margin-bottom:8px;">Fetch my accounts</button>
+    <select id="s-blotato-accounts-list" onchange="blotatoPickAccount(this)" style="display:none;width:100%;padding:10px;border-radius:8px;border:1px solid var(--line);margin-bottom:8px;"></select>
+    <div id="s-blotato-note" style="font-size:11px;color:var(--text-s);margin-bottom:12px;line-height:1.5;"></div>
     <label style="font-size:12px;color:var(--text);font-weight:600;">Account ID</label>
-    <input type="text" id="s-blotato-account" placeholder="e.g. 12345" oninput="saveSettings()" style="margin:5px 0 12px;"/>
+    <input type="text" id="s-blotato-account" placeholder="pick above, or paste manually" oninput="saveSettings()" style="margin:5px 0 12px;"/>
     <label style="font-size:12px;color:var(--text);font-weight:600;">Platform</label>
     <select id="s-blotato-platform" onchange="saveSettings()" style="margin:5px 0 0;width:100%;padding:10px;border-radius:8px;border:1px solid var(--line);">
       <option value="instagram">Instagram</option>
@@ -1581,6 +1584,7 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
       <option value="threads">Threads</option>
       <option value="pinterest">Pinterest</option>
       <option value="linkedin">LinkedIn</option>
+      <option value="bluesky">Bluesky</option>
       <option value="twitter">X (Twitter)</option>
     </select>
     <div style="font-size:10px;color:var(--text-s);margin-top:10px;line-height:1.6;">
@@ -3449,6 +3453,33 @@ async function blotatoPublish({text, mediaUrls, scheduledTime}){
 function blotatoTime(publishAt){
   if(!publishAt) return undefined;
   try{ return new Date(publishAt.replace(' ','T')).toISOString(); }catch(e){ return undefined; }
+}
+// Fetch connected Blotato accounts and fill the dropdown.
+async function blotatoFetchAccounts(){
+  const key=(document.getElementById('s-blotato-key').value||'').trim();
+  const btn=document.getElementById('s-blotato-fetch');
+  const sel=document.getElementById('s-blotato-accounts-list');
+  const note=document.getElementById('s-blotato-note');
+  if(!key){ if(note)note.textContent='Paste the Blotato API key first.'; return; }
+  btn.disabled=true; const old=btn.textContent; btn.textContent='Fetching…';
+  try{
+    const res=await fetch('/api/blotato-accounts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({blotatoKey:key})});
+    const d=await res.json().catch(()=>({}));
+    if(!d.ok){ if(note)note.textContent=(d.error||'Could not fetch accounts.'); btn.disabled=false; btn.textContent=old; return; }
+    const accts=d.accounts||[];
+    if(!accts.length){ if(note)note.textContent='No connected accounts found. Connect profiles in Blotato first.'; sel.style.display='none'; btn.disabled=false; btn.textContent=old; return; }
+    sel.innerHTML='<option value="">Select account…</option>'+accts.map(a=>`<option value="${String(a.id).replace(/"/g,'&quot;')}" data-plat="${String(a.platform||'').replace(/"/g,'&quot;')}">${(a.platform?a.platform+': ':'')+(a.name||a.id)}</option>`).join('');
+    sel.style.display='block';
+    if(note)note.textContent=accts.length+' account(s) found. Pick the one you want to post to.';
+  }catch(e){ if(note)note.textContent='Error: '+((e&&e.message)||e); }
+  btn.disabled=false; btn.textContent=old;
+}
+function blotatoPickAccount(sel){
+  const opt=sel.options[sel.selectedIndex]; if(!opt||!opt.value)return;
+  const accEl=document.getElementById('s-blotato-account'); if(accEl)accEl.value=opt.value;
+  const plat=opt.getAttribute('data-plat')||'';
+  if(plat){ const pe=document.getElementById('s-blotato-platform'); if(pe){ for(let i=0;i<pe.options.length;i++){ if(pe.options[i].value===plat){ pe.value=plat; break; } } } }
+  saveSettings();
 }
 
 async function sendToSocialBu(text,mediaUrls,format,publishAt){
