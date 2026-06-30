@@ -2703,11 +2703,11 @@ function renderNiches(){
 function selectNiche(id){
   state.niche=id;
   const n=currentNiche();
-  if(n && n.id!=='custom'){ cfg.niche=n.label; const e=document.getElementById('s-niche'); if(e)e.value=cfg.niche; try{saveSettings();}catch(e){} }
+  if(n && n.id!=='custom'){ cfg.niche=n.label; const e=document.getElementById('s-niche'); if(e)e.value=cfg.niche; try{persistCfg();}catch(e){} }
   state.topic=''; // tving brukeren til å velge tema fra den nye nisjen
   renderNiches(); renderTopics();
 }
-function onCustomNiche(v){ cfg.niche=(v||'').trim(); const e=document.getElementById('s-niche'); if(e)e.value=cfg.niche; try{saveSettings();}catch(e){} }
+function onCustomNiche(v){ cfg.niche=(v||'').trim(); const e=document.getElementById('s-niche'); if(e)e.value=cfg.niche; try{persistCfg();}catch(e){} }
 
 // ── Mål ──
 function renderGoals(){
@@ -2787,7 +2787,7 @@ function applyWizard(){
   state.topic='';
   const setEl=(id,v)=>{const e=document.getElementById(id); if(e) e.value=v||'';};
   setEl('s-niche', cfg.niche); setEl('s-voice', cfg.voice);
-  try{ saveSettings(); }catch(e){}
+  try{ persistCfg(); }catch(e){}
   try{ localStorage.setItem('lme_wizard_done','1'); }catch(e){}
   try{ renderNiches(); renderGoals(); renderFormats(); renderTopics(); if(window.renderPlatformChips)renderPlatformChips(); if(window.updateSlidesCard)updateSlidesCard(); if(window.updateReelSection)updateReelSection(); }catch(e){}
   closeWizard();
@@ -3119,7 +3119,7 @@ async function generateStrategy(){
   if(!key||key.length<20){ alert('API-nøkkel mangler. Legg den inn i Innstillinger.'); return; }
   btn.disabled=true; const old=btn.innerHTML; btn.innerHTML='AI bygger strategien din…';
   try{
-    const raw=await callClaude(strategyPrompt(), key);
+    const raw=await callClaude(strategyPrompt(), key, 8000);
     let txt=String(raw||'').trim().replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/```$/,'').trim();
     const a=txt.indexOf('{'), b=txt.lastIndexOf('}');
     if(a>=0&&b>a) txt=txt.slice(a,b+1);
@@ -3199,11 +3199,11 @@ NORSKE SKRIVEREGLER (følg alltid i norsk tekst): Bruk rette anførselstegn, ald
 }
 
 // ══ GENERATE TEXT ══
-async function callClaude(prompt,key){
+async function callClaude(prompt,key,maxTokens){
   const res=await fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
     headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1500,messages:[{role:'user',content:prompt}]})
+    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:maxTokens||1500,messages:[{role:'user',content:prompt}]})
   });
   if(!res.ok){const t=await res.text();throw new Error('API error '+res.status+': '+t.substring(0,200));}
   const data=await res.json();
@@ -4154,15 +4154,16 @@ function saveSettings(){
   cfg.brand=g('s-brand'); cfg.niche=g('s-niche'); cfg.voice=g('s-voice'); cfg.audience=g('s-audience');
   cfg.email=g('s-email');
   cfg.greeting=g('s-greeting'); cfg.signature=g('s-signature');
+  // Nøkler: overskriv aldri en lagret nøkkel med tomt felt (hindrer utilsiktet sletting).
   if(g('s-api-key'))cfg.apiKey=g('s-api-key');
-  cfg.openaiKey=g('s-openai-key');
-  cfg.geminiKey=g('s-gemini-key');
+  {const v=g('s-openai-key'); if(v)cfg.openaiKey=v;}
+  {const v=g('s-gemini-key'); if(v)cfg.geminiKey=v;}
   cfg.spotifyId=g('s-spotify-id'); cfg.spotifySecret=g('s-spotify-secret');
-  cfg.socialbuKey=g('s-socialbu-key');
+  {const v=g('s-socialbu-key'); if(v)cfg.socialbuKey=v;}
   const accStr=g('s-socialbu-accounts');
   cfg.socialbuAccounts=accStr?accStr.split(',').map(s=>s.trim()).filter(Boolean).map(Number):[];
   cfg.makeWebhook=g('s-make-webhook');
-  cfg.blotatoKey=g('s-blotato-key');
+  {const v=g('s-blotato-key'); if(v)cfg.blotatoKey=v;}
   cfg.blotatoAccount=g('s-blotato-account');
   cfg.blotatoPlatform=g('s-blotato-platform')||'instagram';
   cfg.charNames=g('s-char-names'); cfg.charDesc=g('s-char-desc');
@@ -4173,6 +4174,8 @@ function saveSettings(){
     localStorage.setItem('lme_innstillinger_no',JSON.stringify(cfg));
   }catch(e){}
 }
+// Lagre cfg direkte uten å lese skjemafeltene (brukes av nisje/veiviser, så nøkler aldri røres).
+function persistCfg(){ try{ localStorage.setItem('lme_no_v1',JSON.stringify(cfg)); localStorage.setItem('lme_innstillinger_no',JSON.stringify(cfg)); }catch(e){} }
 function saveSettingsConfirm(){
   saveSettings();
   const ok=document.getElementById('settings-ok');ok.style.display='block';
