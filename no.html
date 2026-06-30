@@ -2509,6 +2509,9 @@ const NICHES = [
   {id:'teacher', label:'Lærerressurser', emoji:'🍎', topics: nicheTopics([
     {label:'Ny ressurs', emoji:'🆕'},{label:'Klasseromstips', emoji:'🏫'},{label:'Slik bruker du det', emoji:'▶️'},{label:'Gratis nedlasting', emoji:'🎁'}]),
     hashtags:'#lærer #lærerressurser #klasserom #undervisning #skole #pedagog'},
+  {id:'contractor', label:'Håndverker / entreprenør', emoji:'🚧', topics: nicheTopics([
+    {label:'Før og etter jobben', emoji:'✨'},{label:'Jobben i gang', emoji:'🚜'},{label:'Maskinparken vår', emoji:'🛠️'},{label:'Fornøyd kunde', emoji:'⭐'},{label:'Be om pristilbud', emoji:'📋'}]),
+    hashtags:'#asfalt #asfaltlegging #anlegg #entreprenør #håndverker #oppkjørsel #belegning #norskhåndverk'},
   {id:'custom', label:'Egen nisje...', emoji:'✨', topics: GENERIC_TOPICS, hashtags:''},
 ];
 function currentNiche(){ return NICHES.find(n => n.id===state.niche) || null; }

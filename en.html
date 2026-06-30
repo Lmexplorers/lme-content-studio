@@ -2216,6 +2216,9 @@ const NICHES = [
   {id:'teacher', label:'Teacher resources', emoji:'🍎', topics: nicheTopics([
     {label:'New resource', emoji:'🆕'},{label:'Classroom tip', emoji:'🏫'},{label:'How to use it', emoji:'▶️'},{label:'Free download', emoji:'🎁'}]),
     hashtags:'#teacher #teacherresources #classroom #teaching #education #teacherspayteachers'},
+  {id:'contractor', label:'Contractor / trades', emoji:'🚧', topics: nicheTopics([
+    {label:'Before and after the job', emoji:'✨'},{label:'Job in progress', emoji:'🚜'},{label:'Our equipment', emoji:'🛠️'},{label:'Happy customer', emoji:'⭐'},{label:'Get a quote', emoji:'📋'}]),
+    hashtags:'#asphalt #paving #contractor #construction #drivewaypaving #excavation #tradesman #pavingcontractor'},
   {id:'custom', label:'Custom niche...', emoji:'✨', topics: GENERIC_TOPICS, hashtags:''},
 ];
 function currentNiche(){ return NICHES.find(n => n.id===state.niche) || null; }
