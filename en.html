@@ -2906,15 +2906,27 @@ function buildPrompt(){
 
 // ══ GENERATE TEXT ══
 async function callClaude(prompt,key,maxTokens){
-  const res=await fetch('https://api.anthropic.com/v1/messages',{
-    method:'POST',
-    headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:maxTokens||1500,messages:[{role:'user',content:prompt}]})
-  });
-  if(!res.ok){const t=await res.text();throw new Error('API error '+res.status+': '+t.substring(0,200));}
-  const data=await res.json();
-  if(data.error)throw new Error(data.error.message);
-  return data.content?.map(b=>b.text||'').join('')||'';
+  // Routes via the server: included text on LME's key up to the cap, then your own.
+  // Falls back to a direct call with your own key if the server is unavailable.
+  try{
+    const res=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({type:'text',provider:'claude',prompt:prompt,key:key,token:(typeof lmeToken==='function'?lmeToken():''),max_tokens:maxTokens||1500})});
+    const d=await res.json().catch(()=>({}));
+    if(d&&d.error) throw new Error(d.error);
+    if(d&&typeof d.text==='string') return d.text;
+    throw new Error('Empty response from server');
+  }catch(e){
+    if(!key) throw e;
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:maxTokens||1500,messages:[{role:'user',content:prompt}]})
+    });
+    if(!res.ok){const t=await res.text();throw new Error('API error '+res.status+': '+t.substring(0,200));}
+    const data=await res.json();
+    if(data.error)throw new Error(data.error.message);
+    return data.content?.map(b=>b.text||'').join('')||'';
+  }
 }
 
 function parseSlides(raw){

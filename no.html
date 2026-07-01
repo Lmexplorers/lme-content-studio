@@ -3202,15 +3202,27 @@ NORSKE SKRIVEREGLER (følg alltid i norsk tekst): Bruk rette anførselstegn, ald
 
 // ══ GENERATE TEXT ══
 async function callClaude(prompt,key,maxTokens){
-  const res=await fetch('https://api.anthropic.com/v1/messages',{
-    method:'POST',
-    headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:maxTokens||1500,messages:[{role:'user',content:prompt}]})
-  });
-  if(!res.ok){const t=await res.text();throw new Error('API error '+res.status+': '+t.substring(0,200));}
-  const data=await res.json();
-  if(data.error)throw new Error(data.error.message);
-  return data.content?.map(b=>b.text||'').join('')||'';
+  // Går via serveren: inkludert tekst på LMEs nøkkel opp til taket, deretter din egen.
+  // Faller tilbake til direkte kall med din egen nøkkel hvis serveren er utilgjengelig.
+  try{
+    const res=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({type:'text',provider:'claude',prompt:prompt,key:key,token:(typeof lmeToken==='function'?lmeToken():''),max_tokens:maxTokens||1500})});
+    const d=await res.json().catch(()=>({}));
+    if(d&&d.error) throw new Error(d.error);
+    if(d&&typeof d.text==='string') return d.text;
+    throw new Error('Tomt svar fra serveren');
+  }catch(e){
+    if(!key) throw e;
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:maxTokens||1500,messages:[{role:'user',content:prompt}]})
+    });
+    if(!res.ok){const t=await res.text();throw new Error('API error '+res.status+': '+t.substring(0,200));}
+    const data=await res.json();
+    if(data.error)throw new Error(data.error.message);
+    return data.content?.map(b=>b.text||'').join('')||'';
+  }
 }
 
 function parseSlides(raw){

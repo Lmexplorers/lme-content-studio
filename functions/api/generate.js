@@ -136,6 +136,33 @@ async function consumeImageCredit(env, user) {
   await putUser(env, user);
 }
 
+// Generisk kvotesjekk for text/image/video. Returnerer {user} hvis innenfor taket,
+// {owner:true} for eieren, eller {error, code} ellers.
+async function checkQuota(env, token, kind) {
+  if (!env.ACCOUNTS_KV) return { error: "Innlogging er ikke konfigurert (ACCOUNTS_KV mangler).", code: "no_kv" };
+  const email = await verifyToken(env, token);
+  if (!email) return { error: "login", code: "login_required" };
+  if (isOwner(env, email)) return { user: (await getUser(env, email)) || { email, plan: "owner" }, owner: true };
+  const user = await getUser(env, email);
+  if (!user) return { error: "login", code: "login_required" };
+  const caps = planCaps(user.plan || "free");
+  if (!user.credits) user.credits = { text: caps.text, image: caps.image, video: caps.video };
+  if (user.credits[kind] == null) user.credits[kind] = caps[kind] || 0;
+  if (Number(user.credits[kind] || 0) <= 0) return { error: "empty", code: "no_" + kind + "_credits" };
+  return { user };
+}
+async function consumeCredit(env, user, kind) {
+  user.credits = user.credits || {};
+  user.credits[kind] = Math.max(0, Number(user.credits[kind] || 0) - 1);
+  await putUser(env, user);
+}
+// Fast melding når inkludert mengde er brukt opp eller innlogging mangler.
+function quotaMsg(kind, code) {
+  const own = { text: "din egen Claude-nøkkel", image: "din egen OpenAI- eller Gemini-nøkkel", video: "din egen video-nøkkel" }[kind] || "din egen nøkkel";
+  if (code === "no_" + kind + "_credits") return "Du har brukt opp det inkluderte. Legg inn " + own + " i Innstillinger for å fortsette.";
+  return "Logg inn for å bruke det inkluderte, eller legg inn " + own + " i Innstillinger.";
+}
+
 /* ───────── Bildegenerering (returnerer {imageUrl} eller {error}) ───────── */
 
 async function generateImage(env, body, forceUserKey) {
@@ -271,9 +298,21 @@ export async function onRequestPost(context) {
 
     if (type === "text") {
       const provider = body.provider || "claude";
+      const serverKey = provider === "openai" ? env.OPENAI_API_KEY : env.ANTHROPIC_API_KEY;
+      // Inkludert tekst går på LMEs nøkkel opp til taket, deretter kundens egen.
+      let useServerKey = false, gu = null, go = false;
+      if (serverKey) {
+        const gate = await checkQuota(env, body.token, "text");
+        if (gate.error) {
+          if (gate.code === "no_kv") return json({ error: gate.error, code: gate.code }, 200);
+          if (!body.key) return json({ error: quotaMsg("text", gate.code), code: gate.code }, 200);
+        } else { useServerKey = true; gu = gate.user; go = !!gate.owner; }
+      }
+      const key = useServerKey ? serverKey : body.key;
+      if (!key) return json({ error: provider === "openai" ? "OpenAI-nøkkel mangler." : "Claude-nøkkel mangler." }, 400);
+
+      let text = "";
       if (provider === "openai") {
-        const key = env.OPENAI_API_KEY || body.key;
-        if (!key) return json({ error: "OpenAI-nøkkel mangler." }, 400);
         const r = await fetch("https://api.openai.com/v1/chat/completions", {
           method: "POST",
           headers: { "Content-Type": "application/json", "Authorization": "Bearer " + key },
@@ -281,10 +320,8 @@ export async function onRequestPost(context) {
         });
         const d = await r.json().catch(() => ({}));
         if (!r.ok) return json({ error: (d.error && d.error.message) || ("OpenAI " + r.status) }, 200);
-        return json({ text: (d.choices && d.choices[0] && d.choices[0].message && d.choices[0].message.content) || "" });
+        text = (d.choices && d.choices[0] && d.choices[0].message && d.choices[0].message.content) || "";
       } else {
-        const key = env.ANTHROPIC_API_KEY || body.key;
-        if (!key) return json({ error: "Claude-nøkkel mangler." }, 400);
         const r = await fetch("https://api.anthropic.com/v1/messages", {
           method: "POST",
           headers: { "Content-Type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
@@ -292,8 +329,10 @@ export async function onRequestPost(context) {
         });
         const d = await r.json().catch(() => ({}));
         if (!r.ok) return json({ error: (d.error && d.error.message) || ("Claude " + r.status) }, 200);
-        return json({ text: (d.content && d.content.map((b) => b.text || "").join("")) || "" });
+        text = (d.content && d.content.map((b) => b.text || "").join("")) || "";
       }
+      if (useServerKey && gu && !go) { try { await consumeCredit(env, gu, "text"); } catch (e) {} }
+      return json({ text });
     }
 
     return json({ error: "ukjent type" }, 400);
