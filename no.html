@@ -946,6 +946,7 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
   <div class="error-box" id="error-box" style="display:none;"></div>
 
   <button class="gen-btn" id="gen-btn" onclick="generate()">Generer innhold</button>
+  <div class="byok-upsell" onclick="goTab('pricing')">Du bruker din egen nøkkel. <strong>Med Pro er tekst, bilder og video inkludert.</strong></div>
 
   <!-- RESULT BOX -->
   <div class="result-box" id="result-box" style="display:none;">
@@ -6296,6 +6297,8 @@ if('serviceWorker' in navigator){
 <!-- ══ GUIDET VEIVISER ══ -->
 <style>
 .wiz-launch{display:block;width:100%;margin:0 0 16px;padding:15px 18px;border:none;border-radius:16px;background:linear-gradient(110deg,var(--rose),var(--rose-d));color:#fff;font-family:'Sasson Montessori',sans-serif;font-weight:800;font-size:15px;cursor:pointer;box-shadow:0 10px 26px -10px rgba(240,36,120,.5);}
+.byok-upsell{margin-top:10px;font-size:12px;color:var(--text-s);text-align:center;cursor:pointer;padding:9px 14px;background:var(--rose-l);border-radius:12px;line-height:1.5;}
+.byok-upsell strong{color:var(--rose-d);}
 .strat-card{background:#fff;border:1.5px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px;}
 .strat-h{font-family:'Playpen Sans',sans-serif;font-weight:800;color:var(--rose-d);font-size:15px;margin-bottom:10px;}
 .strat-pillars{display:flex;flex-wrap:wrap;gap:8px;}
