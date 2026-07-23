@@ -2824,6 +2824,8 @@ function strategyPrompt(){
   const time = state.timeLevel || '30 minutes a day';
   return `You are a content marketing strategist. Create a 90-day content strategy (13 weeks) for "${brand}" in the niche "${niche}". Main goal: ${goal}. Platforms: ${plats}. Voice: ${voice}. Available time: ${time}.
 
+Write ALL text (pillars, weekly themes and post ideas) in ENGLISH, even if the niche or brand name is Norwegian.
+
 Return ONLY valid JSON, no explanation, in this format:
 {"pillars":["pillar 1","pillar 2","pillar 3","pillar 4"],"rhythm":"one short sentence on posting rhythm matched to the time","weeks":[{"week":1,"theme":"theme of the week","posts":[{"day":"Mon","idea":"short concrete post idea","format":"reel","purpose":"Value"}]}]}
 
