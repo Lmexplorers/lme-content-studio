@@ -4003,7 +4003,7 @@ function storyHtml(text,idx,total,img){
       <span style="font-size:24px;">❤️</span><span style="font-size:24px;">✈️</span>
     </div>
     ${idx>0?`<button style="position:absolute;left:12px;top:50%;transform:translateY(-50%);z-index:10;background:rgba(255,255,255,.2);border:none;color:white;width:32px;height:32px;border-radius:50%;font-size:20px;cursor:pointer;" onclick="pvPrev()">‹</button>`:''}
-    ${slides&&idx<slides.length-1?`<button style="position:absolute;right:12px;top:50%;transform:translateY(-50%);z-index:10;background:rgba(255,255,255,.2);border:none;color:white;width:32px;height:32px;border-radius:50%;font-size:20px;cursor:pointer;" onclick="pvNext()">›</button>`:''}
+    ${idx<total-1?`<button style="position:absolute;right:12px;top:50%;transform:translateY(-50%);z-index:10;background:rgba(255,255,255,.2);border:none;color:white;width:32px;height:32px;border-radius:50%;font-size:20px;cursor:pointer;" onclick="pvNext()">›</button>`:''}
   </div></div>`;
 }
 
