@@ -1140,10 +1140,14 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
 <div id="tab-calendar" style="display:none;">
   <div class="card">
     <div class="cal-nav">
-      <button class="cal-nav-btn" onclick="changeWeek(-1)">← Forrige</button>
+      <button class="cal-nav-btn" onclick="changeWeek(-4)" title="4 weeks back">«</button>
+      <button class="cal-nav-btn" onclick="changeWeek(-1)">← Previous</button>
+      <button class="cal-nav-btn" onclick="goToday()">Today</button>
       <span class="cal-week-label" id="cal-week-label">This week</span>
-      <button class="cal-nav-btn" onclick="changeWeek(1)">Neste →</button>
+      <button class="cal-nav-btn" onclick="changeWeek(1)">Next →</button>
+      <button class="cal-nav-btn" onclick="changeWeek(4)" title="4 weeks ahead">»</button>
     </div>
+    <p style="font-size:11px;color:var(--text-s);margin:8px 2px 0;line-height:1.5;">Plan content up to 90 days ahead. Everything you schedule from “Create content” shows here on the right date and is saved, even after you close the app.</p>
     <div id="cal-days"></div>
   </div>
 </div>
@@ -2306,6 +2310,7 @@ const state = {
   platforms:['Instagram'],
   result:null, slides:null, currentSlide:0,
   history:[], weekOffset:0,
+  plan:[],
   imageUrl:null,
   videoFile:null, videoObjectUrl:null,
 };
@@ -2355,6 +2360,7 @@ function init(){
   renderChips('char-chips', CHARACTERS, 'char');
   renderChips('tone-chips', TONES, 'tone');
   renderPlatformChips(); renderSchedPlatforms();
+  loadPlan();
   renderIdeas(); renderCalendar(); renderHistory();
   updateSlidesCard(); updateReelSection();
   loadStrategy();
@@ -2603,10 +2609,11 @@ function dashContextHTML(){
 function renderDashboard(){
   const host=document.getElementById('dashboard-body'); if(!host) return;
   const h=state.history||[];
+  const plan=state.plan||[];
   const brand=(cfg&&cfg.brand)?cfg.brand:'';
   const greet=brand?('Hi, '+brand+' 🌸'):'Welcome 🌸';
 
-  if(!h.length){
+  if(!h.length && !plan.length){
     host.innerHTML=`<div class="dash-hero"><h2>${esc(greet)}</h2><p>Here's the overview of all your content: created, scheduled and published.</p></div>
       ${dashContextHTML()}
       <div class="dash-card"><div class="dash-empty">You haven't created any content yet.<br/>Make your first post and the overview fills up.<br/><button class="dash-cta" onclick="showTab('create',document.querySelectorAll('.tab-btn')[0])">Create content →</button></div></div>
@@ -2615,8 +2622,8 @@ function renderDashboard(){
     return;
   }
 
-  const scheduled=h.filter(x=>x.scheduledDate && !x.published);
-  const published=h.filter(x=>x.published).length;
+  const scheduled=plan.filter(x=>x.scheduledDate && !x.published);
+  const published=plan.filter(x=>x.published).length;
   const platSet=new Set(); h.forEach(x=>(x.platforms||[]).forEach(p=>platSet.add(p)));
   const byFmt={}; h.forEach(x=>{ byFmt[x.format]=(byFmt[x.format]||0)+1; });
   const maxFmt=Math.max(1,...Object.values(byFmt));
@@ -2690,30 +2697,38 @@ async function republish(i){
 }
 
 // ══ CALENDAR ══
+function ymd(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function renderCalendar(){
   const el=document.getElementById('cal-days');
   const label=document.getElementById('cal-week-label');
   const today=new Date(); const ws=new Date(today);
-  ws.setDate(today.getDate()-today.getDay()+1+state.weekOffset*7);
-  label.textContent=state.weekOffset===0?'Denne uken':state.weekOffset>0?'+'+state.weekOffset+' uker':state.weekOffset+' uker';
+  ws.setDate(today.getDate()-((today.getDay()+6)%7)+state.weekOffset*7);
+  const we=new Date(ws); we.setDate(ws.getDate()+6);
+  const range=(ws.getDate())+'.'+(ws.getMonth()+1)+'–'+we.getDate()+'.'+(we.getMonth()+1);
+  const rel=state.weekOffset===0?'This week':state.weekOffset>0?'+'+state.weekOffset+' weeks':state.weekOffset+' weeks';
+  if(label) label.textContent=rel+' · '+range;
+  const plan=state.plan||[];
   el.innerHTML=WEEKDAYS.map((d,i)=>{
     const date=new Date(ws); date.setDate(ws.getDate()+i);
+    const ds=ymd(date);
     const isToday=date.toDateString()===today.toDateString();
-    const items=state.history.filter(h=>h.scheduledDay===i);
+    const items=plan.filter(h=>h.scheduledDate===ds)
+      .sort((a,b)=>String(a.scheduledTime||'').localeCompare(String(b.scheduledTime||'')));
     return `<div class="cal-day${isToday?' today':''}">
       <div class="cal-day-header"><span class="cal-day-name">${d} ${date.getDate()}.${date.getMonth()+1}</span>${isToday?'<span class="today-badge">TODAY</span>':''}</div>
       ${items.length?items.map(it=>{
         const fmt=FORMATS.find(f=>f.id===it.format);
         return `<div class="cal-item">
-          <div style="display:flex;justify-content:space-between;"><div>${fmt?.emoji||''} ${it.topic}</div>${it.scheduledTime?'<div style="font-size:10px;color:var(--rose-d);font-weight:700;">🕐 '+it.scheduledTime+'</div>':''}</div>
-          ${it.scheduledPlatforms?.length?'<div style="font-size:10px;color:var(--text-s);margin-top:2px;">'+it.scheduledPlatforms.join(' · ')+'</div>':''}
-          ${it.published?'<div style="font-size:10px;color:var(--sage-d);margin-top:3px;">Published</div>':''}
+          <div style="display:flex;justify-content:space-between;gap:6px;"><div>${fmt?.emoji||''} ${esc(it.topic||'')}</div>${it.scheduledTime?'<div style="font-size:10px;color:var(--rose-d);font-weight:700;white-space:nowrap;">🕐 '+esc(it.scheduledTime)+'</div>':''}</div>
+          ${it.scheduledPlatforms?.length?'<div style="font-size:10px;color:var(--text-s);margin-top:2px;">'+esc(it.scheduledPlatforms.join(' · '))+'</div>':''}
+          ${it.published?'<div style="font-size:10px;color:var(--sage-d);margin-top:3px;">Published</div>':'<button type="button" onclick="removePlanItem(\''+String(it.id).replace(/'/g,"")+'\')" style="margin-top:4px;font-size:10px;color:#C81860;background:none;border:none;padding:0;cursor:pointer;">Remove</button>'}
         </div>`;
-      }).join(''):'<span class="cal-empty">No content</span>'}
+      }).join(''):'<span class="cal-empty">–</span>'}
     </div>`;
   }).join('');
 }
 function changeWeek(d){ state.weekOffset+=d; renderCalendar(); }
+function goToday(){ state.weekOffset=0; renderCalendar(); }
 
 // ══ TABS ══
 function showTab(id,btn){
@@ -2822,6 +2837,25 @@ Requirements:
 let strategy90 = null, stratFlat = [];
 function loadStrategy(){ try{ const s=localStorage.getItem('lme_strategy_90'); if(s) strategy90=JSON.parse(s); }catch(e){} renderStrategy(); }
 function saveStrategy(){ try{ localStorage.setItem('lme_strategy_90', JSON.stringify(strategy90)); }catch(e){} }
+
+// ══ SCHEDULED POSTS (persistent 90-day plan) ══
+// Scheduled posts are stored separately from the ephemeral generation history,
+// so they survive reloads and have no 20-item cap. The actual posting happens
+// through Blotato (scheduledTime) when you schedule; this is the durable overview.
+function loadPlan(){ try{ const s=localStorage.getItem('lme_plan_v1'); if(s) state.plan=JSON.parse(s)||[]; }catch(e){ state.plan=[]; } }
+function savePlan(){ try{ localStorage.setItem('lme_plan_v1', JSON.stringify(state.plan||[])); }catch(e){} }
+function upsertPlanItem(item){
+  state.plan=state.plan||[];
+  const ix=state.plan.findIndex(p=>p.id===item.id);
+  if(ix>=0) state.plan[ix]=item; else state.plan.unshift(item);
+  savePlan();
+}
+function removePlanItem(id){
+  state.plan=(state.plan||[]).filter(p=>String(p.id)!==String(id));
+  savePlan(); renderCalendar();
+  const dash=document.getElementById('tab-dashboard');
+  if(dash && dash.style.display!=='none') renderDashboard();
+}
 async function generateStrategy(){
   const btn=document.getElementById('strat-gen-btn'); if(!btn)return;
   const key=getApiKey();
@@ -3527,8 +3561,22 @@ async function schedulePost(){
     entry.scheduledDay=(d.getDay()+6)%7;
     entry.scheduledDate=date; entry.scheduledTime=time;
     entry.scheduledPlatforms=[...schedPlatforms];
-    renderCalendar();
   }
+  // Add to the persistent plan (survives reload, no 20-item cap)
+  const planTopic=(state.topic==='Custom topic...'?state.customTopic:state.topic)||(entry&&entry.topic)||'';
+  upsertPlanItem({
+    id:(entry&&entry.id)||Date.now(),
+    format:state.format,
+    topic:planTopic,
+    result:state.result,
+    imageUrl:state.imageUrl||null,
+    scheduledDate:date, scheduledTime:time,
+    scheduledPlatforms:[...schedPlatforms],
+    platforms:[...(state.platforms||[])],
+    published:false,
+    ts:new Date().toLocaleString('en-GB')
+  });
+  renderCalendar();
 
   const ok=document.getElementById('sched-ok');
   ok.style.display='block'; ok.className='sched-ok';
