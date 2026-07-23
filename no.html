@@ -3118,6 +3118,8 @@ function strategyPrompt(){
   const time = state.timeLevel || '30 minutter om dagen';
   return `Du er en strateg for innholdsmarkedsføring. Lag en 90-dagers innholdsstrategi (13 uker) for "${brand}" i nisjen "${niche}". Hovedmål: ${goal}. Plattformer: ${plats}. Stemme: ${voice}. Tilgjengelig tid: ${time}.
 
+Skriv ALL tekst (pilarer, ukestemaer og innleggsideer) på norsk (bokmål).
+
 Returner KUN gyldig JSON, ingen forklaring, på dette formatet:
 {"pillars":["pilar 1","pilar 2","pilar 3","pilar 4"],"rhythm":"én kort setning om posterytme tilpasset tiden","weeks":[{"week":1,"theme":"ukens tema","posts":[{"day":"Man","idea":"kort konkret innleggsidé","format":"reel","purpose":"Verdi"}]}]}
 
