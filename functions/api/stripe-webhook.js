@@ -1,5 +1,5 @@
 /**
- * LME Content Studio — Stripe webhook: fyller pa kreditter automatisk ved betaling.
+ * LME Autopilot — Stripe webhook: fyller pa kreditter automatisk ved betaling.
  *
  * Stripe sender hit ved betaling/fornyelse. Vi bekrefter signaturen (STRIPE_WEBHOOK_SECRET),
  * finner kundens e-post og hvilken plan de betalte for (utfra belopet), og setter

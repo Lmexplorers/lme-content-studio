@@ -1,5 +1,5 @@
 /**
- * LME Content Studio — lyd-proxy.
+ * LME Autopilot — lyd-proxy.
  * Henter en ekstern lydfil tjenerside og leverer den same-origin med CORS,
  * slik at FFmpeg.wasm kan lese den (cross-origin fetch+blob blokkeres ellers).
  *
@@ -27,7 +27,7 @@ export async function onRequestGet(context) {
 
   let upstream;
   try {
-    upstream = await fetch(target.toString(), { headers: { 'User-Agent': 'LME-Content-Studio' } });
+    upstream = await fetch(target.toString(), { headers: { 'User-Agent': 'LME-Autopilot' } });
   } catch (e) {
     return new Response('fetch failed', { status: 502 });
   }

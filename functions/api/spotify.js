@@ -1,5 +1,5 @@
 /**
- * LME Content Studio — Spotify-proxy (kun inspirasjon).
+ * LME Autopilot — Spotify-proxy (kun inspirasjon).
  * Bruker client-credentials-flyt for å søke etter populære spor.
  * Spotify-lyd kan IKKE bakes inn i eksportert video (lisens), kun forhåndshøres
  * via 30-sek smakebit og åpnes i Spotify.

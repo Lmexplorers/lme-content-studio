@@ -1,5 +1,5 @@
 /**
- * LME Content Studio — autoposting via Blotato.
+ * LME Autopilot — autoposting via Blotato.
  *
  * Kontrollerbar publiserings-motor (erstatter den gamle SocialBu-proxyen).
  * Klienten sender Blotato-nokkel + post-data hit; vi laster opp media til

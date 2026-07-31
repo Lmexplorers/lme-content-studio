@@ -1,5 +1,5 @@
 /**
- * LME Content Studio — generering via Cloudflare (proxy).
+ * LME Autopilot — generering via Cloudflare (proxy).
  * Unngår CORS ("Failed to fetch") og kan skjule nøkler.
  *
  * POST /api/generate

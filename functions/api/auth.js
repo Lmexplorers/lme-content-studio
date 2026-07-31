@@ -1,5 +1,5 @@
 /**
- * LME Content Studio — konto + passordløs innlogging + kreditter.
+ * LME Autopilot — konto + passordløs innlogging + kreditter.
  *
  * POST /api/auth  { action: "request", email }
  *   -> sender en 6-sifret engangskode på e-post (Resend). Returnerer devCode kun hvis DEV_AUTH=1.
@@ -78,7 +78,7 @@ function publicAccount(u) {
 async function sendCodeEmail(env, email, code) {
   const key = env.RESEND_API_KEY;
   if (!key) return false;
-  const from = env.EMAIL_FROM || "LME Content Studio <noreply@lmexplorers.com>";
+  const from = env.EMAIL_FROM || "LME Autopilot <noreply@lmexplorers.com>";
   try {
     const r = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -87,7 +87,7 @@ async function sendCodeEmail(env, email, code) {
         from, to: [email],
         subject: "Innloggingskode: " + code,
         html: `<div style="font-family:sans-serif;font-size:15px;color:#1A1A1A;">
-          <p>Hei!</p><p>Koden din til LME Content Studio er:</p>
+          <p>Hei!</p><p>Koden din til LME Autopilot er:</p>
           <p style="font-size:30px;font-weight:800;letter-spacing:4px;color:#C81860;">${code}</p>
           <p style="color:#666;">Koden varer i 10 minutter. Hvis du ikke ba om den, kan du se bort fra denne e-posten.</p></div>`,
       }),
