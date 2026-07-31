@@ -3894,7 +3894,7 @@ async function generateAndPublish(){ await genererBilde(); }
 
 // Sentral publisering via Blotato (Pages Function /api/publish).
 // mediaUrls maa vaere offentlige URL-er; Blotato laster dem ned og re-hoster.
-async function blotatoPublish({text, mediaUrls, scheduledTime, mediaName}){
+async function blotatoPublish({text, mediaUrls, scheduledTime, mediaName, target}){
   if(!cfg.blotatoKey) return {ok:false, error:'Mangler Blotato-nøkkel. Legg den inn i Innstillinger.'};
   if(!cfg.blotatoAccount) return {ok:false, error:'Mangler konto. Velg profil i Innstillinger.'};
   try{
@@ -3905,6 +3905,7 @@ async function blotatoPublish({text, mediaUrls, scheduledTime, mediaName}){
         blotatoKey: cfg.blotatoKey,
         accountId: cfg.blotatoAccount,
         targetType: cfg.blotatoPlatform||'instagram',
+        target: target||undefined,
         text: text||'',
         mediaUrls: (mediaUrls||[]).filter(Boolean),
         mediaName: mediaName||undefined,
@@ -5159,8 +5160,12 @@ async function sendReelTilSocialBu(publishAt, dateStr){
   const statusEl = document.getElementById('reel-export-status');
   const btn = document.querySelector('#editor-reel .export-btn.purple');
 
-  if(!cfg.socialbuKey || !cfg.makeWebhook || !(cfg.socialbuAccounts||[]).length){
-    statusEl.innerHTML = '<div class="pub-status error" style="margin-top:8px;">publiseringstjenesten ikke konfigurert. Legg inn token + webhook i Innstillinger.</div>';
+  if(!cfg.blotatoKey && (!cfg.socialbuKey || !cfg.makeWebhook || !(cfg.socialbuAccounts||[]).length)){
+    statusEl.innerHTML = '<div class="pub-status error" style="margin-top:8px;">Blotato er ikke satt opp. Legg inn Blotato-nøkkel og velg konto i ⚙️ Innstillinger.</div>';
+    return;
+  }
+  if(cfg.blotatoKey && !cfg.blotatoAccount){
+    statusEl.innerHTML = '<div class="pub-status error" style="margin-top:8px;">Velg hvilken Blotato-profil du vil poste til i ⚙️ Innstillinger.</div>';
     return;
   }
 
@@ -5189,52 +5194,42 @@ async function sendReelTilSocialBu(publishAt, dateStr){
       reader.readAsDataURL(editorState.reelVideoFile);
     });
 
-    statusEl.innerHTML = '<div class="pub-status loading" style="margin-top:8px;">Sender til publiseringstjenesten… <span class="loading-dots"><span></span><span></span><span></span></span></div>';
+    statusEl.innerHTML = '<div class="pub-status loading" style="margin-top:8px;">Sender til Blotato… <span class="loading-dots"><span></span><span></span><span></span></span></div>';
 
-    // Samme format som sendToSocialBu, Worker leser socialbuBody
-    const payload = {
-      socialbuKey: cfg.socialbuKey,
-      socialbuBody: {
-        accounts: cfg.socialbuAccounts || [],
-        content: fullCaption,
-        post_as_reel: true,
-        video_base64: videoBase64,
-        video_filename: editorState.reelVideoFile.name,
-        video_mime: editorState.reelVideoFile.type || 'video/mp4'
-      }
-    };
-    // If user picked a schedule time, use it.
-    // Otherwise default to 2 minutes from now (publiseringstjenesten requires publish_at).
-    if(publishAt){
-      payload.socialbuBody.publish_at = publishAt;
+    let done=false, errMsg='';
+    if(cfg.blotatoKey){
+      // Ny vei: send videoen (data-URI) til Blotato. publishAt (UTC 'YYYY-MM-DD HH:MM:SS') -> ISO for planlegging.
+      const plat = cfg.blotatoPlatform||'instagram';
+      const asReel = (plat==='instagram' || plat==='facebook');
+      const r = await blotatoPublish({
+        text: fullCaption,
+        mediaUrls: [videoBase64],
+        mediaName: editorState.reelVideoFile.name || 'lme-reel.mp4',
+        scheduledTime: publishAt ? (function(){ try{ return new Date(publishAt.replace(' ','T')+'Z').toISOString(); }catch(e){ return undefined; } })() : undefined,
+        target: asReel?{mediaType:'reel'}:undefined,
+      });
+      done=r.ok; errMsg=r.ok?'':(r.error||'Ukjent feil fra Blotato');
     } else {
-      const now = new Date();
-      now.setMinutes(now.getMinutes() + 2);
-      const yyyy = now.getUTCFullYear();
-      const mm = String(now.getUTCMonth()+1).padStart(2,'0');
-      const dd = String(now.getUTCDate()).padStart(2,'0');
-      const hh = String(now.getUTCHours()).padStart(2,'0');
-      const mi = String(now.getUTCMinutes()).padStart(2,'0');
-      const ss = String(now.getUTCSeconds()).padStart(2,'0');
-      payload.socialbuBody.publish_at = `${yyyy}-${mm}-${dd} ${hh}:${mi}:${ss}`;
+      // Gammel proxy (fallback hvis Blotato-nøkkel mangler).
+      const payload = { socialbuKey: cfg.socialbuKey, socialbuBody: { accounts: cfg.socialbuAccounts || [], content: fullCaption, post_as_reel: true, video_base64: videoBase64, video_filename: editorState.reelVideoFile.name, video_mime: editorState.reelVideoFile.type || 'video/mp4' } };
+      if(publishAt){ payload.socialbuBody.publish_at = publishAt; }
+      else {
+        const now = new Date(); now.setMinutes(now.getMinutes() + 2);
+        const yyyy = now.getUTCFullYear(); const mm = String(now.getUTCMonth()+1).padStart(2,'0'); const dd = String(now.getUTCDate()).padStart(2,'0');
+        const hh = String(now.getUTCHours()).padStart(2,'0'); const mi = String(now.getUTCMinutes()).padStart(2,'0'); const ss = String(now.getUTCSeconds()).padStart(2,'0');
+        payload.socialbuBody.publish_at = `${yyyy}-${mm}-${dd} ${hh}:${mi}:${ss}`;
+      }
+      const res = await smartFetch(cfg.makeWebhook, { method: 'POST', headers: {'Content-Type': 'text/plain'}, body: JSON.stringify(payload), _timeoutMs: 120000 });
+      done=res.ok; if(!done){ const errText = await res.text().catch(()=>''); errMsg='Proxy returnerte status ' + res.status + (errText ? ', ' + errText.slice(0,200) : ''); }
     }
 
-    const res = await smartFetch(cfg.makeWebhook, {
-      method: 'POST',
-      // Sender som text/plain for å unngå CORS preflight. Worker aksepterer JSON-body uansett.
-      headers: {'Content-Type': 'text/plain'},
-      body: JSON.stringify(payload),
-      _timeoutMs: 120000 // 2 min for store videoer
-    });
-
-    if(res.ok){
+    if(done){
       const successMsg = dateStr
-        ? `🎬✅ Reel planlagt til ${dateStr}! Sjekk publiseringstjenesten-dashboardet.`
-        : '🎬✅ Reel sendt til publiseringstjenesten! Sjekk dashboardet ditt.';
+        ? `🎬✅ Reel planlagt til ${dateStr}! Sjekk <a href="https://my.blotato.com" target="_blank" style="color:var(--rose-d);font-weight:700;">my.blotato.com</a>.`
+        : '🎬✅ Reel sendt til Blotato! Sjekk <a href="https://my.blotato.com" target="_blank" style="color:var(--rose-d);font-weight:700;">my.blotato.com</a> for status.';
       statusEl.innerHTML = '<div class="pub-status success" style="margin-top:8px;">' + successMsg + '</div>';
     } else {
-      const errText = await res.text().catch(()=>'');
-      throw new Error('Proxy returnerte status ' + res.status + (errText ? ', ' + errText.slice(0,200) : ''));
+      throw new Error(errMsg||'Publisering feilet');
     }
   } catch(e){
     statusEl.innerHTML = `<div class="pub-status error" style="margin-top:8px;">Kunne ikke sende: ${e.message}<br/><span style="font-size:11px;">Sjekk Cloudflare Worker logs for detaljer.</span></div>`;
@@ -6033,48 +6028,56 @@ async function exportStory(){
 }
 
 async function exportAndPublishStory(){
+  const statusEl = document.getElementById('story-export-status');
+
+  // Krev Blotato (nokkel + valgt konto). Faller tilbake til gammel proxy KUN hvis Blotato mangler.
+  if(!cfg.blotatoKey && (!cfg.socialbuKey || !cfg.makeWebhook || !(cfg.socialbuAccounts||[]).length)){
+    statusEl.innerHTML = '<div class="pub-status error" style="margin-top:8px;">Blotato er ikke satt opp. Legg inn Blotato-nøkkel og velg konto i ⚙️ Innstillinger.</div>';
+    return;
+  }
+  if(cfg.blotatoKey && !cfg.blotatoAccount){
+    statusEl.innerHTML = '<div class="pub-status error" style="margin-top:8px;">Velg hvilken Blotato-profil du vil poste til i ⚙️ Innstillinger.</div>';
+    return;
+  }
+
   window._storyExporting=true; drawStoryCanvas();
   await new Promise(r => setTimeout(r, 150));
   const canvas = document.getElementById('story-canvas');
-  const statusEl = document.getElementById('story-export-status');
 
-  // Convert to blob then base64
+  // Convert to blob then data-URI (Blotato tar imot data-URI direkte)
   canvas.toBlob(async (blob) => {
     window._storyExporting=false; drawStoryCanvas();
     const reader = new FileReader();
     reader.onload = async (e) => {
-      const base64 = e.target.result.split(',')[1];
-      statusEl.innerHTML = '<div class="pub-status loading" style="margin-top:8px;">Sender story-bilde til publiseringstjenesten… <span class="loading-dots"><span></span><span></span><span></span></span></div>';
-
-      if(!cfg.socialbuKey || !cfg.makeWebhook || !(cfg.socialbuAccounts||[]).length){
-        statusEl.innerHTML = '<div class="pub-status error" style="margin-top:8px;">publiseringstjenesten ikke konfigurert. Legg inn token + webhook i Innstillinger.</div>';
-        return;
-      }
+      const dataUri = e.target.result;              // data:image/png;base64,...
+      const base64 = dataUri.split(',')[1];
+      statusEl.innerHTML = '<div class="pub-status loading" style="margin-top:8px;">Sender story til Blotato… <span class="loading-dots"><span></span><span></span><span></span></span></div>';
 
       const caption = state.result ? (Array.isArray(state.result) ? state.result[state.currentSlide||0] : state.result) : '';
       const storyLink = document.getElementById('story-link')?.value||'';
       const storyPoll = document.getElementById('story-poll')?.value||'';
       const storyCTA  = document.getElementById('story-cta-overlay')?.value||'';
       const extraText = [storyPoll, storyCTA, storyLink].filter(Boolean).join('\n');
-      const fullCaption = extraText ? caption + '\n\n' + extraText : caption;
-      const payload = {
-        socialbuKey: cfg.socialbuKey,
-        socialbuBody: {
-          accounts: cfg.socialbuAccounts,
-          content: fullCaption||caption,
-          options: {post_as_story: true},
-        },
-        imageBase64: base64,
-        imageMimeType: 'image/png',
-        imageName: 'lme-story.png',
-      };
+      const fullCaption = extraText ? (caption ? caption + '\n\n' + extraText : extraText) : caption;
 
       try {
-        const res = await smartFetch(cfg.makeWebhook, {method:'POST', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(payload)});
-        if(res.ok){
-          statusEl.innerHTML = '<div class="pub-status success" style="margin-top:8px;">Story sendt til publiseringstjenesten! Sjekk dashboardet ditt.</div>';
+        let done=false, errMsg='';
+        if(cfg.blotatoKey){
+          // Ny vei: send story-bildet direkte til Blotato. For Instagram/Facebook postes det som Story.
+          const plat = cfg.blotatoPlatform||'instagram';
+          const asStory = (plat==='instagram' || plat==='facebook');
+          const r = await blotatoPublish({ text: fullCaption||caption, mediaUrls:[dataUri], mediaName:'lme-story.png', target: asStory?{mediaType:'story'}:undefined });
+          done=r.ok; errMsg=r.ok?'':(r.error||'Ukjent feil fra Blotato');
         } else {
-          throw new Error('Status '+res.status);
+          // Gammel proxy (fallback hvis Blotato-nøkkel mangler).
+          const payload = { socialbuKey: cfg.socialbuKey, socialbuBody:{ accounts:cfg.socialbuAccounts, content:fullCaption||caption, options:{post_as_story:true} }, imageBase64: base64, imageMimeType:'image/png', imageName:'lme-story.png' };
+          const res = await smartFetch(cfg.makeWebhook, {method:'POST', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(payload)});
+          done=res.ok; if(!done) errMsg='Proxy returnerte status '+res.status;
+        }
+        if(done){
+          statusEl.innerHTML = '<div class="pub-status success" style="margin-top:8px;">📸✅ <strong>Story sendt til Blotato!</strong><br/>Sjekk <a href="https://my.blotato.com" target="_blank" style="color:var(--rose-d);font-weight:700;">my.blotato.com</a> for status: publisert, planlagt eller feilet med årsak.</div>';
+        } else {
+          statusEl.innerHTML = `<div class="pub-status error" style="margin-top:8px;">Publisering feilet: ${errMsg}<br/><span style="font-size:11px;">Sjekk at Blotato-nøkkel og konto er valgt i Innstillinger, og at Instagram-kontoen er en Business/Creator-konto som er koblet til i Blotato.</span></div>`;
         }
       } catch(e) {
         statusEl.innerHTML = `<div class="pub-status error" style="margin-top:8px;">Feil: ${e.message}</div>`;
@@ -6779,8 +6782,12 @@ async function renderAndPublishReel(){
   const statusEl = document.getElementById('reel-export-status');
   const btn      = document.querySelector('#editor-reel .export-btn.purple');
 
-  if(!cfg.socialbuKey || !cfg.makeWebhook || !(cfg.socialbuAccounts||[]).length){
-    statusEl.innerHTML = '<div class="pub-status error">publiseringstjenesten ikke konfigurert. Legg inn Bearer token + Konto-ID-er i Innstillinger.</div>';
+  if(!cfg.blotatoKey && (!cfg.socialbuKey || !cfg.makeWebhook || !(cfg.socialbuAccounts||[]).length)){
+    statusEl.innerHTML = '<div class="pub-status error">Blotato er ikke satt opp. Legg inn Blotato-nøkkel og velg konto i ⚙️ Innstillinger.</div>';
+    return;
+  }
+  if(cfg.blotatoKey && !cfg.blotatoAccount){
+    statusEl.innerHTML = '<div class="pub-status error">Velg hvilken Blotato-profil du vil poste til i ⚙️ Innstillinger.</div>';
     return;
   }
 
@@ -6791,7 +6798,7 @@ async function renderAndPublishReel(){
     blob = await stampAdOnReel(blob, statusEl);
 
     // 2. Convert to base64
-    statusEl.innerHTML = '<div class="pub-status loading">Sender til publiseringstjenesten… <span class="loading-dots"><span></span><span></span><span></span></span></div>';
+    statusEl.innerHTML = '<div class="pub-status loading">Sender til Blotato… <span class="loading-dots"><span></span><span></span><span></span></span></div>';
     const base64 = await blobToBase64(blob);
 
     // 3. Caption
@@ -6803,34 +6810,28 @@ async function renderAndPublishReel(){
     const parts = [mainCaption, cta, hashtags].filter(Boolean);
     const fullCaption = overlayText ? overlayText + '\n\n' + parts.join('\n\n') : parts.join('\n\n');
 
-    // 4. Send via Worker proxy
-    const payload = {
-      socialbuKey:  cfg.socialbuKey,
-      socialbuBody: {
-        accounts: cfg.socialbuAccounts,
-        content:  fullCaption,
-        options:  {post_as_reel: true},
-      },
-      videoBase64:   base64,
-      videoMimeType: 'video/mp4',
-      videoName:     'lme-reel-with-music.mp4',
-    };
-
-    const res = await smartFetch(cfg.makeWebhook, {
-      method:'POST',
-      headers:{'Content-Type':'text/plain'},
-      body:JSON.stringify(payload)
-    });
-
-    if(res.ok){
-      statusEl.innerHTML = '<div class="pub-status success">🎬🎵✅ <strong>Ferdig!</strong> Video med musikk bakt inn er sendt til publiseringstjenesten automatisk. Sjekk dashboardet ditt!</div>';
+    // 4. Send
+    let done=false, errMsg='';
+    if(cfg.blotatoKey){
+      const plat = cfg.blotatoPlatform||'instagram';
+      const asReel = (plat==='instagram' || plat==='facebook');
+      const r = await blotatoPublish({ text: fullCaption, mediaUrls:['data:video/mp4;base64,'+base64], mediaName:'lme-reel-with-music.mp4', target: asReel?{mediaType:'reel'}:undefined });
+      done=r.ok; errMsg=r.ok?'':(r.error||'Ukjent feil fra Blotato');
     } else {
-      throw new Error('Proxy svarte med status '+res.status);
+      const payload = { socialbuKey: cfg.socialbuKey, socialbuBody:{ accounts:cfg.socialbuAccounts, content:fullCaption, options:{post_as_reel:true} }, videoBase64:base64, videoMimeType:'video/mp4', videoName:'lme-reel-with-music.mp4' };
+      const res = await smartFetch(cfg.makeWebhook, {method:'POST', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(payload)});
+      done=res.ok; if(!done) errMsg='Proxy svarte med status '+res.status;
+    }
+
+    if(done){
+      statusEl.innerHTML = '<div class="pub-status success">🎬🎵✅ <strong>Sendt til Blotato!</strong> Video med musikk bakt inn. Sjekk <a href="https://my.blotato.com" target="_blank" style="color:var(--rose-d);font-weight:700;">my.blotato.com</a> for status.</div>';
+    } else {
+      statusEl.innerHTML = `<div class="pub-status error">Publisering feilet: ${errMsg}<br/><span style="font-size:11px;">Sjekk at Blotato-nøkkel og konto er valgt i Innstillinger, og at kontoen er koblet til i Blotato.</span></div>`;
     }
   }catch(e){
-    statusEl.innerHTML = `<div class="pub-status error">Feil: ${e.message}<br/><span style="font-size:11px;">Sjekk proxy URL og publiseringstjenesten token i Innstillinger.</span></div>`;
+    statusEl.innerHTML = `<div class="pub-status error">Feil: ${e.message}</div>`;
   }
-  if(btn){ btn.disabled=false; btn.textContent='Renderer + send automatisk til publiseringstjenesten'; }
+  if(btn){ btn.disabled=false; btn.textContent='Renderer + send automatisk til Blotato'; }
 }
 
 function blobToBase64(blob){
