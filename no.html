@@ -2026,6 +2026,15 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
       </div>
     </div>
 
+    <!-- Annonsemerking -->
+    <div class="card">
+      <div class="card-title">Annonsemerking</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+        <div style="font-size:11px;color:var(--text-s);line-height:1.5;">Legg et lite "Reklame"-merke øverst til høyre. Påkrevd når innlegget er betalt reklame.</div>
+        <button class="chip" id="story-ad-toggle" onclick="toggleAdLabel()" style="flex-shrink:0;">Reklame</button>
+      </div>
+    </div>
+
     <!-- Text overlay -->
     <div class="card">
       <div class="card-title">Hook / Tekst</div>
@@ -5070,6 +5079,7 @@ const editorState = {
   textColor: 'white',
   logo: 'lme',
   logoPos: 'bottom',
+  adLabel: false,
   // Reel
   reelVideoFile: null,
   reelVideoUrl: null,
@@ -5238,6 +5248,7 @@ function drawStoryCanvas(){
       ctx.drawImage(img, (W-sw)/2, (H-sh)/2, sw, sh);
       drawStoryText(ctx, W, H);
       drawStoryLogo(ctx, W, H);
+      drawStoryAdBadge(ctx, W, H);
     };
     img.src = editorState.bgImage;
     return;
@@ -5246,6 +5257,40 @@ function drawStoryCanvas(){
   drawStoryText(ctx, W, H);
   drawStoryOverlays(ctx, W, H);
   drawStoryLogo(ctx, W, H);
+  drawStoryAdBadge(ctx, W, H);
+}
+
+// Lite annonsemerke ("Reklame" / "Ads") øverst til høyre. Lovpålagt merking av betalt reklame.
+function drawStoryAdBadge(ctx, W, H){
+  if(!editorState.adLabel) return;
+  const txt = (document.documentElement.lang === 'en') ? 'Ads' : 'Reklame';
+  ctx.save();
+  ctx.font = "bold 34px 'Georgia', serif";
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  const padX = 26, margin = 44;
+  const tw = ctx.measureText(txt).width;
+  const bw = tw + padX * 2, bh = 66;
+  const x = W - margin - bw, y = margin, r = bh / 2;
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + bw, y, x + bw, y + bh, r);
+  ctx.arcTo(x + bw, y + bh, x, y + bh, r);
+  ctx.arcTo(x, y + bh, x, y, r);
+  ctx.arcTo(x, y, x + bw, y, r);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(240,36,120,0.95)';
+  ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText(txt, x + padX, y + bh / 2 + 2);
+  ctx.restore();
+}
+
+function toggleAdLabel(){
+  editorState.adLabel = !editorState.adLabel;
+  const b = document.getElementById('story-ad-toggle');
+  if(b) b.classList.toggle('active', editorState.adLabel);
+  drawStoryCanvas();
 }
 
 function drawStoryOverlays(ctx, W, H){
