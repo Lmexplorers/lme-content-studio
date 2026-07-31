@@ -1488,6 +1488,16 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
 
 <!-- ════ SETTINGS ════ -->
 <div id="tab-settings" style="display:none;">
+  <div class="card" style="border-color:var(--rose-m);background:var(--rose-l);">
+    <div class="card-title">Brand profile</div>
+    <div style="font-size:11px;color:var(--text-s);margin-bottom:10px;line-height:1.5;">Switch between several brands (for example Montessori and the YouTube course). Each profile has its own brand, niche, audience and voice. Keys and connections are shared.</div>
+    <select id="profile-select" onchange="switchProfile(this.value)" style="width:100%;margin-bottom:10px;"></select>
+    <div style="display:flex;gap:7px;flex-wrap:wrap;">
+      <button class="chip" onclick="newProfile()">+ New profile</button>
+      <button class="chip" onclick="renameProfile()">Rename</button>
+      <button class="chip" onclick="deleteProfile()" style="color:#E5484D;">Delete</button>
+    </div>
+  </div>
   <div class="card">
     <div class="card-title">Your brand & niche</div>
     <div style="display:flex;flex-direction:column;gap:10px;">
@@ -4028,6 +4038,7 @@ function applySettingsToUI(){
   s('s-char-names',cfg.charNames); s('s-char-desc',cfg.charDesc);
   selectCharPreset(cfg.charPreset||'none');
   loadNotificationState();
+  try{ ensureProfiles(); renderProfileSelector(); }catch(e){}
 }
 function saveSettings(){
   const g=id=>{const el=document.getElementById(id);return el?el.value:'';};
@@ -4055,8 +4066,77 @@ function saveSettings(){
     // Also keep backwards-compat key
     localStorage.setItem('lme_innstillinger_no',JSON.stringify(cfg));
   }catch(e){}
+  try{ syncActiveProfile(); }catch(e){}
 }
 function persistCfg(){ try{ localStorage.setItem('lme_en_v2',JSON.stringify(cfg)); localStorage.setItem('lme_innstillinger_no',JSON.stringify(cfg)); }catch(e){} }
+
+/* ───────── Brand profiles (switch between several brands) ───────── */
+var PROFILE_FIELDS=['brand','niche','voice','audience','greeting','signature','charPreset','charNames','charDesc'];
+function loadProfiles(){ try{ return JSON.parse(localStorage.getItem('lme_profiles')||'null'); }catch(e){ return null; } }
+function saveProfiles(p){ try{ localStorage.setItem('lme_profiles', JSON.stringify(p)); }catch(e){} }
+function ensureProfiles(){
+  var p=loadProfiles();
+  if(!p || !p.list || !p.list.length){
+    var def={ id:'p'+(_elId++)+'x', name:(cfg.brand||'Profile 1') };
+    PROFILE_FIELDS.forEach(function(f){ def[f]=cfg[f]||''; });
+    p={ active:def.id, list:[def] };
+    saveProfiles(p);
+  }
+  return p;
+}
+function applyProfileFields(prof){ PROFILE_FIELDS.forEach(function(f){ cfg[f]=prof[f]||''; }); }
+function syncActiveProfile(){
+  var p=loadProfiles(); if(!p) return;
+  var prof=p.list.find(function(x){return x.id===p.active;}); if(!prof) return;
+  PROFILE_FIELDS.forEach(function(f){ prof[f]=cfg[f]||''; });
+  if(cfg.brand && (!prof.name || prof.name==='Profile 1')) prof.name=cfg.brand;
+  saveProfiles(p); renderProfileSelector();
+}
+function renderProfileSelector(){
+  var p=loadProfiles(); var sel=document.getElementById('profile-select'); if(!sel||!p) return;
+  sel.innerHTML=p.list.map(function(x){ return '<option value="'+x.id+'"'+(x.id===p.active?' selected':'')+'>'+esc(x.name||'Profile')+'</option>'; }).join('');
+}
+function switchProfile(id){
+  saveSettings();
+  var p=loadProfiles(); if(!p) return;
+  var prof=p.list.find(function(x){return x.id===id;}); if(!prof) return;
+  p.active=id; saveProfiles(p);
+  applyProfileFields(prof); persistCfg();
+  loadSettings();
+  try{ renderNiches(); renderTopics(); updateCharAvailability(); }catch(e){}
+  renderProfileSelector();
+}
+function newProfile(){
+  var name=prompt('Name of the new profile (e.g. YouTube course)'); if(!name||!name.trim()) return;
+  saveSettings();
+  var p=ensureProfiles(); var np={ id:'p'+(_elId++)+'x', name:name.trim() };
+  PROFILE_FIELDS.forEach(function(f){ np[f]=''; });
+  p.list.push(np); p.active=np.id; saveProfiles(p);
+  applyProfileFields(np); persistCfg(); loadSettings();
+  try{ renderNiches(); renderTopics(); updateCharAvailability(); }catch(e){}
+  renderProfileSelector();
+}
+function renameProfile(){
+  var p=loadProfiles(); if(!p) return; var prof=p.list.find(function(x){return x.id===p.active;}); if(!prof) return;
+  var name=prompt('New name for the profile', prof.name||''); if(!name||!name.trim()) return;
+  prof.name=name.trim(); saveProfiles(p); renderProfileSelector();
+}
+function deleteProfile(){
+  var p=loadProfiles(); if(!p) return;
+  if(p.list.length<=1){ alert('You need at least one profile.'); return; }
+  if(!confirm('Delete this profile? The app content is not affected.')) return;
+  var i=p.list.findIndex(function(x){return x.id===p.active;}); if(i<0) return;
+  p.list.splice(i,1); p.active=p.list[0].id; saveProfiles(p);
+  applyProfileFields(p.list[0]); persistCfg(); loadSettings();
+  try{ renderNiches(); renderTopics(); updateCharAvailability(); }catch(e){}
+  renderProfileSelector();
+}
+function initProfiles(){
+  var p=ensureProfiles();
+  var act=p.list.find(function(x){return x.id===p.active;});
+  if(act){ applyProfileFields(act); try{ persistCfg(); }catch(e){} }
+  renderProfileSelector();
+}
 function saveSettingsConfirm(){
   saveSettings();
   const ok=document.getElementById('settings-ok');ok.style.display='block';
@@ -4785,6 +4865,7 @@ async function smartFetch(url, options){
 
 // ══ START ══
 loadSettings();
+try{ initProfiles(); }catch(e){}
 init();
 
 // ══════════════════════════════════════════════════════
