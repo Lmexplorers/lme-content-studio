@@ -2049,8 +2049,8 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
           <input id="see-opt1" class="text-overlay-input" style="margin-bottom:8px;" placeholder="Valg 1" oninput="updateStoryEl('opt1',this.value)"/>
           <input id="see-opt2" class="text-overlay-input" style="margin-bottom:8px;" placeholder="Valg 2" oninput="updateStoryEl('opt2',this.value)"/>
         </div>
-        <div class="hk-row"><div class="hk-lab">Størrelse</div><input type="range" min="16" max="90" id="see-size" oninput="updateStoryEl('size',this.value)" style="width:100%;accent-color:var(--rose);"></div>
-        <div class="hk-row"><div class="hk-lab">Farge</div><div id="see-colors" class="hk-sws"></div></div>
+        <div class="hk-row" id="see-sizerow"><div class="hk-lab">Størrelse</div><input type="range" min="16" max="90" id="see-size" oninput="updateStoryEl('size',this.value)" style="width:100%;accent-color:var(--rose);"></div>
+        <div class="hk-row" id="see-colorrow"><div class="hk-lab">Farge</div><div id="see-colors" class="hk-sws"></div></div>
         <button class="chip" onclick="deleteStoryEl()" style="background:#E5484D;color:#fff;border-color:#E5484D;margin-top:10px;">Slett element</button>
       </div>
     </div>
@@ -5510,6 +5510,13 @@ function drawStoryCanvas(){
 /* ───────── Flyttbare story-elementer (tekst, poll, spørsmål, lenke, emoji, reaksjoner) ───────── */
 function _storyEls(){ if(!editorState.storyEls) editorState.storyEls=[]; return editorState.storyEls; }
 var _selEl=null, _elId=1;
+// Velg svart eller hvit tekst ut fra bakgrunnsfargens lyshet (for lesbarhet på lenke-knapp osv.).
+function _contrastText(hex){
+  try{ hex=(hex||'#ffffff').replace('#',''); if(hex.length===3) hex=hex.split('').map(function(c){return c+c;}).join('');
+    var r=parseInt(hex.slice(0,2),16), g=parseInt(hex.slice(2,4),16), b=parseInt(hex.slice(4,6),16);
+    return (0.299*r+0.587*g+0.114*b)>150 ? '#111111' : '#ffffff';
+  }catch(e){ return '#111111'; }
+}
 function addStoryEl(type){
   const els=_storyEls();
   const e={ id:'e'+(_elId++), type:type, xPct:0.5, yPct:0.42, size:(type==='emoji'?46:26), color:'#ffffff' };
@@ -5527,7 +5534,7 @@ function storyElHtml(e){
   if(e.type==='text') return '<div class="st-el txt'+sel+'" data-eid="'+e.id+'" style="'+pos+'font-size:'+e.size+'px;color:'+e.color+';">'+esc2(e.text)+'</div>';
   if(e.type==='emoji') return '<div class="st-el emoji'+sel+'" data-eid="'+e.id+'" style="'+pos+'font-size:'+e.size+'px;">'+esc2(e.text||'😊')+'</div>';
   if(e.type==='react') return '<div class="st-el react'+sel+'" data-eid="'+e.id+'" style="'+pos+'">'+(e.text||'').split(' ').filter(Boolean).map(function(x){return '<span>'+esc2(x)+'</span>';}).join('')+'</div>';
-  if(e.type==='link') return '<div class="st-el link'+sel+'" data-eid="'+e.id+'" style="'+pos+'">🔗 '+esc2(e.text||'Lenke')+'</div>';
+  if(e.type==='link'){ var lbg=e.color||'#ffffff'; return '<div class="st-el link'+sel+'" data-eid="'+e.id+'" style="'+pos+'background:'+lbg+';color:'+_contrastText(lbg)+';">🔗 '+esc2(e.text||'Lenke')+'</div>'; }
   const opts=(e.type==='poll')?('<div class="pq-opts"><div class="pq-opt">'+esc2(e.opt1||'Ja')+'</div><div class="pq-opt">'+esc2(e.opt2||'Nei')+'</div></div>'):'<div class="pq-ans">Svar…</div>';
   return '<div class="st-el '+(e.type==='poll'?'poll':'quest')+sel+'" data-eid="'+e.id+'" style="'+pos+'"><div class="pq-q">'+esc2(e.text)+'</div>'+opts+'</div>';
 }
@@ -5561,6 +5568,9 @@ function selectStoryEl(id){
   ed.style.display='block';
   document.getElementById('see-urlrow').style.display = (e.type==='link') ? 'block' : 'none';
   document.getElementById('see-pollrow').style.display = (e.type==='poll') ? 'block' : 'none';
+  // Farge gjelder tekst og lenke-knapp. Størrelse gjelder tekst og emoji. Skjul der det ikke gjør noe.
+  { const cr=document.getElementById('see-colorrow'); if(cr) cr.style.display = (e.type==='text'||e.type==='link') ? 'block' : 'none'; }
+  { const sr=document.getElementById('see-sizerow'); if(sr) sr.style.display = (e.type==='text'||e.type==='emoji') ? 'block' : 'none'; }
   const t=document.getElementById('see-text'); if(t){ t.value=e.text||''; t.placeholder = e.type==='emoji'?'Emoji':e.type==='react'?'Emoji med mellomrom mellom':e.type==='link'?'Knappetekst':(e.type==='poll'||e.type==='quest')?'Spørsmål':'Tekst'; }
   const u=document.getElementById('see-url'); if(u) u.value=e.url||'';
   const o1=document.getElementById('see-opt1'); if(o1) o1.value=e.opt1||'';
@@ -5597,8 +5607,9 @@ function drawStoryElements(ctx,W,H){
       ctx.fillStyle='#111'; ctx.textAlign='left'; var cx=bx+pad; parts.forEach(function(p,i){ ctx.fillText(p, cx, y); cx+=ws[i]+gap; });
     } else if(e.type==='link'){
       const fs=20*sc; ctx.font='800 '+fs+"px 'Sasson Montessori',sans-serif"; ctx.textAlign='left'; ctx.textBaseline='middle';
+      const bg=e.color||'#ffffff';
       const label='🔗 '+(e.text||'Lenke'); const tw=ctx.measureText(label).width; const pad=fs*0.8, h=fs*2.2, w=tw+pad*2;
-      const bx=x-w/2, by=y-h/2; roundRectPath(ctx,bx,by,w,h,fs*0.6); ctx.fillStyle='#fff'; ctx.fill(); ctx.fillStyle='#111'; ctx.fillText(label, bx+pad, y);
+      const bx=x-w/2, by=y-h/2; roundRectPath(ctx,bx,by,w,h,fs*0.6); ctx.fillStyle=bg; ctx.fill(); ctx.fillStyle=_contrastText(bg); ctx.fillText(label, bx+pad, y);
     } else {
       const fs=16*sc; const w=W*0.62, pad=fs*0.9; ctx.font='800 '+fs+"px 'Playpen Sans',sans-serif"; ctx.textAlign='center';
       const qlines=wrapText(ctx, e.text||'', w-pad*2); const optH=fs*2.4; const qH=qlines.length*fs*1.25;
