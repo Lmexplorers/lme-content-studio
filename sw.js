@@ -1,7 +1,7 @@
 // LME Autopilot — Service Worker
 // Enables PWA installation + basic offline support for app shell.
 
-const CACHE_VERSION = 'lme-v117';
+const CACHE_VERSION = 'lme-v118';
 const APP_SHELL = [
   '/',
   '/index.html',
