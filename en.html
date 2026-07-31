@@ -1716,7 +1716,46 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
       <div class="story-canvas-ratio">
         <div class="story-canvas-inner">
           <canvas id="story-canvas" width="1080" height="1920"></canvas>
+          <div id="story-overlay"></div>
         </div>
+      </div>
+    </div>
+
+    <style>
+    #story-overlay{position:absolute;inset:0;overflow:hidden;border-radius:20px;}
+    .st-el{position:absolute;transform:translate(-50%,-50%);cursor:grab;touch-action:none;max-width:90%;text-align:center;}
+    .st-el.sel{outline:2px dashed var(--rose);outline-offset:3px;border-radius:8px;}
+    .st-el.txt{font-family:'Playpen Sans',sans-serif;font-weight:800;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.6);line-height:1.2;white-space:pre-wrap;padding:2px 6px;}
+    .st-el.emoji{line-height:1;}
+    .st-el.react{background:rgba(255,255,255,.92);border-radius:999px;padding:7px 13px;display:flex;gap:7px;font-size:21px;box-shadow:0 3px 12px rgba(0,0,0,.25);}
+    .st-el.link{background:#fff;border-radius:12px;padding:8px 15px;font-family:'Sasson Montessori',sans-serif;font-weight:800;color:#111;font-size:14px;display:flex;align-items:center;gap:6px;box-shadow:0 3px 12px rgba(0,0,0,.25);white-space:nowrap;}
+    .st-el.poll,.st-el.quest{background:rgba(255,255,255,.96);border-radius:16px;padding:11px;width:190px;box-shadow:0 4px 16px rgba(0,0,0,.25);}
+    .st-el .pq-q{font-family:'Playpen Sans',sans-serif;font-weight:800;font-size:13px;color:#111;text-align:center;margin-bottom:9px;line-height:1.25;}
+    .st-el .pq-opts{display:flex;gap:6px;}
+    .st-el .pq-opt{flex:1;background:linear-gradient(110deg,var(--rose),var(--rose-d));color:#fff;border-radius:9px;padding:7px;font-family:'Sasson Montessori',sans-serif;font-weight:700;font-size:12px;text-align:center;}
+    .st-el .pq-ans{background:#f0f0f3;border-radius:9px;padding:9px;color:#999;font-size:12px;font-family:'Sasson Montessori',sans-serif;text-align:center;}
+    </style>
+    <div class="card">
+      <div class="card-title">Add to the story</div>
+      <div style="display:flex;gap:7px;flex-wrap:wrap;">
+        <button class="chip" onclick="addStoryEl('text')">✏️ Text</button>
+        <button class="chip" onclick="addStoryEl('poll')">📊 Poll</button>
+        <button class="chip" onclick="addStoryEl('quest')">❓ Question</button>
+        <button class="chip" onclick="addStoryEl('link')">🔗 Link</button>
+        <button class="chip" onclick="addStoryEl('emoji')">😊 Emoji</button>
+        <button class="chip" onclick="addStoryEl('react')">💗 Reactions</button>
+      </div>
+      <div style="font-size:11px;color:var(--text-s);margin-top:8px;line-height:1.5;">Drag the elements wherever you want on the story. Tap an element to change text, color and size.</div>
+      <div id="story-el-editor" style="display:none;margin-top:12px;padding:12px;background:var(--rose-l);border-radius:12px;">
+        <div id="see-textrow"><input id="see-text" class="text-overlay-input" style="margin-bottom:8px;" placeholder="Text" oninput="updateStoryEl('text',this.value)"/></div>
+        <div id="see-urlrow" style="display:none;"><input id="see-url" class="text-overlay-input" style="margin-bottom:8px;" placeholder="https://..." oninput="updateStoryEl('url',this.value)"/></div>
+        <div id="see-pollrow" style="display:none;">
+          <input id="see-opt1" class="text-overlay-input" style="margin-bottom:8px;" placeholder="Option 1" oninput="updateStoryEl('opt1',this.value)"/>
+          <input id="see-opt2" class="text-overlay-input" style="margin-bottom:8px;" placeholder="Option 2" oninput="updateStoryEl('opt2',this.value)"/>
+        </div>
+        <div class="hk-row"><div class="hk-lab">Size</div><input type="range" min="16" max="90" id="see-size" oninput="updateStoryEl('size',this.value)" style="width:100%;accent-color:var(--rose);"></div>
+        <div class="hk-row"><div class="hk-lab">Color</div><div id="see-colors" class="hk-sws"></div></div>
+        <button class="chip" onclick="deleteStoryEl()" style="background:#E5484D;color:#fff;border-color:#E5484D;margin-top:10px;">Delete element</button>
       </div>
     </div>
 
@@ -4820,6 +4859,7 @@ function setEditorMode(mode){
   ['story','reel'].forEach(m=>{
     document.getElementById('emode-'+m).classList.toggle('active', m===mode);
   });
+  if(mode==='story'){ try{ renderStoryOverlay(); }catch(e){} }
 }
 
 // ── Gradient palette ──
@@ -4945,6 +4985,7 @@ function drawStoryCanvas(){
       ctx.drawImage(img, (W-sw)/2, (H-sh)/2, sw, sh);
       drawStoryText(ctx, W, H);
       drawStoryLogo(ctx, W, H);
+      if(window._storyExporting) drawStoryElements(ctx, W, H);
       drawAdBadge(ctx, W, H);
     };
     img.src = editorState.bgImage;
@@ -4954,7 +4995,122 @@ function drawStoryCanvas(){
   drawStoryText(ctx, W, H);
   drawStoryOverlays(ctx, W, H);
   drawStoryLogo(ctx, W, H);
+  if(window._storyExporting) drawStoryElements(ctx, W, H);
   drawAdBadge(ctx, W, H);
+}
+
+/* ───────── Movable story elements (text, poll, question, link, emoji, reactions) ───────── */
+function _storyEls(){ if(!editorState.storyEls) editorState.storyEls=[]; return editorState.storyEls; }
+var _selEl=null, _elId=1;
+function addStoryEl(type){
+  const els=_storyEls();
+  const e={ id:'e'+(_elId++), type:type, xPct:0.5, yPct:0.42, size:(type==='emoji'?46:26), color:'#ffffff' };
+  if(type==='text') e.text='Your text';
+  else if(type==='link'){ e.url='https://'; e.text='Link'; }
+  else if(type==='poll'||type==='quest'){ e.text=(type==='poll'?'Your question?':'Ask me anything'); e.opt1='Yes'; e.opt2='No'; }
+  else if(type==='emoji') e.text='😊';
+  else if(type==='react') e.text='😍 😮 😂 👏 🔥';
+  els.push(e); renderStoryOverlay(); selectStoryEl(e.id); drawStoryCanvas();
+}
+function esc2(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function storyElHtml(e){
+  const pos='left:'+(e.xPct*100)+'%;top:'+(e.yPct*100)+'%;';
+  const sel=(_selEl===e.id)?' sel':'';
+  if(e.type==='text') return '<div class="st-el txt'+sel+'" data-eid="'+e.id+'" style="'+pos+'font-size:'+e.size+'px;color:'+e.color+';">'+esc2(e.text)+'</div>';
+  if(e.type==='emoji') return '<div class="st-el emoji'+sel+'" data-eid="'+e.id+'" style="'+pos+'font-size:'+e.size+'px;">'+esc2(e.text||'😊')+'</div>';
+  if(e.type==='react') return '<div class="st-el react'+sel+'" data-eid="'+e.id+'" style="'+pos+'">'+(e.text||'').split(' ').filter(Boolean).map(function(x){return '<span>'+esc2(x)+'</span>';}).join('')+'</div>';
+  if(e.type==='link') return '<div class="st-el link'+sel+'" data-eid="'+e.id+'" style="'+pos+'">🔗 '+esc2(e.text||'Link')+'</div>';
+  const opts=(e.type==='poll')?('<div class="pq-opts"><div class="pq-opt">'+esc2(e.opt1||'Yes')+'</div><div class="pq-opt">'+esc2(e.opt2||'No')+'</div></div>'):'<div class="pq-ans">Answer…</div>';
+  return '<div class="st-el '+(e.type==='poll'?'poll':'quest')+sel+'" data-eid="'+e.id+'" style="'+pos+'"><div class="pq-q">'+esc2(e.text)+'</div>'+opts+'</div>';
+}
+function renderStoryOverlay(){
+  const ov=document.getElementById('story-overlay'); if(!ov) return;
+  const els=_storyEls();
+  ov.innerHTML=els.map(storyElHtml).join('');
+  els.forEach(function(e){ const node=ov.querySelector('[data-eid="'+e.id+'"]'); if(node) attachElDrag(node,e); });
+}
+function attachElDrag(node,e){
+  var dragging=false, moved=false, sx=0, sy=0, ox=0, oy=0;
+  const ov=document.getElementById('story-overlay');
+  node.addEventListener('pointerdown', function(ev){
+    dragging=true; moved=false; try{ node.setPointerCapture(ev.pointerId); }catch(_){}
+    sx=ev.clientX; sy=ev.clientY; ox=e.xPct; oy=e.yPct; node.style.cursor='grabbing'; ev.preventDefault();
+  });
+  node.addEventListener('pointermove', function(ev){
+    if(!dragging) return;
+    const r=ov.getBoundingClientRect();
+    var nx=ox+(ev.clientX-sx)/r.width, ny=oy+(ev.clientY-sy)/r.height;
+    nx=Math.max(0.03,Math.min(0.97,nx)); ny=Math.max(0.03,Math.min(0.97,ny));
+    if(Math.abs(ev.clientX-sx)>3||Math.abs(ev.clientY-sy)>3) moved=true;
+    e.xPct=nx; e.yPct=ny; node.style.left=(nx*100)+'%'; node.style.top=(ny*100)+'%';
+  });
+  node.addEventListener('pointerup', function(){ dragging=false; node.style.cursor='grab'; if(!moved) selectStoryEl(e.id); drawStoryCanvas(); });
+}
+function selectStoryEl(id){
+  _selEl=id; renderStoryOverlay();
+  const e=_storyEls().find(function(x){return x.id===id;}); const ed=document.getElementById('story-el-editor'); if(!ed) return;
+  if(!e){ ed.style.display='none'; return; }
+  ed.style.display='block';
+  document.getElementById('see-urlrow').style.display = (e.type==='link') ? 'block' : 'none';
+  document.getElementById('see-pollrow').style.display = (e.type==='poll') ? 'block' : 'none';
+  const t=document.getElementById('see-text'); if(t){ t.value=e.text||''; t.placeholder = e.type==='emoji'?'Emoji':e.type==='react'?'Emojis separated by spaces':e.type==='link'?'Button text':(e.type==='poll'||e.type==='quest')?'Question':'Text'; }
+  const u=document.getElementById('see-url'); if(u) u.value=e.url||'';
+  const o1=document.getElementById('see-opt1'); if(o1) o1.value=e.opt1||'';
+  const o2=document.getElementById('see-opt2'); if(o2) o2.value=e.opt2||'';
+  const s=document.getElementById('see-size'); if(s) s.value=e.size||26;
+  renderElColors();
+}
+function updateStoryEl(prop,val){ const e=_storyEls().find(function(x){return x.id===_selEl;}); if(!e) return; e[prop]=(prop==='size')?(parseInt(val,10)||26):val; renderStoryOverlay(); drawStoryCanvas(); }
+function deleteStoryEl(){ const els=_storyEls(); const i=els.findIndex(function(x){return x.id===_selEl;}); if(i>=0) els.splice(i,1); _selEl=null; const ed=document.getElementById('story-el-editor'); if(ed) ed.style.display='none'; renderStoryOverlay(); drawStoryCanvas(); }
+function renderElColors(){
+  const host=document.getElementById('see-colors'); if(!host) return;
+  const cols=['#ffffff','#111111','#F02478','#FFD43B','#9CC000','#2D8FE5','#8B5CF6','#FF8A3D'];
+  const e=_storyEls().find(function(x){return x.id===_selEl;});
+  host.innerHTML=cols.map(function(c){return '<span class="hk-sw'+((e&&e.color===c)?' on':'')+'" style="background:'+c+'" onclick="updateStoryEl(\'color\',\''+c+'\');renderElColors();"></span>';}).join('');
+}
+// Draw all story elements onto the canvas for export. sc = scale from preview (~340px) to 1080.
+function drawStoryElements(ctx,W,H){
+  const els=(editorState.storyEls||[]); const sc=W/340;
+  els.forEach(function(e){
+    const x=e.xPct*W, y=e.yPct*H; ctx.save();
+    ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetX=0; ctx.shadowOffsetY=0;
+    if(e.type==='text'){
+      const fs=(e.size||26)*sc; ctx.font='800 '+fs+"px 'Playpen Sans',sans-serif"; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillStyle=e.color||'#fff'; ctx.shadowColor='rgba(0,0,0,.6)'; ctx.shadowBlur=fs*0.3;
+      const lines=wrapText(ctx, e.text||'', W*0.86); const lh=fs*1.2;
+      lines.forEach(function(ln,i){ ctx.fillText(ln, x, y-(lines.length-1)*lh/2+i*lh); });
+    } else if(e.type==='emoji'){
+      const fs=(e.size||46)*sc; ctx.font=fs+"px 'Apple Color Emoji','Segoe UI Emoji',sans-serif"; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(e.text||'😊', x, y);
+    } else if(e.type==='react'){
+      const fs=21*sc; ctx.font=fs+"px 'Apple Color Emoji','Segoe UI Emoji',sans-serif"; ctx.textBaseline='middle';
+      const parts=(e.text||'').split(' ').filter(Boolean); const pad=fs*0.6, gap=fs*0.4;
+      const ws=parts.map(function(p){return ctx.measureText(p).width;}); const total=ws.reduce(function(a,b){return a+b;},0)+gap*(parts.length-1)+pad*2; const h=fs*1.7;
+      const bx=x-total/2, by=y-h/2; roundRectPath(ctx,bx,by,total,h,h/2); ctx.fillStyle='rgba(255,255,255,.92)'; ctx.fill();
+      ctx.fillStyle='#111'; ctx.textAlign='left'; var cx=bx+pad; parts.forEach(function(p,i){ ctx.fillText(p, cx, y); cx+=ws[i]+gap; });
+    } else if(e.type==='link'){
+      const fs=20*sc; ctx.font='800 '+fs+"px 'Sasson Montessori',sans-serif"; ctx.textAlign='left'; ctx.textBaseline='middle';
+      const label='🔗 '+(e.text||'Link'); const tw=ctx.measureText(label).width; const pad=fs*0.8, h=fs*2.2, w=tw+pad*2;
+      const bx=x-w/2, by=y-h/2; roundRectPath(ctx,bx,by,w,h,fs*0.6); ctx.fillStyle='#fff'; ctx.fill(); ctx.fillStyle='#111'; ctx.fillText(label, bx+pad, y);
+    } else {
+      const fs=16*sc; const w=W*0.62, pad=fs*0.9; ctx.font='800 '+fs+"px 'Playpen Sans',sans-serif"; ctx.textAlign='center';
+      const qlines=wrapText(ctx, e.text||'', w-pad*2); const optH=fs*2.4; const qH=qlines.length*fs*1.25;
+      const h=pad+qH+fs*0.6+optH+pad; const bx=x-w/2, by=y-h/2;
+      roundRectPath(ctx,bx,by,w,h,fs*1.1); ctx.fillStyle='rgba(255,255,255,.96)'; ctx.fill(); ctx.fillStyle='#111'; ctx.textBaseline='top';
+      qlines.forEach(function(ln,i){ ctx.fillText(ln, x, by+pad+i*fs*1.25); });
+      const oy=by+pad+qH+fs*0.6;
+      if(e.type==='poll'){
+        const ow=(w-pad*2-fs*0.5)/2;
+        [e.opt1||'Yes', e.opt2||'No'].forEach(function(op,i){
+          const ox=bx+pad+i*(ow+fs*0.5); roundRectPath(ctx,ox,oy,ow,optH,fs*0.7);
+          const g=ctx.createLinearGradient(ox,oy,ox+ow,oy); g.addColorStop(0,'#F02478'); g.addColorStop(1,'#C81860'); ctx.fillStyle=g; ctx.fill();
+          ctx.fillStyle='#fff'; ctx.textBaseline='middle'; ctx.fillText(op, ox+ow/2, oy+optH/2); ctx.textBaseline='top';
+        });
+      } else {
+        roundRectPath(ctx,bx+pad,oy,w-pad*2,optH,fs*0.7); ctx.fillStyle='#f0f0f3'; ctx.fill(); ctx.fillStyle='#999'; ctx.textBaseline='middle'; ctx.fillText('Answer…', x, oy+optH/2);
+      }
+    }
+    ctx.restore();
+  });
 }
 
 // Small ad-disclosure badge ("Ads" / "Reklame") at top-right. Required labeling for paid ads.
@@ -5150,25 +5306,27 @@ function wrapText(ctx, text, maxWidth){
 
 // ── Export Story ──
 async function exportStory(){
-  drawStoryCanvas();
-  await new Promise(r => setTimeout(r, 100));
+  window._storyExporting=true; drawStoryCanvas();
+  await new Promise(r => setTimeout(r, 150));
   const canvas = document.getElementById('story-canvas');
   const a = document.createElement('a');
   a.download = 'lme-story-1080x1920.png';
   a.href = canvas.toDataURL('image/png');
+  window._storyExporting=false; drawStoryCanvas();
   a.click();
   document.getElementById('story-export-status').innerHTML =
     '<div style="background:var(--sage-l);border-radius:10px;padding:10px 14px;color:var(--sage-d);font-size:12px;margin-top:8px;">Story-bilde lastet ned! Last det opp i Instagram Stories og legg til musikk der.</div>';
 }
 
 async function exportAndPublishStory(){
-  drawStoryCanvas();
-  await new Promise(r => setTimeout(r, 100));
+  window._storyExporting=true; drawStoryCanvas();
+  await new Promise(r => setTimeout(r, 150));
   const canvas = document.getElementById('story-canvas');
   const statusEl = document.getElementById('story-export-status');
 
   // Convert to blob then base64
   canvas.toBlob(async (blob) => {
+    window._storyExporting=false; drawStoryCanvas();
     const reader = new FileReader();
     reader.onload = async (e) => {
       const base64 = e.target.result.split(',')[1];
