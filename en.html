@@ -3005,7 +3005,7 @@ function buildPrompt(){
   else if(preset==='none'){ characters='no specific characters'; }
   else if(preset==='custom'&&cfg.charNames){ characters=`${cfg.charNames}${cfg.charDesc?', '+cfg.charDesc:''}`; }
   else{ characters='no specific characters'; }
-  const base=`You are a social media content expert for "${cfg.brand||'Your brand'}" in the niche: "${cfg.niche||'your niche'}". ${characters!=='no specific characters'?`Characters: ${characters}.`:''} Brand voice: ${cfg.voice||'Warm, clear and professional'}. Audience: ${cfg.audience||state.ageGroup}. Tone: ${state.tone}. Language: English. Topic: "${topic}".${goalLine} ${state.extra?'Context: '+state.extra:''}`;
+  const base=`You write social media content. THE TOPIC (what the content MUST be about): "${topic}". Niche: "${cfg.niche||'your niche'}". Write strictly about this topic within this niche. Do NOT introduce unrelated themes, audiences or angles that the topic does not imply, even if the brand normally covers other subjects. You post as the brand "${cfg.brand||'Your brand'}", so use its voice and identity, but never force the brand's usual subject matter onto an off-topic post. ${characters!=='no specific characters'?`Characters: ${characters}.`:''} Brand voice: ${cfg.voice||'Warm, clear and professional'}. Audience: ${cfg.audience||state.ageGroup} (adapt to the topic if this audience does not fit). Tone: ${state.tone}. Language: English.${goalLine} ${state.extra?'Context: '+state.extra:''}`;
 
   if(state.format==='carousel'||state.format==='story'){
     const type=state.format==='story'?'Story set (9:16 vertical, short punchy headline + 1-2 lines per frame)':'Instagram carousel';
