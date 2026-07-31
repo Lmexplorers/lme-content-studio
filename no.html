@@ -3934,7 +3934,8 @@ async function blotatoFetchAccounts(){
   try{
     const res=await fetch('/api/blotato-accounts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({blotatoKey:key})});
     const d=await res.json().catch(()=>({}));
-    if(!d.ok){ if(note)note.textContent=(d.error||'Kunne ikke hente kontoer.'); btn.disabled=false; btn.textContent=old; return; }
+    if(!d.ok){ try{ console.log('Blotato-kontoer feil:', d); }catch(_){} if(note){ note.textContent=(d.error||'Kunne ikke hente kontoer.'); note.style.color='#C81860'; } btn.disabled=false; btn.textContent=old; return; }
+    if(note) note.style.color='var(--text-s)';
     const accts=d.accounts||[];
     if(!accts.length){ if(note)note.textContent='Fant ingen tilkoblede kontoer. Koble til profiler i Blotato først.'; sel.style.display='none'; btn.disabled=false; btn.textContent=old; return; }
     sel.innerHTML='<option value="">Velg konto…</option>'+accts.map(a=>`<option value="${String(a.id).replace(/"/g,'&quot;')}" data-plat="${String(a.platform||'').replace(/"/g,'&quot;')}">${(a.platform?a.platform+': ':'')+(a.name||a.id)}</option>`).join('');

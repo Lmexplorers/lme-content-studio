@@ -19,7 +19,21 @@ export async function onRequestPost(context) {
     });
     let data = null;
     try { data = await r.json(); } catch (e) { data = { raw: await r.text().catch(() => "") }; }
-    if (!r.ok) return json({ error: "Kunne ikke hente kontoer fra Blotato.", status: r.status, detail: data }, 200);
+    if (!r.ok) {
+      // Gjor feilen forstaelig: tolk de vanligste statusene sa Renate vet hva som er galt.
+      const msg = (data && (data.message || data.error || (data.raw && String(data.raw).slice(0, 200)))) || "";
+      let human;
+      if (r.status === 401 || r.status === 403) {
+        human = "Blotato avviste API-nokkelen (" + r.status + "). Sjekk at nokkelen er kopiert riktig fra Blotato (Settings, sa API keys), og at du har et betalt Blotato-abonnement. API krever betalt plan, gratisversjonen har ikke API.";
+      } else if (r.status === 404) {
+        human = "Blotato fant ikke konto-endepunktet (404). Gi beskjed, sa sjekker jeg oppsettet.";
+      } else if (r.status === 429) {
+        human = "Blotato ba oss vente litt (for mange foresporsler, 429). Prov igjen om et minutt.";
+      } else {
+        human = "Kunne ikke hente kontoer fra Blotato (status " + r.status + ")." + (msg ? " Blotato sier: " + msg : "");
+      }
+      return json({ error: human, status: r.status, detail: data }, 200);
+    }
     // Normaliser: Blotato kan returnere {items:[...]} eller en liste direkte.
     let items = [];
     if (Array.isArray(data)) items = data;
