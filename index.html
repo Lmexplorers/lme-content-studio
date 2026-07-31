@@ -95,5 +95,23 @@
       Visit <a href="https://lmexplorers.com">lmexplorers.com</a>
     </p>
   </div>
+  <script>
+  // Auto-tilgang: åpnes Studio fra Dashboard med ?key=..., lås opp for hele enheten.
+  // localStorage deles på tvers av index/no/en (samme origin), så språksidene er opplåst.
+  (function(){
+    var VALID_KEYS = ['LME2026','LME-PRO-2026','LME-FAMILY-2026'];
+    try{
+      var k = new URLSearchParams(window.location.search).get('key');
+      if(k && VALID_KEYS.indexOf(k.toUpperCase())>=0){
+        localStorage.setItem('lme_access_granted','yes');
+      }
+    }catch(e){}
+    // Ta med nøkkelen videre til språksiden også, for sikkerhets skyld.
+    try{
+      var q = window.location.search || '';
+      if(q){ document.querySelectorAll('a.lang-btn').forEach(function(a){ a.href = a.getAttribute('href') + q; }); }
+    }catch(e){}
+  })();
+  </script>
 </body>
 </html>
