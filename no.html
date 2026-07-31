@@ -2479,7 +2479,20 @@ const TOPICS = [
 ];
 
 const AGE_GROUPS  = ['3-6 år','6-9 år','9-12 år','13-16 år (kommer)','Alle aldersgrupper','Foreldre generelt'];
-const CHARACTERS  = ['Mia & Teo','Egne karakterer','Ingen karakter'];
+const CHARACTERS  = ['Egne karakterer','Ingen karakter'];
+// Mia & Teo (LMEs Montessori-figurer) er kun aktuelt når Montessori-nisjen er valgt.
+function charOptions(){ return (typeof state!=='undefined' && state.niche==='montessori') ? ['Mia & Teo'].concat(CHARACTERS) : CHARACTERS.slice(); }
+// Vis/skjul Mia & Teo-valget etter nisje, og tilbakestill hvis det ikke lenger er aktuelt.
+function updateCharAvailability(){
+  const isM = (typeof state!=='undefined' && state.niche==='montessori');
+  const st = document.getElementById('char-miateo'); if(st) st.style.display = isM ? '' : 'none';
+  if(!isM){
+    if(typeof state!=='undefined' && state.char==='Mia & Teo') state.char='Ingen karakter';
+    if(typeof cfg!=='undefined' && cfg.charPreset==='miateo'){ cfg.charPreset='none'; }
+  }
+  try{ if(typeof renderChips==='function' && document.getElementById('char-chips')) renderChips('char-chips', charOptions(), 'char'); }catch(e){}
+  try{ if(typeof updateCharPreview==='function') updateCharPreview(); }catch(e){}
+}
 // Beskrivelse av LMEs egne figurer, brukt når "Mia & Teo" er valgt. Juster fritt.
 const MIA_TEO_DESC = 'Mia og Teo, LMEs egne figurer: to nysgjerrige og varme Montessori-utforskere som lærer gjennom lek, praktisk liv og utforsking av naturen';
 const TONES       = ['Varm og personlig','Pedagogisk','Inspirerende','Leken og morsom','Direkte og tydelig'];
@@ -2674,8 +2687,9 @@ window.cfg = cfg;
 function init(){
   renderFormats(); renderNiches(); renderGoals(); renderTopics();
   renderChips('age-chips', AGE_GROUPS, 'ageGroup');
-  renderChips('char-chips', CHARACTERS, 'char');
+  renderChips('char-chips', charOptions(), 'char');
   renderChips('tone-chips', TONES, 'tone');
+  updateCharAvailability();
   renderPlatformChips(); renderSchedPlatforms();
   loadPlan();
   renderIdeas(); renderCalendar(); renderHistory();
@@ -2738,7 +2752,7 @@ function selectNiche(id){
   const n=currentNiche();
   if(n && n.id!=='custom'){ cfg.niche=n.label; const e=document.getElementById('s-niche'); if(e)e.value=cfg.niche; try{persistCfg();}catch(e){} }
   state.topic=''; // tving brukeren til å velge tema fra den nye nisjen
-  renderNiches(); renderTopics();
+  renderNiches(); renderTopics(); updateCharAvailability();
 }
 function onCustomNiche(v){ cfg.niche=(v||'').trim(); const e=document.getElementById('s-niche'); if(e)e.value=cfg.niche; try{persistCfg();}catch(e){} }
 
@@ -4353,7 +4367,7 @@ function selectCharPreset(preset){
   // Synk med karaktervalget i Lag innhold-fanen, så innstillingen faktisk brukes i genereringen.
   if(typeof state!=='undefined'){
     state.char = preset==='miateo' ? 'Mia & Teo' : preset==='custom' ? 'Egne karakterer' : 'Ingen karakter';
-    try{ if(typeof renderChips==='function' && document.getElementById('char-chips')) renderChips('char-chips', CHARACTERS, 'char'); }catch(e){}
+    try{ if(typeof renderChips==='function' && document.getElementById('char-chips')) renderChips('char-chips', charOptions(), 'char'); }catch(e){}
   }
   updateCharPreview(); saveSettings();
 }
