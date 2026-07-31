@@ -1501,6 +1501,7 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
     <div class="card-title" style="color:var(--gold);">Characters</div>
     <div style="font-size:11px;color:var(--text-s);margin-bottom:10px;line-height:1.6;">Choose which characters to use in your content</div>
     <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px;">
+      <button class="chip" id="char-miateo" onclick="selectCharPreset('miateo')">Mia &amp; Teo</button>
       <button class="chip" id="char-custom" onclick="selectCharPreset('custom')">Custom characters</button>
       <button class="chip" id="char-none" onclick="selectCharPreset('none')">- None</button>
     </div>
@@ -4048,16 +4049,22 @@ function loadNotificationState(){
 }
 function selectCharPreset(preset){
   cfg.charPreset=preset;
-  ['custom','none'].forEach(p=>{
+  ['miateo','custom','none'].forEach(p=>{
     const el=document.getElementById('char-'+p);if(el)el.className='chip'+(p===preset?' active':'');
   });
   const f=document.getElementById('custom-char-fields');if(f)f.style.display=preset==='custom'?'block':'none';
+  // Sync with the character choice in the Create tab so the setting is actually used in generation.
+  if(typeof state!=='undefined'){
+    state.char = preset==='miateo' ? 'Mia & Teo' : preset==='custom' ? 'Custom characters' : 'No character';
+    try{ if(typeof renderChips==='function' && document.getElementById('char-chips')) renderChips('char-chips', CHARACTERS, 'char'); }catch(e){}
+  }
   updateCharPreview(); saveSettings();
 }
 function updateCharPreview(){
   const el=document.getElementById('char-preview');if(!el)return;
   const p=cfg.charPreset||'none';
   if(p==='none') el.innerHTML='<strong>Active:</strong> No characters';
+  else if(p==='miateo') el.innerHTML='<strong>Active:</strong> ✨ Mia &amp; Teo, LME\'s own characters';
   else el.innerHTML=`<strong>Active:</strong> ✨ ${cfg.charNames||'(add name above)'}${cfg.charDesc?', '+cfg.charDesc.substring(0,60):''}`;
 }
 

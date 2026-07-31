@@ -1787,6 +1787,7 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
     <div class="card-title" style="color:var(--gold);">Karakterer</div>
     <div style="font-size:11px;color:var(--text-s);margin-bottom:10px;line-height:1.6;">Velg hvilke karakterer som brukes i innholdet ditt</div>
     <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px;">
+      <button class="chip" id="char-miateo" onclick="selectCharPreset('miateo')">Mia &amp; Teo</button>
       <button class="chip" id="char-custom" onclick="selectCharPreset('custom')">Egne karakterer</button>
       <button class="chip" id="char-none" onclick="selectCharPreset('none')">- Ingen</button>
     </div>
@@ -4345,16 +4346,22 @@ function loadNotificationState(){
 }
 function selectCharPreset(preset){
   cfg.charPreset=preset;
-  ['custom','none'].forEach(p=>{
+  ['miateo','custom','none'].forEach(p=>{
     const el=document.getElementById('char-'+p);if(el)el.className='chip'+(p===preset?' active':'');
   });
   const f=document.getElementById('custom-char-fields');if(f)f.style.display=preset==='custom'?'block':'none';
+  // Synk med karaktervalget i Lag innhold-fanen, så innstillingen faktisk brukes i genereringen.
+  if(typeof state!=='undefined'){
+    state.char = preset==='miateo' ? 'Mia & Teo' : preset==='custom' ? 'Egne karakterer' : 'Ingen karakter';
+    try{ if(typeof renderChips==='function' && document.getElementById('char-chips')) renderChips('char-chips', CHARACTERS, 'char'); }catch(e){}
+  }
   updateCharPreview(); saveSettings();
 }
 function updateCharPreview(){
   const el=document.getElementById('char-preview');if(!el)return;
   const p=cfg.charPreset||'none';
   if(p==='none') el.innerHTML='<strong>Aktiv:</strong> Ingen karakterer';
+  else if(p==='miateo') el.innerHTML='<strong>Aktiv:</strong> ✨ Mia &amp; Teo, LMEs egne figurer';
   else el.innerHTML=`<strong>Aktiv:</strong> ✨ ${cfg.charNames||'(legg til navn ovenfor)'}${cfg.charDesc?', '+cfg.charDesc.substring(0,60):''}`;
 }
 
