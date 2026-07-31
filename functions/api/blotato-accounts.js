@@ -44,6 +44,9 @@ export async function onRequestPost(context) {
       id: a.id || a.accountId || a.account_id || "",
       platform: a.platform || a.targetType || a.target || "",
       name: a.username || a.fullname || a.fullName || a.name || a.handle || "",
+      // Facebook trenger pageId, Pinterest trenger boardId. Ta med hvis Blotato oppgir dem.
+      pageId: a.pageId || a.page_id || (a.page && a.page.id) || undefined,
+      boardId: a.boardId || a.board_id || a.defaultBoardId || (a.board && a.board.id) || undefined,
     })).filter((a) => a.id);
     return json({ ok: true, accounts, raw: accounts.length ? undefined : data });
   } catch (e) {

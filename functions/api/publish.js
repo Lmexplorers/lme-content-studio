@@ -49,7 +49,7 @@ export async function onRequestPost(context) {
   // Bygg konto-liste. Ny vei: b.accounts = [{id, platform}] (flervalg).
   // Bakoverkomp.: enkelt b.accountId + b.targetType.
   let accounts = Array.isArray(b.accounts)
-    ? b.accounts.filter((a) => a && a.id).map((a) => ({ id: String(a.id), platform: a.platform || a.targetType || b.targetType || "instagram" }))
+    ? b.accounts.filter((a) => a && a.id).map((a) => ({ id: String(a.id), platform: a.platform || a.targetType || b.targetType || "instagram", pageId: a.pageId, boardId: a.boardId }))
     : [];
   if (!accounts.length && b.accountId) accounts = [{ id: String(b.accountId), platform: b.targetType || "instagram" }];
   if (!accounts.length) return json({ error: "Mangler konto. Velg minst en profil du vil poste til." }, 200);
@@ -80,6 +80,24 @@ export async function onRequestPost(context) {
       const target = { targetType: plat };
       // mediaType (story/reel) gjelder kun Instagram og Facebook.
       if ((plat === "instagram" || plat === "facebook") && (contentKind === "story" || contentKind === "reel")) target.mediaType = contentKind;
+      // Plattform-spesifikke pakrevde felt (Blotato krever disse, ellers avvises innlegget).
+      if (plat === "tiktok") {
+        target.privacyLevel = "PUBLIC_TO_EVERYONE";
+        target.disabledComments = false;
+        target.disabledDuet = false;
+        target.disabledStitch = false;
+        target.isBrandedContent = false;
+        target.isYourBrand = false;
+        target.isAiGenerated = false;
+      }
+      if (plat === "youtube") {
+        target.title = ((b.text || "").split("\n")[0] || "Video").slice(0, 95);
+        target.privacyStatus = "public";
+        target.shouldNotifySubscribers = false;
+      }
+      // Facebook krever pageId, Pinterest krever boardId. Sendes med kontoen hvis Blotato oppgir dem.
+      if (plat === "facebook" && acc.pageId) target.pageId = String(acc.pageId);
+      if (plat === "pinterest" && acc.boardId) target.boardId = String(acc.boardId);
       if (b.target && typeof b.target === "object") Object.assign(target, b.target);
       const post = {
         accountId: String(acc.id),

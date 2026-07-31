@@ -3647,7 +3647,7 @@ function _syncBlotatoKey(){
 async function blotatoPublish({text, mediaUrls, scheduledTime, mediaName, target, contentKind}){
   if(!_syncBlotatoKey()) return {ok:false, error:'Missing Blotato key. Add it in Settings.'};
   // Multi-select: post to every ticked account. Falls back to a single account.
-  let accounts=(cfg.blotatoAccounts||[]).filter(a=>a&&a.id).map(a=>({id:String(a.id), platform:a.platform||cfg.blotatoPlatform||'instagram'}));
+  let accounts=(cfg.blotatoAccounts||[]).filter(a=>a&&a.id).map(a=>({id:String(a.id), platform:a.platform||cfg.blotatoPlatform||'instagram', pageId:a.pageId||undefined, boardId:a.boardId||undefined}));
   if(!accounts.length && cfg.blotatoAccount){ accounts=[{id:String(cfg.blotatoAccount), platform:cfg.blotatoPlatform||'instagram'}]; }
   if(!accounts.length) return {ok:false, error:'Missing account. Pick at least one account in Settings.'};
   try{
@@ -3704,7 +3704,7 @@ function renderBlotatoAccountChecks(accts){
     accts.map(function(a){
       const on=sel.has(String(a.id));
       const label=(emoji[a.platform]?emoji[a.platform]+' ':'')+(a.platform?a.platform+': ':'')+(a.name||a.id);
-      return '<label style="display:flex;align-items:center;gap:8px;padding:5px 2px;font-size:13px;cursor:pointer;"><input type="checkbox" value="'+esc(a.id)+'" data-plat="'+esc(a.platform)+'" data-name="'+esc(a.name)+'" '+(on?'checked':'')+' onchange="blotatoToggleAccount(this)" style="width:18px;height:18px;accent-color:var(--rose);"> '+esc(label)+'</label>';
+      return '<label style="display:flex;align-items:center;gap:8px;padding:5px 2px;font-size:13px;cursor:pointer;"><input type="checkbox" value="'+esc(a.id)+'" data-plat="'+esc(a.platform)+'" data-name="'+esc(a.name)+'" data-pageid="'+esc(a.pageId||'')+'" data-boardid="'+esc(a.boardId||'')+'" '+(on?'checked':'')+' onchange="blotatoToggleAccount(this)" style="width:18px;height:18px;accent-color:var(--rose);"> '+esc(label)+'</label>';
     }).join('');
   host.style.display='block';
   const all=document.getElementById('s-blotato-all'); if(all) all.checked = accts.length>0 && accts.every(a=>sel.has(String(a.id)));
@@ -3712,9 +3712,9 @@ function renderBlotatoAccountChecks(accts){
 }
 function blotatoToggleAccount(cb){
   if(!Array.isArray(cfg.blotatoAccounts)) cfg.blotatoAccounts=[];
-  const id=cb.value, plat=cb.getAttribute('data-plat')||'', name=cb.getAttribute('data-name')||'';
+  const id=cb.value, plat=cb.getAttribute('data-plat')||'', name=cb.getAttribute('data-name')||'', pageId=cb.getAttribute('data-pageid')||'', boardId=cb.getAttribute('data-boardid')||'';
   const i=cfg.blotatoAccounts.findIndex(a=>String(a.id)===String(id));
-  if(cb.checked){ if(i<0) cfg.blotatoAccounts.push({id:id, platform:plat, name:name}); }
+  if(cb.checked){ if(i<0) cfg.blotatoAccounts.push({id:id, platform:plat, name:name, pageId:pageId||undefined, boardId:boardId||undefined}); else { cfg.blotatoAccounts[i].pageId=pageId||cfg.blotatoAccounts[i].pageId; cfg.blotatoAccounts[i].boardId=boardId||cfg.blotatoAccounts[i].boardId; } }
   else { if(i>=0) cfg.blotatoAccounts.splice(i,1); }
   updateBlotatoPostToSummary(); saveSettings();
 }
