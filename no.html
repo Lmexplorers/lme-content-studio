@@ -4034,7 +4034,7 @@ async function generateHook(){
     const res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:300,messages:[{role:'user',content:`Lag 5 korte, fengende hooks for en reel om: "${desc}". Hver hook maks 8 ord og under 60 tegn, og skal stoppe scrollingen. Skriv på norsk bokmål, uten anførselstegn, uten punktum på slutten. Returner som en nummerert liste, én hook per linje, ingen forklaring.`}]})
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:300,messages:[{role:'user',content:`Lag 5 korte, fengende hooks for en reel om: "${desc}". Skriv strengt om dette emnet, og ikke dra inn urelaterte temaer (for eksempel ikke Montessori eller barn) hvis emnet ikke tilsier det, selv om merkevaren vanligvis dekker noe annet. Hver hook maks 8 ord og under 60 tegn, og skal stoppe scrollingen. Skriv på norsk bokmål, uten anførselstegn, uten punktum på slutten. Returner som en nummerert liste, én hook per linje, ingen forklaring.`}]})
     });
     const data=await res.json();
     const raw=(data.content?.map(b=>b.text||'').join('')||'');
@@ -4918,7 +4918,7 @@ async function generateCaptionDirect(btn){
   const ta=document.getElementById('reel-caption');
   const prev=btn?btn.textContent:''; if(btn){ btn.disabled=true; btn.textContent='Lager…'; }
   try{
-    const p=`Skriv en engasjerende Instagram-bildetekst (caption) på norsk bokmål for en reel om: "${seed}". Merkevare: "${cfg.brand||''}". Nisje: "${cfg.niche||''}". Tone: ${cfg.voice||'varm og tydelig'}. Start med en fengende åpning, gi verdi, og avslutt med en tydelig oppfordring til handling. Maks fire korte avsnitt. Ikke bruk hashtags, ikke anførselstegn, ikke tankestreker.`;
+    const p=`Skriv en engasjerende Instagram-bildetekst (caption) på norsk bokmål for en reel om: "${seed}". Skriv strengt om dette emnet, og ikke dra inn urelaterte temaer (for eksempel ikke Montessori eller barn) hvis emnet ikke tilsier det, selv om merkevaren vanligvis dekker noe annet. Merkevare: "${cfg.brand||''}". Nisje: "${cfg.niche||''}". Tone: ${cfg.voice||'varm og tydelig'}. Start med en fengende åpning, gi verdi, og avslutt med en tydelig oppfordring til handling. Maks fire korte avsnitt. Ikke bruk hashtags, ikke anførselstegn, ikke tankestreker.`;
     const out=await callClaude(p,key,600);
     if(ta&&out){ ta.value=out.trim(); saveReelCaption(); }
   }catch(e){ alert('Kunne ikke generere caption: '+((e&&e.message)||e)); }
@@ -4935,7 +4935,7 @@ async function generateHookOverlay(btn){
   const inp=document.getElementById('reel-overlay-text');
   const prev=btn?btn.textContent:''; if(btn){ btn.disabled=true; btn.textContent='Lager…'; }
   try{
-    const p=`Lag én kort, fengende hook (maks 8 ord, under 60 tegn) for en reel om: "${seed}". Den skal stoppe scrollingen. Norsk bokmål, uten anførselstegn, uten punktum på slutten. Returner kun hooken, ingen forklaring.`;
+    const p=`Lag én kort, fengende hook (maks 8 ord, under 60 tegn) for en reel om: "${seed}". Skriv strengt om dette emnet, og ikke dra inn urelaterte temaer (for eksempel ikke Montessori eller barn) hvis emnet ikke tilsier det, selv om merkevaren vanligvis dekker noe annet. Den skal stoppe scrollingen. Norsk bokmål, uten anførselstegn, uten punktum på slutten. Returner kun hooken, ingen forklaring.`;
     const out=await callClaude(p,key,60);
     if(inp&&out){ inp.value=out.split('\n')[0].replace(/^["'«»\s]+|["'«»\s]+$/g,'').trim().slice(0,90); if(typeof updateReelOverlay==='function') updateReelOverlay(); }
   }catch(e){ alert('Kunne ikke generere hook: '+((e&&e.message)||e)); }
@@ -4956,7 +4956,7 @@ async function settHashtagsReel(lang){
   const langTxt = lang==='no'?'norske':lang==='en'?'engelske':'både norske og engelske';
   const prev=el.value; el.value='Lager hashtags…';
   try{
-    const p=`Lag 15 relevante ${langTxt} Instagram-hashtags for ${cfg.brand||'merkevaren'}${cfg.niche?(' i nisjen '+cfg.niche):''} om: "${seed}". Bland store, mellomstore og små nisje-tagger. Returner kun hashtags separert med mellomrom, ingen forklaring.`;
+    const p=`Lag 15 relevante ${langTxt} Instagram-hashtags for ${cfg.brand||'merkevaren'}${cfg.niche?(' i nisjen '+cfg.niche):''} om: "${seed}". Skriv strengt om dette emnet, og ikke dra inn urelaterte temaer (for eksempel ikke Montessori eller barn) hvis emnet ikke tilsier det, selv om merkevaren vanligvis dekker noe annet. Bland store, mellomstore og små nisje-tagger. Returner kun hashtags separert med mellomrom, ingen forklaring.`;
     const out=await callClaude(p,key,300);
     el.value=(out||'').trim()||prev;
   }catch(e){ el.value=prev; alert('Kunne ikke lage hashtags: '+((e&&e.message)||e)); }
@@ -5432,7 +5432,7 @@ async function generateStoryText(btn){
   if(!seed || seed==='Eget tema...' || seed==='Custom topic...'){ seed=(prompt('Hva skal storyen handle om? Skriv en kort setning.')||'').trim(); if(!seed) return; }
   const prev=btn?btn.textContent:''; if(btn){ btn.disabled=true; btn.textContent='Lager…'; }
   try{
-    const p=`Lag en kort, fengende story-tekst på norsk bokmål for en Instagram-story om: "${seed}". Merkevare: "${cfg.brand||''}". Nisje: "${cfg.niche||''}". Tone: ${cfg.voice||'varm og tydelig'}. Returner nøyaktig to linjer: linje 1 er en scrollstoppende hook (maks 8 ord), linje 2 er en kort støttesetning (maks 12 ord). Uten anførselstegn, uten punktum på slutten av hooken.`;
+    const p=`Lag en kort, fengende story-tekst på norsk bokmål for en Instagram-story om: "${seed}". Skriv strengt om dette emnet, og ikke dra inn urelaterte temaer (for eksempel ikke Montessori eller barn) hvis emnet ikke tilsier det, selv om merkevaren vanligvis dekker noe annet. Merkevare: "${cfg.brand||''}". Nisje: "${cfg.niche||''}". Tone: ${cfg.voice||'varm og tydelig'}. Returner nøyaktig to linjer: linje 1 er en scrollstoppende hook (maks 8 ord), linje 2 er en kort støttesetning (maks 12 ord). Uten anførselstegn, uten punktum på slutten av hooken.`;
     const out=await callClaude(p,key,150);
     const lines=(out||'').split('\n').map(function(l){return l.replace(/^[-•\d.\s"]+/,'').trim();}).filter(Boolean);
     const hl=document.getElementById('story-headline'), bd=document.getElementById('story-body');

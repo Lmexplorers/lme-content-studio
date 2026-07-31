@@ -3733,7 +3733,7 @@ async function generateHook(){
     const res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:300,messages:[{role:'user',content:`Write 5 short, catchy hooks for a reel about: "${desc}". Each hook max 8 words and under 60 characters, made to stop the scroll. No quotation marks, no full stop at the end. Return as a numbered list, one hook per line, no explanation.`}]})
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:300,messages:[{role:'user',content:`Write 5 short, catchy hooks for a reel about: "${desc}". Write strictly about this topic, and do not introduce unrelated themes (for example not Montessori or children) unless the topic calls for it, even if the brand usually covers other subjects. Each hook max 8 words and under 60 characters, made to stop the scroll. No quotation marks, no full stop at the end. Return as a numbered list, one hook per line, no explanation.`}]})
     });
     const data=await res.json();
     const raw=(data.content?.map(b=>b.text||'').join('')||'');
@@ -4620,7 +4620,7 @@ async function generateCaptionDirect(btn){
   const ta=document.getElementById('reel-caption');
   const prev=btn?btn.textContent:''; if(btn){ btn.disabled=true; btn.textContent='Working…'; }
   try{
-    const p=`Write an engaging Instagram caption in English for a reel about: "${seed}". Brand: "${cfg.brand||''}". Niche: "${cfg.niche||''}". Tone: ${cfg.voice||'warm and clear'}. Start with a scroll-stopping opening, give value, and end with a clear call to action. Max four short paragraphs. No hashtags, no quotation marks, no dashes.`;
+    const p=`Write an engaging Instagram caption in English for a reel about: "${seed}". Write strictly about this topic, and do not introduce unrelated themes (for example not Montessori or children) unless the topic calls for it, even if the brand usually covers other subjects. Brand: "${cfg.brand||''}". Niche: "${cfg.niche||''}". Tone: ${cfg.voice||'warm and clear'}. Start with a scroll-stopping opening, give value, and end with a clear call to action. Max four short paragraphs. No hashtags, no quotation marks, no dashes.`;
     const out=await callClaude(p,key,600);
     if(ta&&out){ ta.value=out.trim(); saveReelCaption(); }
   }catch(e){ alert('Could not generate caption: '+((e&&e.message)||e)); }
@@ -4637,7 +4637,7 @@ async function generateHookOverlay(btn){
   const inp=document.getElementById('reel-overlay-text');
   const prev=btn?btn.textContent:''; if(btn){ btn.disabled=true; btn.textContent='Working…'; }
   try{
-    const p=`Write one short, scroll-stopping hook (max 8 words, under 60 characters) for a reel about: "${seed}". English. No quotation marks, no period at the end. Return only the hook, no explanation.`;
+    const p=`Write one short, scroll-stopping hook (max 8 words, under 60 characters) for a reel about: "${seed}". Write strictly about this topic, and do not introduce unrelated themes (for example not Montessori or children) unless the topic calls for it, even if the brand usually covers other subjects. English. No quotation marks, no period at the end. Return only the hook, no explanation.`;
     const out=await callClaude(p,key,60);
     if(inp&&out){ inp.value=out.split('\n')[0].replace(/^["'«»\s]+|["'«»\s]+$/g,'').trim().slice(0,90); if(typeof updateReelOverlay==='function') updateReelOverlay(); }
   }catch(e){ alert('Could not generate hook: '+((e&&e.message)||e)); }
@@ -4658,7 +4658,7 @@ async function setHashtagsReel(lang){
   const langTxt = lang==='no'?'Norwegian':lang==='en'?'English':'both Norwegian and English';
   const prev=el.value; el.value='Making hashtags…';
   try{
-    const p=`Create 15 relevant ${langTxt} Instagram hashtags for ${cfg.brand||'the brand'}${cfg.niche?(' in the niche '+cfg.niche):''} about: "${seed}". Mix large, medium and small niche tags. Return only hashtags separated by spaces, no explanation.`;
+    const p=`Create 15 relevant ${langTxt} Instagram hashtags for ${cfg.brand||'the brand'}${cfg.niche?(' in the niche '+cfg.niche):''} about: "${seed}". Write strictly about this topic, and do not introduce unrelated themes (for example not Montessori or children) unless the topic calls for it, even if the brand usually covers other subjects. Mix large, medium and small niche tags. Return only hashtags separated by spaces, no explanation.`;
     const out=await callClaude(p,key,300);
     el.value=(out||'').trim()||prev;
   }catch(e){ el.value=prev; alert('Could not make hashtags: '+((e&&e.message)||e)); }
@@ -5026,7 +5026,7 @@ async function generateStoryText(btn){
   if(!seed || seed==='Eget tema...' || seed==='Custom topic...'){ seed=(prompt('What is the story about? Write a short sentence.')||'').trim(); if(!seed) return; }
   const prev=btn?btn.textContent:''; if(btn){ btn.disabled=true; btn.textContent='Working…'; }
   try{
-    const p=`Write a short, scroll-stopping story text in English for an Instagram story about: "${seed}". Brand: "${cfg.brand||''}". Niche: "${cfg.niche||''}". Tone: ${cfg.voice||'warm and clear'}. Return exactly two lines: line 1 is a scroll-stopping hook (max 8 words), line 2 is a short supporting sentence (max 12 words). No quotation marks, no period at the end of the hook.`;
+    const p=`Write a short, scroll-stopping story text in English for an Instagram story about: "${seed}". Write strictly about this topic, and do not introduce unrelated themes (for example not Montessori or children) unless the topic calls for it, even if the brand usually covers other subjects. Brand: "${cfg.brand||''}". Niche: "${cfg.niche||''}". Tone: ${cfg.voice||'warm and clear'}. Return exactly two lines: line 1 is a scroll-stopping hook (max 8 words), line 2 is a short supporting sentence (max 12 words). No quotation marks, no period at the end of the hook.`;
     const out=await callClaude(p,key,150);
     const lines=(out||'').split('\n').map(function(l){return l.replace(/^[-•\d.\s"]+/,'').trim();}).filter(Boolean);
     const hl=document.getElementById('story-headline'), bd=document.getElementById('story-body');
