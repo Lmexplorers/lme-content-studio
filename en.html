@@ -1955,8 +1955,8 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
       <div class="music-list" id="story-music-list"></div>
       <label style="display:flex;align-items:center;gap:10px;margin-top:10px;padding:10px 12px;border-radius:12px;border:2px dashed var(--border);cursor:pointer;">
         <span style="font-size:22px;">📁</span>
-        <div><div style="font-size:12px;font-weight:700;color:var(--text);">Upload your own music</div><div style="font-size:10px;color:var(--text-s);">MP3, M4A or WAV</div></div>
-        <input type="file" accept="audio/*" style="display:none;" onchange="loadCustomMusic(this,'story')"/>
+        <div><div style="font-size:12px;font-weight:700;color:var(--text);">➕ Add your own music (Suno etc.)</div><div style="font-size:10px;color:var(--text-s);">MP3, M4A or WAV, saved in the list and kept</div></div>
+        <input type="file" accept="audio/*" style="display:none;" onchange="addUserMusicUpload(this)"/>
       </label>
 
       <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);">
@@ -2193,8 +2193,8 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
 
         <label style="display:flex;align-items:center;gap:10px;margin-top:10px;padding:12px;border-radius:12px;border:2px dashed var(--border);cursor:pointer;background:var(--warm);">
           <span style="font-size:22px;">📁</span>
-          <div><div style="font-size:12px;font-weight:700;color:var(--text);">Upload your own music</div><div style="font-size:10px;color:var(--text-s);">MP3, WAV or M4A, baked in automatically</div></div>
-          <input type="file" accept="audio/*" style="display:none;" onchange="loadCustomMusic(this,'reel')"/>
+          <div><div style="font-size:12px;font-weight:700;color:var(--text);">➕ Add your own music (Suno etc.)</div><div style="font-size:10px;color:var(--text-s);">MP3, WAV or M4A, saved in the list and baked in automatically</div></div>
+          <input type="file" accept="audio/*" style="display:none;" onchange="addUserMusicUpload(this)"/>
         </label>
         <div id="reel-audio-player" style="display:none;margin-top:10px;">
           <div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Forhørslytting:</div>
@@ -5023,6 +5023,8 @@ function initEditor(){
   renderMusicList('story-music-list');
   renderMusicList('reel-music-list');
   drawStoryCanvas();
+  // Load saved own music (Suno etc.) and show it in the lists.
+  try{ loadUserMusic().then(function(){ try{ renderMusicList('story-music-list'); renderMusicList('reel-music-list'); }catch(_){} }); }catch(e){}
 }
 
 function setEditorMode(mode){
@@ -5260,12 +5262,56 @@ function loadStoryDraft(){
 var _storyLibCache = [];   // last read list, so Open/Delete can work synchronously
 function _idb(){
   return new Promise(function(resolve,reject){
-    try{ const req=indexedDB.open('lme_studio',1);
-      req.onupgradeneeded=function(){ const db=req.result; if(!db.objectStoreNames.contains('stories')) db.createObjectStore('stories',{keyPath:'id'}); };
+    try{ const req=indexedDB.open('lme_studio',2);
+      req.onupgradeneeded=function(){ const db=req.result;
+        if(!db.objectStoreNames.contains('stories')) db.createObjectStore('stories',{keyPath:'id'});
+        if(!db.objectStoreNames.contains('music')) db.createObjectStore('music',{keyPath:'id'});
+      };
       req.onsuccess=function(){ resolve(req.result); };
       req.onerror=function(){ reject(req.error); };
     }catch(e){ reject(e); }
   });
+}
+// ── Your own music (Suno/uploaded), saved permanently in IndexedDB ──
+var _userMusicCache=[], _userMusicUrls={};
+function _musicAll(){ return _idb().then(function(db){ return new Promise(function(res,rej){ const tx=db.transaction('music','readonly'); const rq=tx.objectStore('music').getAll(); rq.onsuccess=function(){ res(rq.result||[]); }; rq.onerror=function(){ rej(rq.error); }; }); }); }
+function _musicPut(e){ return _idb().then(function(db){ return new Promise(function(res,rej){ const tx=db.transaction('music','readwrite'); tx.objectStore('music').put(e); tx.oncomplete=function(){ res(true); }; tx.onerror=function(){ rej(tx.error); }; }); }); }
+function _musicDel(id){ return _idb().then(function(db){ return new Promise(function(res,rej){ const tx=db.transaction('music','readwrite'); tx.objectStore('music').delete(id); tx.oncomplete=function(){ res(true); }; tx.onerror=function(){ rej(tx.error); }; }); }); }
+async function loadUserMusic(){
+  try{ _userMusicCache=await _musicAll(); }catch(e){ _userMusicCache=[]; }
+  _userMusicCache.sort(function(a,b){ return (b.ts||0)-(a.ts||0); });
+  return _userMusicCache;
+}
+function _userMusicUrl(m){
+  if(_userMusicUrls[m.id]) return _userMusicUrls[m.id];
+  try{ const url=URL.createObjectURL(m.blob); _userMusicUrls[m.id]=url; return url; }catch(e){ return ''; }
+}
+// Upload and permanently save an audio track (Suno track or your own file).
+async function addUserMusicUpload(input){
+  const file=input && input.files && input.files[0]; if(!file){ return; }
+  const ts=Date.now();
+  const name=(file.name||'My track').replace(/\.[^.]+$/,'').slice(0,44) || 'My track';
+  const entry={ id:'m_'+ts, ts:ts, name:name, type:file.type||'audio/mpeg', blob:file };
+  try{ await _musicPut(entry); }
+  catch(e){ alert('Could not save the track. Try a slightly smaller file (ideally MP3).'); input.value=''; return; }
+  await loadUserMusic();
+  try{ renderMusicList('story-music-list'); }catch(_){}
+  try{ renderMusicList('reel-music-list'); }catch(_){}
+  input.value='';
+  toggleUserMusic(entry.id);
+}
+function toggleUserMusic(id){
+  const m=_userMusicCache.find(function(x){return x.id===id;}); if(!m) return;
+  toggleMusic('user_'+id, _userMusicUrl(m));
+}
+async function deleteUserMusic(id){
+  if(!confirm('Delete this saved track? This cannot be undone.')) return;
+  try{ await _musicDel(id); }catch(e){}
+  if(_userMusicUrls[id]){ try{ URL.revokeObjectURL(_userMusicUrls[id]); }catch(_){} delete _userMusicUrls[id]; }
+  if(editorState.selectedMusicId==='user_'+id){ editorState.selectedMusicId=null; editorState.selectedMusicUrl=''; editorState.customMusicFile=null; }
+  await loadUserMusic();
+  try{ renderMusicList('story-music-list'); }catch(_){}
+  try{ renderMusicList('reel-music-list'); }catch(_){}
 }
 function _idbAll(){
   return _idb().then(function(db){ return new Promise(function(res,rej){ const tx=db.transaction('stories','readonly'); const rq=tx.objectStore('stories').getAll(); rq.onsuccess=function(){ res(rq.result||[]); }; rq.onerror=function(){ rej(rq.error); }; }); });
@@ -6113,7 +6159,21 @@ function loadReelTextFromContent(){
 // ── Music ──
 function renderMusicList(elId){
   const el = document.getElementById(elId); if(!el) return;
+  const escM=function(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); };
+  const userRows=(_userMusicCache||[]).map(function(m){
+    const sel=editorState.selectedMusicId===('user_'+m.id)?' selected':'';
+    return `<div class="music-item${sel}" id="music-item-user_${m.id}">
+      <span class="music-icon">🎵</span>
+      <div style="flex:1;min-width:0;">
+        <div class="music-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escM(m.name)}</div>
+        <div class="music-dur">Your own music</div>
+      </div>
+      <button class="music-play-btn" id="music-btn-user_${m.id}" onclick="toggleUserMusic('${m.id}')">▶</button>
+      <button type="button" title="Delete" style="background:none;border:none;color:#C81860;font-size:15px;cursor:pointer;padding:2px 4px;" onclick="deleteUserMusic('${m.id}')">🗑️</button>
+    </div>`;
+  }).join('');
   el.innerHTML = `<button onclick="stopAllMusic()" style="width:100%;margin-bottom:8px;padding:8px;border-radius:10px;border:1.5px solid var(--rose-m);background:var(--rose-l);color:var(--rose-d);font-family:'Sasson Montessori';font-size:12px;font-weight:700;cursor:pointer;">⏹ Stop all music</button>` +
+  (userRows ? userRows + `<div style="height:8px;"></div>` : '') +
   MUSIC_LIST.map(m => `
     <div class="music-item${editorState.selectedMusicId===m.id?' selected':''}" id="music-item-${m.id}">
       <span class="music-icon">${m.emoji}</span>
