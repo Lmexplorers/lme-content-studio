@@ -830,6 +830,7 @@ async function lmeVerifyCode(){
   const d=await lmeAuthApi({action:'verify',email:window._lmeAuthEmail,code});
   if(d.error){ msg.textContent=d.error; return; }
   localStorage.setItem(LME_TOKEN_KEY,d.token); renderAuth(d.account); closeAuthModal();
+  try{ if(typeof lmeServerSync==='function') lmeServerSync(); }catch(e){}  // pull your work from the account right away
 }
 function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(null); }
 (async function(){ try{ renderAuth(await lmeAuthMe()); }catch(e){} })();
@@ -4163,6 +4164,7 @@ function saveSettings(){
     localStorage.setItem('lme_innstillinger_no',JSON.stringify(cfg));
   }catch(e){}
   try{ _cfgBackupIdb(); }catch(e){}
+  try{ pushSettingsToServer(); }catch(e){}
   try{ syncActiveProfile(); }catch(e){}
 }
 function persistCfg(){ try{ localStorage.setItem('lme_en_v2',JSON.stringify(cfg)); localStorage.setItem('lme_innstillinger_no',JSON.stringify(cfg)); }catch(e){} try{ _cfgBackupIdb(); }catch(e){} }
@@ -4957,6 +4959,7 @@ async function smartFetch(url, options){
 // ══ START ══
 loadSettings();
 try{ _restoreCfgIdb(); }catch(e){}  // restore Blotato key etc. from IndexedDB if localStorage is empty
+try{ lmeServerSync(); }catch(e){}   // load settings + story library from the account on the server
 try{ initProfiles(); }catch(e){}
 init();
 
@@ -5298,6 +5301,47 @@ async function _restoreCfgIdb(){
   window._cfgRestored = true;
   try{ _cfgBackupIdb(); }catch(e){}
 }
+function _applyBlotatoFieldsFromCfg(){
+  try{ const set=function(id,v){ const el=document.getElementById(id); if(el) el.value=(v||''); };
+    set('s-blotato-key',cfg.blotatoKey); set('s-blotato-account',cfg.blotatoAccount);
+    const pe=document.getElementById('s-blotato-platform'); if(pe) pe.value=cfg.blotatoPlatform||'instagram';
+    set('s-api-key',cfg.apiKey);
+  }catch(e){}
+}
+
+/* ───────── Server storage on the account (so work survives even if the phone wipes all local storage) ───────── */
+function _tokenPut(t){ return _idb().then(function(db){ return new Promise(function(res,rej){ const tx=db.transaction('settings','readwrite'); tx.objectStore('settings').put({id:'token',data:t}); tx.oncomplete=function(){res(true);}; tx.onerror=function(){rej(tx.error);}; }); }); }
+function _tokenGet(){ return _idb().then(function(db){ return new Promise(function(res,rej){ const tx=db.transaction('settings','readonly'); const rq=tx.objectStore('settings').get('token'); rq.onsuccess=function(){ res(rq.result&&rq.result.data||''); }; rq.onerror=function(){ rej(rq.error); }; }); }); }
+async function lmeStoreLoad(slot){ const t=lmeToken(); if(!t) return null; try{ const r=await fetch('/api/store',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'load',token:t,slot:slot})}); const d=await r.json().catch(function(){return{};}); return d&&d.ok?d.data:null; }catch(e){ return null; } }
+async function lmeStoreSave(slot,data){ const t=lmeToken(); if(!t) return false; try{ const r=await fetch('/api/store',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'save',token:t,slot:slot,data:data})}); const d=await r.json().catch(function(){return{};}); return !!(d&&d.ok); }catch(e){ return false; } }
+var _pushT={};
+// Don't send to the server before the first pull is done (otherwise an empty cfg on startup could overwrite good data on the account).
+function pushSettingsToServer(){ if(!lmeToken() || !window._serverPulled) return; clearTimeout(_pushT.s); _pushT.s=setTimeout(function(){ lmeStoreSave('settings', { blotatoKey:cfg.blotatoKey, blotatoAccount:cfg.blotatoAccount, blotatoPlatform:cfg.blotatoPlatform, blotatoAccounts:cfg.blotatoAccounts||[], apiKey:cfg.apiKey, openaiKey:cfg.openaiKey, geminiKey:cfg.geminiKey, spotifyId:cfg.spotifyId, spotifySecret:cfg.spotifySecret }); }, 800); }
+function pushStoriesToServer(){ if(!lmeToken() || !window._serverPulled) return; clearTimeout(_pushT.st); _pushT.st=setTimeout(function(){ _libAll().then(function(arr){ lmeStoreSave('stories', arr||[]); }).catch(function(){}); }, 1200); }
+// Pulled at startup: restores token, and loads Blotato settings + the story library from your account.
+async function lmeServerSync(){
+  try{
+    let t=lmeToken();
+    if(!t){ try{ t=await _tokenGet(); if(t){ localStorage.setItem(LME_TOKEN_KEY,t); } }catch(e){} }
+    else { try{ _tokenPut(t); }catch(e){} }
+    if(!t) return;
+    try{ renderAuth(await lmeAuthMe()); }catch(e){}
+    const s=await lmeStoreLoad('settings');
+    if(s && typeof s==='object'){
+      let changed=false;
+      ['blotatoKey','blotatoAccount','blotatoPlatform','apiKey','openaiKey','geminiKey','spotifyId','spotifySecret'].forEach(function(k){ if(!cfg[k] && s[k]){ cfg[k]=s[k]; changed=true; } });
+      if((!cfg.blotatoAccounts||!cfg.blotatoAccounts.length) && Array.isArray(s.blotatoAccounts) && s.blotatoAccounts.length){ cfg.blotatoAccounts=s.blotatoAccounts; changed=true; }
+      if(changed){ try{ persistCfg(); }catch(e){} _applyBlotatoFieldsFromCfg(); try{ updateBlotatoPostToSummary(); }catch(e){} }
+    }
+    const arr=await lmeStoreLoad('stories');
+    if(Array.isArray(arr) && arr.length){
+      let have=[]; try{ have=(await _libAll()).map(function(x){return x.id;}); }catch(e){}
+      for(const st of arr){ if(st&&st.id && have.indexOf(st.id)<0){ try{ await _idbPut(st); }catch(e){} } }
+      try{ renderStoryLibrary(); }catch(e){}
+    }
+  }catch(e){}
+  window._serverPulled = true;   // first pull done: now safe to send changes to the server
+}
 // ── Your own music (Suno/uploaded), saved permanently in IndexedDB ──
 var _userMusicCache=[], _userMusicUrls={};
 function _musicAll(){ return _idb().then(function(db){ return new Promise(function(res,rej){ const tx=db.transaction('music','readonly'); const rq=tx.objectStore('music').getAll(); rq.onsuccess=function(){ res(rq.result||[]); }; rq.onerror=function(){ rej(rq.error); }; }); }); }
@@ -5379,8 +5423,9 @@ async function saveStoryToLibrary(){
   const note=document.getElementById('story-export-status');
   let ok=false; try{ ok=await _idbPut(entry); }catch(e){ ok=false; }
   await renderStoryLibrary();
+  try{ pushStoriesToServer(); }catch(e){}
   if(note){
-    if(ok) note.innerHTML='<div class="pub-status success" style="margin-top:8px;">💾 Saved to the library! Find it under "My saved stories", also after you refresh the page.</div>';
+    if(ok) note.innerHTML='<div class="pub-status success" style="margin-top:8px;">💾 Saved to the library! Find it under "My saved stories", also after a refresh and on other devices you log in on.</div>';
     else note.innerHTML='<div class="pub-status error" style="margin-top:8px;">Could not save right now. Try again, or let me know.</div>';
   }
 }
@@ -5399,6 +5444,7 @@ async function deleteStoryFromLibrary(id){
   if(!confirm('Delete this saved story? This cannot be undone.')) return;
   try{ await _idbDel(id); }catch(e){}
   await renderStoryLibrary();
+  try{ pushStoriesToServer(); }catch(e){}
 }
 async function renderStoryLibrary(){
   const host=document.getElementById('story-library-list'); if(!host) return;
