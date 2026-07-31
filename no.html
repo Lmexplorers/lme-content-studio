@@ -2255,6 +2255,14 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
     <button class="export-btn purple" style="margin-top:10px;" onclick="exportAndPublishStory()">
       🚀 Eksporter + send til publiseringstjenesten</button>
     <div id="story-export-status" style="margin-top:10px;"></div>
+
+    <!-- Story-lager -->
+    <div class="card" style="margin-top:16px;">
+      <div class="card-title">📚 Mine lagrede stories</div>
+      <div style="font-size:11px;color:var(--text-s);line-height:1.6;margin-bottom:10px;">Lagre designet du jobber med, så kan du hente det opp igjen når som helst. Ingenting går tapt.</div>
+      <button class="act-btn sage-btn" style="width:100%;margin-bottom:10px;" onclick="saveStoryToLibrary()">💾 Lagre denne storyen i lageret</button>
+      <div id="story-library-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
   </div>
 
   <!-- ═══ REEL EDITOR ═══ -->
@@ -5416,7 +5424,7 @@ function setEditorMode(mode){
   ['story','reel'].forEach(m=>{
     document.getElementById('emode-'+m).classList.toggle('active', m===mode);
   });
-  if(mode==='story'){ try{ if(!window._storyDraftLoaded){ window._storyDraftLoaded=true; loadStoryDraft(); } }catch(e){} try{ renderStoryOverlay(); }catch(e){} try{ if(editorState.logo==='lme') editorState.logo = cfg.logoImage?'image':'name'; refreshLogoUI(); setLogo(editorState.logo); }catch(e){} try{ drawStoryCanvas(); }catch(e){} }
+  if(mode==='story'){ try{ if(!window._storyDraftLoaded){ window._storyDraftLoaded=true; loadStoryDraft(); } }catch(e){} try{ renderStoryOverlay(); }catch(e){} try{ if(editorState.logo==='lme') editorState.logo = cfg.logoImage?'image':'name'; refreshLogoUI(); setLogo(editorState.logo); }catch(e){} try{ drawStoryCanvas(); }catch(e){} try{ renderStoryLibrary(); }catch(e){} }
 }
 
 // ── Gradient palette ──
@@ -5601,9 +5609,34 @@ function drawStoryCanvas(){
 function _storyEls(){ if(!editorState.storyEls) editorState.storyEls=[]; return editorState.storyEls; }
 // Lagre og gjenopprett story-utkastet, så man ikke mister arbeidet ved refresh.
 function _sv(id){ const el=document.getElementById(id); return el?el.value:''; }
-function saveStoryDraft(){
-  const base={ storyEls:editorState.storyEls||[], bgType:editorState.bgType, bgGradient:editorState.bgGradient, bgColor:editorState.bgColor, logo:editorState.logo, adLabel:!!editorState.adLabel, textColor:editorState.textColor, textBg:editorState.textBg, headlinePos:editorState.headlinePos||null, bodyPos:editorState.bodyPos||null,
+// Fang hele story-designet som et objekt (uten bakgrunnsbilde, det legges til der det trengs).
+function _captureStory(){
+  return { storyEls:editorState.storyEls||[], bgType:editorState.bgType, bgGradient:editorState.bgGradient, bgColor:editorState.bgColor, logo:editorState.logo, adLabel:!!editorState.adLabel, textColor:editorState.textColor, textBg:editorState.textBg, headlinePos:editorState.headlinePos||null, bodyPos:editorState.bodyPos||null,
     headline:_sv('story-headline'), body:_sv('story-body'), topic:_sv('story-topic'), poll:_sv('story-poll'), cta:_sv('story-cta-overlay'), link:_sv('story-link'), fontSize:_sv('story-font-size'), textPos:_sv('story-text-pos'), logoPos:_sv('logo-position') };
+}
+// Legg et lagret story-objekt tilbake i editoren.
+function _applyStory(d){
+  if(!d) return;
+  editorState.storyEls=Array.isArray(d.storyEls)?d.storyEls:[];
+  if(d.bgType) editorState.bgType=d.bgType;
+  if(d.bgGradient!=null) editorState.bgGradient=d.bgGradient;
+  if(d.bgColor) editorState.bgColor=d.bgColor;
+  editorState.bgImage = d.bgImage || null;
+  if(d.logo) editorState.logo=d.logo;
+  if(d.adLabel!=null) editorState.adLabel=d.adLabel;
+  if(d.textColor) editorState.textColor=d.textColor;
+  if(d.textBg) editorState.textBg=d.textBg;
+  editorState.headlinePos = d.headlinePos || null;
+  editorState.bodyPos = d.bodyPos || null;
+  const set=function(id,v){ const el=document.getElementById(id); if(el){ el.value=(v!=null?v:''); } };
+  set('story-headline',d.headline); set('story-body',d.body); set('story-topic',d.topic);
+  set('story-poll',d.poll); set('story-cta-overlay',d.cta); set('story-link',d.link);
+  set('story-font-size',d.fontSize); set('story-text-pos',d.textPos); set('logo-position',d.logoPos);
+  try{ if(typeof setBgType==='function' && d.bgType) setBgType(d.bgType); }catch(e){}
+  try{ const at=document.getElementById('story-ad-toggle'); if(at) at.classList.toggle('active', !!d.adLabel); document.querySelectorAll('.ad-toggle').forEach(function(b){ b.classList.toggle('active', !!d.adLabel); }); }catch(e){}
+}
+function saveStoryDraft(){
+  const base=_captureStory();
   try{
     // Ta med bakgrunnsbildet om det er plass, ellers dropp det (kvote) sa tekst/elementer i alle fall lagres.
     localStorage.setItem('lme_story_draft', JSON.stringify(Object.assign({}, base, { bgImage:editorState.bgImage||'' })));
@@ -5612,26 +5645,73 @@ function saveStoryDraft(){
   }
 }
 function loadStoryDraft(){
-  try{
-    const d=JSON.parse(localStorage.getItem('lme_story_draft')||'null'); if(!d) return;
-    editorState.storyEls=Array.isArray(d.storyEls)?d.storyEls:[];
-    if(d.bgType) editorState.bgType=d.bgType;
-    if(d.bgGradient!=null) editorState.bgGradient=d.bgGradient;
-    if(d.bgColor) editorState.bgColor=d.bgColor;
-    if(d.bgImage) editorState.bgImage=d.bgImage;
-    if(d.logo) editorState.logo=d.logo;
-    if(d.adLabel!=null) editorState.adLabel=d.adLabel;
-    if(d.textColor) editorState.textColor=d.textColor;
-    if(d.textBg) editorState.textBg=d.textBg;
-    editorState.headlinePos = d.headlinePos || null;
-    editorState.bodyPos = d.bodyPos || null;
-    const set=function(id,v){ const el=document.getElementById(id); if(el&&v!=null&&v!=='') el.value=v; };
-    set('story-headline',d.headline); set('story-body',d.body); set('story-topic',d.topic);
-    set('story-poll',d.poll); set('story-cta-overlay',d.cta); set('story-link',d.link);
-    set('story-font-size',d.fontSize); set('story-text-pos',d.textPos); set('logo-position',d.logoPos);
-    try{ if(typeof setBgType==='function' && d.bgType) setBgType(d.bgType); }catch(e){}
-    try{ const at=document.getElementById('story-ad-toggle'); if(at) at.classList.toggle('active', !!d.adLabel); document.querySelectorAll('.ad-toggle').forEach(function(b){ b.classList.toggle('active', !!d.adLabel); }); }catch(e){}
-  }catch(e){}
+  try{ const d=JSON.parse(localStorage.getItem('lme_story_draft')||'null'); if(d) _applyStory(d); }catch(e){}
+}
+
+/* ───────── Story-lager: lagre flere stories og hent dem opp igjen ───────── */
+function _libGet(){ try{ const a=JSON.parse(localStorage.getItem('lme_story_library')||'[]'); return Array.isArray(a)?a:[]; }catch(e){ return []; } }
+function _libSet(list){
+  // Prov a lagre med bakgrunnsbilder. Ved kvote-feil: dropp bakgrunnsbildene (behold alt annet) sa lageret ikke ryker.
+  try{ localStorage.setItem('lme_story_library', JSON.stringify(list)); return true; }
+  catch(e){
+    try{ const slim=list.map(function(x){ return Object.assign({}, x, { bgImage:'' }); }); localStorage.setItem('lme_story_library', JSON.stringify(slim)); return 'slim'; }
+    catch(e2){ return false; }
+  }
+}
+// Lite forhandsvisnings-bilde av storyen (det som er tegnet pa canvasen na).
+function _storyThumb(){
+  try{ const src=document.getElementById('story-canvas'); if(!src||!src.width) return '';
+    const tw=96, th=170; const c=document.createElement('canvas'); c.width=tw; c.height=th;
+    c.getContext('2d').drawImage(src,0,0,tw,th);
+    return c.toDataURL('image/jpeg',0.55);
+  }catch(e){ return ''; }
+}
+function saveStoryToLibrary(){
+  const list=_libGet();
+  const d=Object.assign({}, _captureStory(), { bgImage:editorState.bgImage||'' });
+  const title=(_sv('story-headline')||_sv('story-topic')||'Story').trim().slice(0,60) || 'Story';
+  let when=''; try{ when=new Date().toLocaleString('nb-NO',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}); }catch(e){ when=''; }
+  const entry={ id:'s'+(list.length+1)+'_'+Math.round(performance.now()), title:title, when:when, thumb:_storyThumb(), data:d };
+  list.unshift(entry);
+  if(list.length>60) list.length=60; // holder lageret innafor lagringsgrensa
+  const res=_libSet(list);
+  renderStoryLibrary();
+  const note=document.getElementById('story-export-status');
+  if(note){
+    if(res===true) note.innerHTML='<div class="pub-status success" style="margin-top:8px;">💾 Lagret i lageret! Du finner den under "Mine lagrede stories".</div>';
+    else if(res==='slim') note.innerHTML='<div class="pub-status success" style="margin-top:8px;">💾 Lagret! (Lageret er nesten fullt, så bakgrunnsbilder på eldre stories ble fjernet for å gi plass. Tekst og elementer er beholdt.)</div>';
+    else note.innerHTML='<div class="pub-status error" style="margin-top:8px;">Kunne ikke lagre, lageret er fullt. Slett noen gamle stories og prøv igjen.</div>';
+  }
+}
+function openStoryFromLibrary(id){
+  const e=_libGet().find(function(x){return x.id===id;}); if(!e) return;
+  window._storyDraftLoaded=true; // hindrer at utkastet overstyrer det du nettopp apnet
+  _applyStory(e.data);
+  try{ refreshLogoUI(); }catch(_){}
+  try{ if(editorState.logo==='lme') editorState.logo = cfg.logoImage?'image':'name'; setLogo(editorState.logo); }catch(_){}
+  renderStoryOverlay(); drawStoryCanvas(); saveStoryDraft();
+  const note=document.getElementById('story-export-status');
+  if(note) note.innerHTML='<div class="pub-status success" style="margin-top:8px;">📂 Åpnet. Rediger som vanlig.</div>';
+  try{ document.getElementById('story-canvas').scrollIntoView({behavior:'smooth',block:'center'}); }catch(_){}
+}
+function deleteStoryFromLibrary(id){
+  if(!confirm('Slette denne lagrede storyen? Dette kan ikke angres.')) return;
+  const list=_libGet().filter(function(x){return x.id!==id;});
+  _libSet(list); renderStoryLibrary();
+}
+function renderStoryLibrary(){
+  const host=document.getElementById('story-library-list'); if(!host) return;
+  const list=_libGet();
+  if(!list.length){ host.innerHTML='<div style="font-size:11px;color:var(--text-s);font-style:italic;">Ingen lagrede stories ennå. Trykk knappen over for å lagre den du jobber med.</div>'; return; }
+  const esc=function(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); };
+  host.innerHTML=list.map(function(e){
+    const thumb=e.thumb?'<img src="'+e.thumb+'" style="width:38px;height:66px;object-fit:cover;border-radius:6px;flex-shrink:0;border:1px solid var(--line);">':'<div style="width:38px;height:66px;border-radius:6px;background:var(--line);flex-shrink:0;"></div>';
+    return '<div style="display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;padding:8px;">'+thumb+
+      '<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(e.title||'Story')+'</div><div style="font-size:10px;color:var(--text-s);">'+esc(e.when||'')+'</div></div>'+
+      '<button class="act-btn sage-btn" style="padding:7px 10px;font-size:12px;flex-shrink:0;" onclick="openStoryFromLibrary(\''+e.id+'\')">Åpne</button>'+
+      '<button type="button" title="Slett" style="background:none;border:none;color:#C81860;font-size:16px;cursor:pointer;flex-shrink:0;padding:4px;" onclick="deleteStoryFromLibrary(\''+e.id+'\')">🗑️</button>'+
+    '</div>';
+  }).join('');
 }
 var _selEl=null, _elId=1;
 // Velg svart eller hvit tekst ut fra bakgrunnsfargens lyshet (for lesbarhet på lenke-knapp osv.).
