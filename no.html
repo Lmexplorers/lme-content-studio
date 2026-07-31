@@ -904,8 +904,9 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
 
   <div class="card">
     <div class="card-title">Tema</div>
+    <div style="font-size:11px;color:var(--text-s);margin-bottom:8px;line-height:1.5;">Skriv fritt hva innholdet skal handle om, eller velg et ferdig tema under.</div>
+    <input type="text" id="custom-topic" placeholder='Skriv hva det skal handle om, f.eks. "5 tips for bedre søvn"' style="margin-bottom:12px;" oninput="onCustomTopic(this.value)"/>
     <div class="chip-wrap" id="topic-chips"></div>
-    <input type="text" id="custom-topic" placeholder='F.eks. "5 tips for bedre søvn"' style="margin-top:10px;display:none;" oninput="state.customTopic=this.value"/>
   </div>
 
   <div class="row" style="margin-bottom:14px;">
@@ -2736,9 +2737,20 @@ function renderTopics(){
   const host=document.getElementById('topic-chips'); if(!host) return;
   host.innerHTML = currentTopics().map(t => `
     <button class="chip${state.topic===t.label?' active':''}" onclick="selectTopic(this.dataset.t)" data-t="${t.label.replace(/"/g,'&quot;')}">${t.emoji} ${t.label}</button>`).join('');
-  const ci=document.getElementById('custom-topic'); if(ci) ci.style.display = (state.topic==='Eget tema...'||state.topic==='Custom topic...') ? 'block' : 'none';
+  // Fritekstfeltet er alltid synlig, så man kan skrive hva det skal handle om.
 }
-function selectTopic(l){ state.topic=l; renderTopics(); }
+function selectTopic(l){
+  state.topic=l;
+  // Velger man et ferdig tema, tømmes fritekstfeltet så det er tydelig hva som gjelder.
+  if(l!=='Eget tema...'&&l!=='Custom topic...'){ state.customTopic=''; const ci=document.getElementById('custom-topic'); if(ci) ci.value=''; }
+  renderTopics();
+}
+// Skriv fritt hva innholdet skal handle om. Overstyrer de ferdige temaene.
+function onCustomTopic(v){
+  state.customTopic=v;
+  state.topic = v.trim() ? 'Eget tema...' : '';
+  renderTopics();
+}
 
 // ── Nisje (strategi-først) ──
 function renderNiches(){
@@ -3308,7 +3320,7 @@ function parseSlides(raw){
 }
 
 async function generate(){
-  const topic=state.topic==='Custom topic...'?state.customTopic:state.topic;
+  const topic=(state.topic==='Eget tema...'||state.topic==='Custom topic...')?state.customTopic:state.topic;
   if(!topic.trim()){showError('Vennligst skriv inn et tema.');return;}
   hideError(); state.imageUrl=null;
 
@@ -3633,7 +3645,7 @@ async function genererBilde(){
   document.getElementById('bilde-preview-seksjon').style.display='none';
 
   try{
-    const topic=state.topic==='Eget tema...'?state.customTopic:state.topic;
+    const topic=(state.topic==='Eget tema...'||state.topic==='Custom topic...')?state.customTopic:state.topic;
     const autoAsp=(state.format==='story'||state.format==='reel')?'9:16':'1:1';
     const asp=(!state.imgAspect||state.imgAspect==='auto')?autoAsp:state.imgAspect;
     const size=asp==='9:16'?'1024x1792':asp==='16:9'?'1792x1024':'1024x1024';
@@ -3901,7 +3913,7 @@ async function schedulePost(){
     entry.scheduledPlatforms=[...schedPlatforms];
   }
   // Legg innlegget i den varige planen (overlever reload, ingen 20-grense)
-  const planTopic=(state.topic==='Custom topic...'?state.customTopic:state.topic)||(entry&&entry.topic)||'';
+  const planTopic=((state.topic==='Eget tema...'||state.topic==='Custom topic...')?state.customTopic:state.topic)||(entry&&entry.topic)||'';
   upsertPlanItem({
     id:(entry&&entry.id)||Date.now(),
     format:state.format,
@@ -3939,7 +3951,7 @@ async function schedulePost(){
 
 // ══ HASHTAGS ══
 async function generateHashtags(){
-  const topic=state.topic==='Custom topic...'?state.customTopic:state.topic;
+  const topic=(state.topic==='Eget tema...'||state.topic==='Custom topic...')?state.customTopic:state.topic;
   const el=document.getElementById('hashtag-result');
   el.innerHTML='<div style="color:var(--sage-d);font-size:12px;margin-top:8px;">Generating hashtags…</div>';
   try{
@@ -3961,7 +3973,7 @@ async function generateHashtags(){
 async function generateHook(){
   const btn=document.getElementById('gen-hook-btn');
   const host=document.getElementById('hook-suggestions');
-  const topic=(state.topic==='Custom topic...'?state.customTopic:state.topic)||state.customTopic||'';
+  const topic=((state.topic==='Eget tema...'||state.topic==='Custom topic...')?state.customTopic:state.topic)||state.customTopic||'';
   const extra=state.extra||'';
   const desc=[topic,extra].filter(Boolean).join('. ')||(cfg.brand||cfg.niche||'innhold for målgruppen din');
   const prevLabel=btn?btn.textContent:'';
