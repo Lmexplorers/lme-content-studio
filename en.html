@@ -4963,7 +4963,7 @@ function setEditorMode(mode){
   ['story','reel'].forEach(m=>{
     document.getElementById('emode-'+m).classList.toggle('active', m===mode);
   });
-  if(mode==='story'){ try{ renderStoryOverlay(); }catch(e){} try{ if(editorState.logo==='lme') editorState.logo = cfg.logoImage?'image':'name'; refreshLogoUI(); setLogo(editorState.logo); }catch(e){} }
+  if(mode==='story'){ try{ if(!window._storyDraftLoaded){ window._storyDraftLoaded=true; loadStoryDraft(); } }catch(e){} try{ renderStoryOverlay(); }catch(e){} try{ if(editorState.logo==='lme') editorState.logo = cfg.logoImage?'image':'name'; refreshLogoUI(); setLogo(editorState.logo); }catch(e){} try{ drawStoryCanvas(); }catch(e){} }
 }
 
 // ── Gradient palette ──
@@ -5104,6 +5104,7 @@ function _ensureStoryFonts(){
 function drawStoryCanvas(){
   const canvas = document.getElementById('story-canvas');
   if(!canvas) return;
+  if(!window._storyExporting && editorState.mode==='story'){ clearTimeout(window._storyDraftT); window._storyDraftT=setTimeout(saveStoryDraft,500); }
   _ensureStoryFonts();
   const ctx = canvas.getContext('2d');
   const W = 1080, H = 1920;
@@ -5145,6 +5146,38 @@ function drawStoryCanvas(){
 
 /* ───────── Movable story elements (text, poll, question, link, emoji, reactions) ───────── */
 function _storyEls(){ if(!editorState.storyEls) editorState.storyEls=[]; return editorState.storyEls; }
+// Save and restore the story draft so work isn't lost on refresh.
+function _sv(id){ const el=document.getElementById(id); return el?el.value:''; }
+function saveStoryDraft(){
+  const base={ storyEls:editorState.storyEls||[], bgType:editorState.bgType, bgGradient:editorState.bgGradient, bgColor:editorState.bgColor, logo:editorState.logo, adLabel:!!editorState.adLabel, textColor:editorState.textColor, textBg:editorState.textBg,
+    headline:_sv('story-headline'), body:_sv('story-body'), topic:_sv('story-topic'), poll:_sv('story-poll'), cta:_sv('story-cta-overlay'), link:_sv('story-link'), fontSize:_sv('story-font-size'), textPos:_sv('story-text-pos'), logoPos:_sv('logo-position') };
+  try{
+    // Include the background image if it fits, otherwise drop it (quota) so text/elements still save.
+    localStorage.setItem('lme_story_draft', JSON.stringify(Object.assign({}, base, { bgImage:editorState.bgImage||'' })));
+  }catch(e){
+    try{ localStorage.setItem('lme_story_draft', JSON.stringify(Object.assign({}, base, { bgImage:'' }))); }catch(e2){}
+  }
+}
+function loadStoryDraft(){
+  try{
+    const d=JSON.parse(localStorage.getItem('lme_story_draft')||'null'); if(!d) return;
+    editorState.storyEls=Array.isArray(d.storyEls)?d.storyEls:[];
+    if(d.bgType) editorState.bgType=d.bgType;
+    if(d.bgGradient!=null) editorState.bgGradient=d.bgGradient;
+    if(d.bgColor) editorState.bgColor=d.bgColor;
+    if(d.bgImage) editorState.bgImage=d.bgImage;
+    if(d.logo) editorState.logo=d.logo;
+    if(d.adLabel!=null) editorState.adLabel=d.adLabel;
+    if(d.textColor) editorState.textColor=d.textColor;
+    if(d.textBg) editorState.textBg=d.textBg;
+    const set=function(id,v){ const el=document.getElementById(id); if(el&&v!=null&&v!=='') el.value=v; };
+    set('story-headline',d.headline); set('story-body',d.body); set('story-topic',d.topic);
+    set('story-poll',d.poll); set('story-cta-overlay',d.cta); set('story-link',d.link);
+    set('story-font-size',d.fontSize); set('story-text-pos',d.textPos); set('logo-position',d.logoPos);
+    try{ if(typeof setBgType==='function' && d.bgType) setBgType(d.bgType); }catch(e){}
+    try{ const at=document.getElementById('story-ad-toggle'); if(at) at.classList.toggle('active', !!d.adLabel); document.querySelectorAll('.ad-toggle').forEach(function(b){ b.classList.toggle('active', !!d.adLabel); }); }catch(e){}
+  }catch(e){}
+}
 var _selEl=null, _elId=1;
 // Pick black or white text based on background lightness (readability on the link button etc.).
 function _contrastText(hex){
