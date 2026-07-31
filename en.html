@@ -6453,10 +6453,20 @@ function loadCustomMusic(input, context){
 </script>
 
 <script>
-// Register service worker for PWA support
+// Register service worker + auto-fetch new version (matters in the browser, without an installed app).
 if('serviceWorker' in navigator){
+  // If the page is already controlled by a service worker, a "controllerchange" means a NEW
+  // version has taken over. Reload ONCE so you always see the latest.
+  if(navigator.serviceWorker.controller){
+    let _reloaded=false;
+    navigator.serviceWorker.addEventListener('controllerchange', ()=>{
+      if(_reloaded) return; _reloaded=true; window.location.reload();
+    });
+  }
   window.addEventListener('load', ()=>{
-    navigator.serviceWorker.register('/sw.js').catch((err)=>{
+    navigator.serviceWorker.register('/sw.js').then((reg)=>{
+      try{ reg.update(); }catch(e){}
+    }).catch((err)=>{
       console.log('SW registration failed:', err);
     });
   });

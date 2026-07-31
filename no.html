@@ -6868,10 +6868,20 @@ function loadCustomMusic(input, context){
 </script>
 
 <script>
-// Registrer service worker for PWA-støtte
+// Registrer service worker + hent ny versjon automatisk (viktig i nettleser, uten installert app).
 if('serviceWorker' in navigator){
+  // Hvis siden allerede styres av en service worker, betyr en "controllerchange" at en NY
+  // versjon har tatt over. Da laster vi siden EN gang, sa du alltid ser det nyeste.
+  if(navigator.serviceWorker.controller){
+    let _reloaded=false;
+    navigator.serviceWorker.addEventListener('controllerchange', ()=>{
+      if(_reloaded) return; _reloaded=true; window.location.reload();
+    });
+  }
   window.addEventListener('load', ()=>{
-    navigator.serviceWorker.register('/sw.js').catch((err)=>{
+    navigator.serviceWorker.register('/sw.js').then((reg)=>{
+      try{ reg.update(); }catch(e){}
+    }).catch((err)=>{
       console.log('SW registration failed:', err);
     });
   });
