@@ -2131,6 +2131,8 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
         <button class="chip" id="txt-bg-gold" onclick="setTextBg('rgba(212,149,106,0.8)')">Gull</button>
       </div>
 
+      <div style="font-size:11px;color:var(--text-s);margin:4px 0 6px;">Hva skal storyen handle om?</div>
+      <input class="text-overlay-input" id="story-topic" placeholder='F.eks. "YouTube-kurs om videoredigering for nybegynnere"' style="margin-bottom:8px;"/>
       <button class="act-btn" style="width:100%;margin-bottom:8px;background:var(--rose);color:#fff;" onclick="generateStoryText(this)">
         ✨ Generer tekst med AI</button>
       <button class="act-btn sage-btn" style="width:100%;" onclick="loadStoryTextFromContent()">
@@ -5427,7 +5429,8 @@ function setLogo(l){
 async function generateStoryText(btn){
   const key=getApiKey();
   if(!key||key.length<20){ alert('Legg inn Claude-nøkkelen i Innstillinger først.'); return; }
-  let seed=(document.getElementById('story-headline')?.value||'').trim()
+  let seed=(document.getElementById('story-topic')?.value||'').trim()
+        || (document.getElementById('story-headline')?.value||'').trim()
         || ((typeof state!=='undefined' && (state.customTopic||state.topic))||'').trim();
   if(!seed || seed==='Eget tema...' || seed==='Custom topic...'){ seed=(prompt('Hva skal storyen handle om? Skriv en kort setning.')||'').trim(); if(!seed) return; }
   const prev=btn?btn.textContent:''; if(btn){ btn.disabled=true; btn.textContent='Lager…'; }
