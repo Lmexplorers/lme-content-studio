@@ -4267,6 +4267,8 @@ function saveSettings(){
   cfg.greeting=g('s-greeting'); cfg.signature=g('s-signature');
   // Nøkler: overskriv aldri en lagret nøkkel med tomt felt (hindrer utilsiktet sletting).
   if(g('s-api-key'))cfg.apiKey=g('s-api-key');
+  // Egen, dedikert sikkerhetskopi av Claude-nøkkelen som ingen annen flyt rører (overlever wipe).
+  if(cfg.apiKey&&cfg.apiKey.length>=20){ try{ localStorage.setItem('lme_claude_key', cfg.apiKey); }catch(e){} }
   {const v=g('s-openai-key'); if(v)cfg.openaiKey=v;}
   {const v=g('s-gemini-key'); if(v)cfg.geminiKey=v;}
   cfg.spotifyId=g('s-spotify-id'); cfg.spotifySecret=g('s-spotify-secret');
@@ -4354,6 +4356,9 @@ function updateCharPreview(){
 
 function getApiKey(){
   try{
+    // Dedikert sikkerhetskopi først, den overlever selv om innstillingene blir nullstilt.
+    const direct=localStorage.getItem('lme_claude_key');
+    if(direct&&direct.length>=20){ if(!cfg.apiKey) cfg.apiKey=direct; return direct; }
     const KEYS=['lme_no_v1','lme_innstillinger_no','lme_settings','lme_v3'];
     for(const k of KEYS){
       const s=localStorage.getItem(k);

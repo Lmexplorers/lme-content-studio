@@ -3967,6 +3967,8 @@ function saveSettings(){
   cfg.greeting=g('s-greeting'); cfg.signature=g('s-signature');
   // Keys: never overwrite a stored key with an empty field (prevents accidental wipe).
   if(g('s-api-key'))cfg.apiKey=g('s-api-key');
+  // Dedicated backup of the Claude key that no other flow touches (survives a wipe).
+  if(cfg.apiKey&&cfg.apiKey.length>=20){ try{ localStorage.setItem('lme_claude_key', cfg.apiKey); }catch(e){} }
   {const v=g('s-openai-key'); if(v)cfg.openaiKey=v;}
   {const v=g('s-gemini-key'); if(v)cfg.geminiKey=v;}
   cfg.spotifyId=g('s-spotify-id'); cfg.spotifySecret=g('s-spotify-secret');
@@ -4057,6 +4059,9 @@ function updateCharPreview(){
 
 function getApiKey(){
   try{
+    // Dedicated backup first, it survives even if settings get reset.
+    const direct=localStorage.getItem('lme_claude_key');
+    if(direct&&direct.length>=20){ if(!cfg.apiKey) cfg.apiKey=direct; return direct; }
     const KEYS=['lme_en_v2','lme_innstillinger_no','lme_settings','lme_v3'];
     for(const k of KEYS){
       const s=localStorage.getItem(k);
