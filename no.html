@@ -2021,7 +2021,7 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
     #story-overlay{position:absolute;inset:0;overflow:hidden;border-radius:20px;}
     .st-el{position:absolute;transform:translate(-50%,-50%);cursor:grab;touch-action:none;max-width:90%;text-align:center;}
     .st-el.sel{outline:2px dashed var(--rose);outline-offset:3px;border-radius:8px;}
-    .st-resize{position:absolute;right:-13px;bottom:-13px;width:24px;height:24px;background:var(--rose);border:2px solid #fff;border-radius:50%;cursor:nwse-resize;touch-action:none;box-shadow:0 2px 6px rgba(0,0,0,.35);z-index:6;}
+    .st-resize{position:absolute;right:-16px;bottom:-16px;width:32px;height:32px;background:var(--rose);border:2px solid #fff;border-radius:50%;cursor:nwse-resize;touch-action:none;box-shadow:0 2px 8px rgba(0,0,0,.4);z-index:6;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;line-height:1;}
     .st-el.txt{font-family:'Playpen Sans',sans-serif;font-weight:800;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.6);line-height:1.2;white-space:pre-wrap;padding:2px 6px;}
     .st-el.emoji{line-height:1;}
     .st-el.react{background:rgba(255,255,255,.92);border-radius:999px;padding:7px 13px;display:flex;gap:7px;font-size:21px;box-shadow:0 3px 12px rgba(0,0,0,.25);}
@@ -5581,7 +5581,7 @@ function storyElHtml(e){
   return '<div class="st-el '+(e.type==='poll'?'poll':'quest')+sel+'" data-eid="'+e.id+'" style="'+pos+'"><div class="pq-q">'+esc2(e.text)+'</div>'+opts+'</div>';
 }
 // Dra-håndtak i hjørnet for å skalere (kun tekst og emoji, som bruker size).
-function _resizeHandle(e){ return (_selEl===e.id && (e.type==='text'||e.type==='emoji')) ? '<span class="st-resize" data-resize="'+e.id+'"></span>' : ''; }
+function _resizeHandle(e){ return (_selEl===e.id && (e.type==='text'||e.type==='emoji')) ? '<span class="st-resize" data-resize="'+e.id+'">⤡</span>' : ''; }
 function renderStoryOverlay(){
   const ov=document.getElementById('story-overlay'); if(!ov) return;
   const els=_storyEls();
@@ -5618,7 +5618,7 @@ function attachElDrag(node,e){
     const r=ov.getBoundingClientRect();
     var nx=ox+(ev.clientX-sx)/r.width, ny=oy+(ev.clientY-sy)/r.height;
     nx=Math.max(0.03,Math.min(0.97,nx)); ny=Math.max(0.03,Math.min(0.97,ny));
-    if(Math.abs(ev.clientX-sx)>3||Math.abs(ev.clientY-sy)>3) moved=true;
+    if(Math.abs(ev.clientX-sx)>8||Math.abs(ev.clientY-sy)>8) moved=true;
     e.xPct=nx; e.yPct=ny; node.style.left=(nx*100)+'%'; node.style.top=(ny*100)+'%';
   });
   node.addEventListener('pointerup', function(){ dragging=false; node.style.cursor='grab'; if(!moved) selectStoryEl(e.id); drawStoryCanvas(); });
