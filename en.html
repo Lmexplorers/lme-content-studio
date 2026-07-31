@@ -1757,7 +1757,7 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
       </div>
       <div style="font-size:11px;color:var(--text-s);margin-top:8px;line-height:1.5;">Drag the elements wherever you want on the story. Tap an element to change text, color and size.</div>
       <div id="story-el-editor" style="display:none;margin-top:12px;padding:12px;background:var(--rose-l);border-radius:12px;">
-        <div id="see-textrow"><input id="see-text" class="text-overlay-input" style="margin-bottom:8px;" placeholder="Text" oninput="updateStoryEl('text',this.value)"/></div>
+        <div id="see-textrow"><textarea id="see-text" class="text-overlay-input" rows="2" style="margin-bottom:4px;resize:vertical;" placeholder="Text (press Enter for a new line)" oninput="updateStoryEl('text',this.value)"></textarea><div style="font-size:10px;color:var(--text-s);margin-bottom:8px;">Press Enter for multiple rows. Size is adjusted below.</div></div>
         <div id="see-urlrow" style="display:none;"><input id="see-url" class="text-overlay-input" style="margin-bottom:8px;" placeholder="https://..." oninput="updateStoryEl('url',this.value)"/></div>
         <div id="see-pollrow" style="display:none;">
           <input id="see-opt1" class="text-overlay-input" style="margin-bottom:8px;" placeholder="Option 1" oninput="updateStoryEl('opt1',this.value)"/>
@@ -5174,7 +5174,7 @@ function selectStoryEl(id){
   const s=document.getElementById('see-size'); if(s) s.value=e.size||26;
   renderElColors();
 }
-function updateStoryEl(prop,val){ const e=_storyEls().find(function(x){return x.id===_selEl;}); if(!e) return; e[prop]=(prop==='size')?(parseInt(val,10)||26):val; renderStoryOverlay(); drawStoryCanvas(); }
+function updateStoryEl(prop,val){ const e=_storyEls().find(function(x){return x.id===_selEl;}); if(!e) return; if(prop==='text' && e.type!=='text') val=(val||'').replace(/\n/g,' '); e[prop]=(prop==='size')?(parseInt(val,10)||26):val; renderStoryOverlay(); drawStoryCanvas(); }
 function deleteStoryEl(){ const els=_storyEls(); const i=els.findIndex(function(x){return x.id===_selEl;}); if(i>=0) els.splice(i,1); _selEl=null; const ed=document.getElementById('story-el-editor'); if(ed) ed.style.display='none'; renderStoryOverlay(); drawStoryCanvas(); }
 function renderElColors(){
   const host=document.getElementById('see-colors'); if(!host) return;
@@ -5191,7 +5191,8 @@ function drawStoryElements(ctx,W,H){
     if(e.type==='text'){
       const fs=(e.size||26)*sc; ctx.font='800 '+fs+"px 'Playpen Sans',sans-serif"; ctx.textAlign='center'; ctx.textBaseline='middle';
       ctx.fillStyle=e.color||'#fff'; ctx.shadowColor='rgba(0,0,0,.6)'; ctx.shadowBlur=fs*0.3;
-      const lines=wrapText(ctx, e.text||'', W*0.86); const lh=fs*1.2;
+      var lines=[]; (e.text||'').split('\n').forEach(function(part){ var w=wrapText(ctx, part, W*0.86); if(w.length) lines=lines.concat(w); else lines.push(''); });
+      const lh=fs*1.2;
       lines.forEach(function(ln,i){ ctx.fillText(ln, x, y-(lines.length-1)*lh/2+i*lh); });
     } else if(e.type==='emoji'){
       const fs=(e.size||46)*sc; ctx.font=fs+"px 'Apple Color Emoji','Segoe UI Emoji',sans-serif"; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(e.text||'😊', x, y);
