@@ -2033,6 +2033,7 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
     .st-resize{position:absolute;right:-16px;bottom:-16px;width:32px;height:32px;background:var(--rose);border:2px solid #fff;border-radius:50%;cursor:nwse-resize;touch-action:none;box-shadow:0 2px 8px rgba(0,0,0,.4);z-index:6;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;line-height:1;}
     .st-textproxy{position:absolute;transform:translate(-50%,-50%);cursor:grab;touch-action:none;z-index:4;min-width:44px;min-height:34px;border:1.5px dashed rgba(255,255,255,.55);border-radius:10px;background:rgba(0,0,0,.001);}
     .st-textproxy .stp-tag{position:absolute;top:-16px;left:50%;transform:translateX(-50%);background:var(--rose);color:#fff;font-size:9px;font-weight:700;padding:1px 7px;border-radius:8px;white-space:nowrap;font-family:'Sasson Montessori',sans-serif;pointer-events:none;box-shadow:0 1px 4px rgba(0,0,0,.3);}
+    .st-textproxy .stp-resize{position:absolute;right:-15px;bottom:-15px;width:30px;height:30px;background:var(--rose);border:2px solid #fff;border-radius:50%;cursor:nwse-resize;touch-action:none;box-shadow:0 2px 8px rgba(0,0,0,.4);z-index:6;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;line-height:1;}
     .st-el.txt{font-family:'Playpen Sans',sans-serif;font-weight:800;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.6);line-height:1.2;white-space:pre-wrap;padding:2px 6px;}
     .st-el.emoji{line-height:1;}
     .st-el.react{background:rgba(255,255,255,.92);border-radius:999px;padding:7px 13px;display:flex;gap:7px;font-size:21px;box-shadow:0 3px 12px rgba(0,0,0,.25);}
@@ -2110,11 +2111,27 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
       <input class="text-overlay-input" id="story-headline" placeholder="Overskrift / Hook" oninput="drawStoryCanvas()"/>
       <input class="text-overlay-input" id="story-body" placeholder="Brødtekst (valgfritt)" oninput="drawStoryCanvas()"/>
 
-      <!-- Font size -->
+      <!-- Font size (hook) -->
       <div class="font-size-row" style="margin-bottom:10px;">
-        <label>Størrelse:</label>
+        <label>Hook størrelse:</label>
         <input type="range" min="28" max="120" value="52" id="story-font-size" oninput="drawStoryCanvas()" style="flex:1;accent-color:var(--rose);"/>
         <span id="story-font-size-val" style="font-size:11px;color:var(--text-s);min-width:28px;">52</span>
+      </div>
+
+      <!-- Body text size -->
+      <div class="font-size-row" style="margin-bottom:10px;">
+        <label>Brødtekst str.:</label>
+        <input type="range" min="14" max="90" value="28" id="story-body-size" oninput="updateBodySize(this.value)" style="flex:1;accent-color:var(--rose);"/>
+        <span id="story-body-size-val" style="font-size:11px;color:var(--text-s);min-width:28px;">28</span>
+      </div>
+
+      <!-- Body text color -->
+      <div style="font-size:11px;color:var(--text-s);margin-bottom:6px;">Brødtekst-farge:</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+        <button class="chip active" id="body-color-white" onclick="setBodyColor('white')">Hvit</button>
+        <button class="chip" id="body-color-dark" onclick="setBodyColor('#1A1A1A')">Mørk</button>
+        <button class="chip" id="body-color-rose" onclick="setBodyColor('#F02478')">Rosa</button>
+        <button class="chip" id="body-color-yellow" onclick="setBodyColor('#FCC000')">Gul</button>
       </div>
 
       <!-- Position -->
@@ -5386,6 +5403,8 @@ const editorState = {
   bodyText: '',
   headlinePos: null,
   bodyPos: null,
+  bodySize: null,
+  bodyColor: null,
   fontSize: 52,
   textColor: 'white',
   logo: 'lme',
@@ -5514,6 +5533,22 @@ function setTextColor(color){
   document.getElementById('txt-color-yellow')?.classList.toggle('active', color==='#FCC000');
   drawStoryCanvas();
 }
+// Egen farge for brødteksten (uavhengig av hook-fargen).
+function setBodyColor(color){
+  editorState.bodyColor = color;
+  document.getElementById('body-color-white')?.classList.toggle('active', color==='white');
+  document.getElementById('body-color-dark')?.classList.toggle('active', color==='#1A1A1A');
+  document.getElementById('body-color-rose')?.classList.toggle('active', color==='#F02478');
+  document.getElementById('body-color-yellow')?.classList.toggle('active', color==='#FCC000');
+  drawStoryCanvas();
+}
+// Egen storrelse for brødteksten.
+function updateBodySize(val){
+  val=parseInt(val,10); if(isNaN(val)) val=28;
+  editorState.bodySize = val;
+  const l=document.getElementById('story-body-size-val'); if(l) l.textContent=val;
+  drawStoryCanvas();
+}
 
 function setLogo(l){
   editorState.logo = l;
@@ -5634,7 +5669,7 @@ function _storyEls(){ if(!editorState.storyEls) editorState.storyEls=[]; return 
 function _sv(id){ const el=document.getElementById(id); return el?el.value:''; }
 // Fang hele story-designet som et objekt (uten bakgrunnsbilde, det legges til der det trengs).
 function _captureStory(){
-  return { storyEls:editorState.storyEls||[], bgType:editorState.bgType, bgGradient:editorState.bgGradient, bgColor:editorState.bgColor, logo:editorState.logo, adLabel:!!editorState.adLabel, textColor:editorState.textColor, textBg:editorState.textBg, headlinePos:editorState.headlinePos||null, bodyPos:editorState.bodyPos||null,
+  return { storyEls:editorState.storyEls||[], bgType:editorState.bgType, bgGradient:editorState.bgGradient, bgColor:editorState.bgColor, logo:editorState.logo, adLabel:!!editorState.adLabel, textColor:editorState.textColor, textBg:editorState.textBg, headlinePos:editorState.headlinePos||null, bodyPos:editorState.bodyPos||null, bodySize:editorState.bodySize||null, bodyColor:editorState.bodyColor||null,
     headline:_sv('story-headline'), body:_sv('story-body'), topic:_sv('story-topic'), poll:_sv('story-poll'), cta:_sv('story-cta-overlay'), link:_sv('story-link'), fontSize:_sv('story-font-size'), textPos:_sv('story-text-pos'), logoPos:_sv('logo-position') };
 }
 // Legg et lagret story-objekt tilbake i editoren.
@@ -5651,10 +5686,14 @@ function _applyStory(d){
   if(d.textBg) editorState.textBg=d.textBg;
   editorState.headlinePos = d.headlinePos || null;
   editorState.bodyPos = d.bodyPos || null;
+  editorState.bodySize = d.bodySize || null;
+  editorState.bodyColor = d.bodyColor || null;
   const set=function(id,v){ const el=document.getElementById(id); if(el){ el.value=(v!=null?v:''); } };
   set('story-headline',d.headline); set('story-body',d.body); set('story-topic',d.topic);
   set('story-poll',d.poll); set('story-cta-overlay',d.cta); set('story-link',d.link);
   set('story-font-size',d.fontSize); set('story-text-pos',d.textPos); set('logo-position',d.logoPos);
+  try{ if(d.bodySize){ const bs=document.getElementById('story-body-size'); if(bs) bs.value=d.bodySize; const bl=document.getElementById('story-body-size-val'); if(bl) bl.textContent=d.bodySize; } }catch(e){}
+  try{ if(d.bodyColor){ setBodyColor(d.bodyColor); } }catch(e){}
   try{ if(typeof setBgType==='function' && d.bgType) setBgType(d.bgType); }catch(e){}
   try{ const at=document.getElementById('story-ad-toggle'); if(at) at.classList.toggle('active', !!d.adLabel); document.querySelectorAll('.ad-toggle').forEach(function(b){ b.classList.toggle('active', !!d.adLabel); }); }catch(e){}
 }
@@ -6180,14 +6219,15 @@ function drawStoryText(ctx, W, H){
     });
     editorState._headCenter = { xPct: hcx/W, yPct: hCenterY/H, wPct: Math.min(0.94, (maxLineW + fontSize*0.9)/W), hPct: Math.min(0.9, (blockH + fontSize*0.4)/H) };
 
-    // Body text (egen plassering mulig, ellers rett under hooken)
+    // Body text (egen storrelse, farge og plassering)
     if(body){
       ctx.shadowBlur = 0;
-      ctx.font = `${Math.round(fontSize*0.52)}px 'Sasson Montessori', sans-serif`;
-      ctx.globalAlpha = 0.88;
-      ctx.fillStyle = textColor;
+      const bodyFs = editorState.bodySize || Math.round(fontSize*0.52);
+      ctx.font = `${bodyFs}px 'Sasson Montessori', sans-serif`;
+      ctx.globalAlpha = 0.9;
+      ctx.fillStyle = editorState.bodyColor || textColor;
       const bodyLines = wrapText(ctx, body, W - 160);
-      const bLH = fontSize * 0.52 * 1.4;
+      const bLH = bodyFs * 1.4;
       const bBlockH = bodyLines.length * bLH;
       const bp = editorState.bodyPos;
       const bcx = bp ? bp.xPct * W : W/2;
@@ -6200,7 +6240,7 @@ function drawStoryText(ctx, W, H){
         ctx.fillText(line, bcx, bodyStartY + i * bLH);
       });
       ctx.globalAlpha = 1;
-      editorState._bodyCenter = { xPct: bcx/W, yPct: bCenterY/H, wPct: Math.min(0.9, (maxBodyW + fontSize*0.6)/W), hPct: Math.min(0.8, (bBlockH + bLH*0.5)/H) };
+      editorState._bodyCenter = { xPct: bcx/W, yPct: bCenterY/H, wPct: Math.min(0.9, (maxBodyW + bodyFs*1.2)/W), hPct: Math.min(0.8, (bBlockH + bLH*0.5)/H) };
     } else {
       editorState._bodyCenter = null;
     }
@@ -6230,9 +6270,10 @@ function renderTextProxies(){
       node = document.createElement('div');
       node.className = 'st-textproxy'; node.setAttribute('data-txt', kind);
       const no = document.documentElement.lang==='no';
-      node.innerHTML = '<span class="stp-tag">✋ '+(kind==='head'?(no?'Flytt hook':'Move hook'):(no?'Flytt tekst':'Move text'))+'</span>';
+      node.innerHTML = '<span class="stp-tag">✋ '+(kind==='head'?(no?'Flytt hook':'Move hook'):(no?'Flytt tekst':'Move text'))+'</span><span class="stp-resize" title="'+(no?'Dra for å endre størrelse':'Drag to resize')+'">⤡</span>';
       ov.appendChild(node);
       attachProxyDrag(node, kind);
+      const h=node.querySelector('.stp-resize'); if(h) attachProxyResize(h, kind);
     }
     node.style.left   = (center.xPct*100)+'%';
     node.style.top    = (center.yPct*100)+'%';
@@ -6240,10 +6281,32 @@ function renderTextProxies(){
     node.style.height = Math.max(5,  (center.hPct||0.08)*100)+'%';
   });
 }
+// Dra i hjornet for a gjore hook/brodtekst storre eller mindre.
+function attachProxyResize(handle, kind){
+  const ov = document.getElementById('story-overlay');
+  var resizing=false, sy=0, start=0;
+  handle.addEventListener('pointerdown', function(ev){
+    ev.stopPropagation(); ev.preventDefault(); resizing=true; window._proxyDragging=true; try{ handle.setPointerCapture(ev.pointerId); }catch(_){}
+    sy=ev.clientY;
+    if(kind==='head'){ start=parseInt(document.getElementById('story-font-size')?.value,10)||52; }
+    else { start=editorState.bodySize || Math.round((parseInt(document.getElementById('story-font-size')?.value,10)||52)*0.52); }
+  });
+  handle.addEventListener('pointermove', function(ev){
+    if(!resizing) return;
+    const r = ov.getBoundingClientRect();
+    const d = ((ev.clientY - sy)/Math.max(1,r.height)) * 1920 * 0.6;   // dra ned = storre
+    let ns = Math.round(start + d);
+    if(kind==='head'){ ns=Math.max(28,Math.min(120,ns)); const s=document.getElementById('story-font-size'); if(s){ s.value=ns; } const l=document.getElementById('story-font-size-val'); if(l) l.textContent=ns; }
+    else { ns=Math.max(14,Math.min(90,ns)); editorState.bodySize=ns; const bs=document.getElementById('story-body-size'); if(bs) bs.value=ns; const bl=document.getElementById('story-body-size-val'); if(bl) bl.textContent=ns; }
+    drawStoryCanvas();
+  });
+  handle.addEventListener('pointerup', function(){ resizing=false; window._proxyDragging=false; try{ drawStoryCanvas(); saveStoryDraft(); }catch(e){} });
+}
 function attachProxyDrag(node, kind){
   const ov = document.getElementById('story-overlay');
   var dragging=false, sx=0, sy=0, ox=0, oy=0;
   node.addEventListener('pointerdown', function(ev){
+    if(ev.target && ev.target.classList && ev.target.classList.contains('stp-resize')) return;
     dragging=true; window._proxyDragging=true; try{ node.setPointerCapture(ev.pointerId); }catch(_){}
     const c = (kind==='head') ? editorState._headCenter : editorState._bodyCenter;
     const cur = (kind==='head') ? editorState.headlinePos : editorState.bodyPos;
