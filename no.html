@@ -2199,8 +2199,14 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
     <div class="card">
       <div class="card-title">Logo og vannmerke</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="chip active" id="logo-lme" onclick="setLogo('lme')">LME-logo</button>
+        <button class="chip" id="logo-image" onclick="pickLogo()">📷 Last opp logo</button>
+        <button class="chip active" id="logo-name" onclick="setLogo('name')">Merkenavn</button>
         <button class="chip" id="logo-none" onclick="setLogo('none')">- Ingen</button>
+      </div>
+      <input type="file" id="logo-file-input" accept="image/*" style="display:none;" onchange="loadLogoImage(this)"/>
+      <div id="logo-preview" style="display:none;margin-top:10px;align-items:center;gap:10px;">
+        <img id="logo-preview-img" style="max-height:40px;max-width:120px;border-radius:6px;border:1px solid var(--border);background:#fff;"/>
+        <button class="chip" onclick="removeLogo()" style="color:#E5484D;">Fjern logo</button>
       </div>
       <div style="margin-top:10px;display:flex;gap:8px;align-items:center;">
         <label style="font-size:11px;color:var(--text-s);white-space:nowrap;">Posisjon:</label>
@@ -4390,7 +4396,7 @@ function saveSettings(){
 function persistCfg(){ try{ localStorage.setItem('lme_no_v1',JSON.stringify(cfg)); localStorage.setItem('lme_innstillinger_no',JSON.stringify(cfg)); }catch(e){} }
 
 /* ───────── Merkevareprofiler (bytt mellom flere merkevarer) ───────── */
-var PROFILE_FIELDS=['brand','niche','voice','audience','greeting','signature','charPreset','charNames','charDesc'];
+var PROFILE_FIELDS=['brand','niche','voice','audience','greeting','signature','charPreset','charNames','charDesc','logoImage'];
 function loadProfiles(){ try{ return JSON.parse(localStorage.getItem('lme_profiles')||'null'); }catch(e){ return null; } }
 function saveProfiles(p){ try{ localStorage.setItem('lme_profiles', JSON.stringify(p)); }catch(e){} }
 function ensureProfiles(){
@@ -5363,7 +5369,7 @@ function setEditorMode(mode){
   ['story','reel'].forEach(m=>{
     document.getElementById('emode-'+m).classList.toggle('active', m===mode);
   });
-  if(mode==='story'){ try{ renderStoryOverlay(); }catch(e){} }
+  if(mode==='story'){ try{ renderStoryOverlay(); }catch(e){} try{ if(editorState.logo==='lme') editorState.logo = cfg.logoImage?'image':'name'; refreshLogoUI(); setLogo(editorState.logo); }catch(e){} }
 }
 
 // ── Gradient palette ──
@@ -5433,9 +5439,29 @@ function setTextColor(color){
 
 function setLogo(l){
   editorState.logo = l;
-  document.getElementById('logo-lme')?.classList.toggle('active', l==='lme');
+  document.getElementById('logo-image')?.classList.toggle('active', l==='image');
+  document.getElementById('logo-name')?.classList.toggle('active', l==='name');
   document.getElementById('logo-none')?.classList.toggle('active', l==='none');
   drawStoryCanvas();
+}
+function pickLogo(){ document.getElementById('logo-file-input')?.click(); }
+function loadLogoImage(input){
+  const f=input.files&&input.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=function(e){
+    cfg.logoImage=e.target.result;
+    try{ persistCfg(); }catch(_){}
+    try{ syncActiveProfile(); }catch(_){}
+    refreshLogoUI();
+    setLogo('image');
+  };
+  r.readAsDataURL(f);
+}
+function removeLogo(){ cfg.logoImage=''; try{ persistCfg(); syncActiveProfile(); }catch(_){}; refreshLogoUI(); setLogo('name'); }
+function refreshLogoUI(){
+  const wrap=document.getElementById('logo-preview'); const img=document.getElementById('logo-preview-img');
+  if(cfg.logoImage){ if(img) img.src=cfg.logoImage; if(wrap) wrap.style.display='flex'; }
+  else { if(wrap) wrap.style.display='none'; }
 }
 
 // Generer story-tekst direkte i editoren, uten å måtte lage innhold i Lag innhold-fanen først.
@@ -5835,14 +5861,35 @@ function drawStoryText(ctx, W, H){
 function drawStoryLogo(ctx, W, H){
   if(editorState.logo === 'none') return;
   const pos = document.getElementById('logo-position')?.value || 'bottom';
-  const y = pos === 'bottom' ? H - 80 : 80;
 
+  // Egen opplastet logo (bilde).
+  if(editorState.logo === 'image' && cfg.logoImage){
+    let img = editorState._logoImg;
+    if(!img || img.src !== cfg.logoImage){
+      img = new Image(); editorState._logoImg = img;
+      img.onload = function(){ if(editorState.mode==='story' && document.getElementById('story-canvas')) drawStoryCanvas(); };
+      img.src = cfg.logoImage;
+    }
+    if(img.complete && img.naturalWidth){
+      const maxW = W*0.44, maxH = H*0.11;
+      const scale = Math.min(maxW/img.naturalWidth, maxH/img.naturalHeight);
+      const lw = img.naturalWidth*scale, lh = img.naturalHeight*scale;
+      const y = pos === 'bottom' ? H - 70 - lh : 60;
+      ctx.save(); ctx.shadowColor='rgba(0,0,0,0.25)'; ctx.shadowBlur=10;
+      ctx.drawImage(img, W/2 - lw/2, y, lw, lh);
+      ctx.restore();
+    }
+    return;
+  }
+
+  // Merkenavn (fra profilen din).
+  const y = pos === 'bottom' ? H - 80 : 80;
   ctx.textAlign = 'center';
   ctx.font = "bold 36px 'Playpen Sans', sans-serif";
   ctx.fillStyle = editorState.textColor === '#1A1A1A' ? '#1A1A1A' : 'rgba(255,255,255,0.9)';
   ctx.shadowColor = 'rgba(0,0,0,0.3)';
   ctx.shadowBlur = 8;
-  ctx.fillText('🌿 dinmerkevare', W/2, y);
+  ctx.fillText(cfg.brand || 'Din merkevare', W/2, y);
   ctx.shadowBlur = 0;
 }
 
