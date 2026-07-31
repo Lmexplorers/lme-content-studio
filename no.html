@@ -2457,7 +2457,9 @@ const TOPICS = [
 ];
 
 const AGE_GROUPS  = ['3-6 år','6-9 år','9-12 år','13-16 år (kommer)','Alle aldersgrupper','Foreldre generelt'];
-const CHARACTERS  = ['Egne karakterer','Ingen karakter'];
+const CHARACTERS  = ['Mia & Teo','Egne karakterer','Ingen karakter'];
+// Beskrivelse av LMEs egne figurer, brukt når "Mia & Teo" er valgt. Juster fritt.
+const MIA_TEO_DESC = 'Mia og Teo, LMEs egne figurer: to nysgjerrige og varme Montessori-utforskere som lærer gjennom lek, praktisk liv og utforsking av naturen';
 const TONES       = ['Varm og personlig','Pedagogisk','Inspirerende','Leken og morsom','Direkte og tydelig'];
 const PLATFORMS   = ['Instagram','TikTok','Facebook','Threads','YouTube','Pinterest','LinkedIn'];
 const WEEKDAYS    = ['Man','Tir','Ons','Tor','Fre','Lør','Søn'];
@@ -3206,6 +3208,7 @@ function buildPrompt(){
   let characters;
   const preset = cfg.charPreset||'none';
   if(state.char==='Ingen karakter'){ characters='ingen spesifikke karakterer'; }
+  else if(state.char==='Mia & Teo'){ characters=MIA_TEO_DESC; }
   else if(state.char==='Egne karakterer'&&cfg.charNames){ characters=`${cfg.charNames}${cfg.charDesc?', '+cfg.charDesc:''}`; }
   else if(state.char==='Egne karakterer'){ characters='egendefinerte karakterer (legg til navn i Innstillinger)'; }
   else if(preset==='none'){ characters='ingen spesifikke karakterer'; }
