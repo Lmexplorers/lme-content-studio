@@ -3176,9 +3176,14 @@ async function publishReel(){
 
   const caption=typeof state.result==='string'?state.result:state.result.join('\n\n');
 
-  // Check for the publishing service config
-  if(!cfg.socialbuKey||!cfg.makeWebhook||!(cfg.socialbuAccounts||[]).length){
-    statusEl.innerHTML=`<div class="pub-status error" style="margin-top:10px;">the publishing service not configured. Add Bearer token + Account IDs + Cloudflare Worker URL in ⚙️ Settings.</div>`;
+  // Require Blotato setup (key + selected account). Falls back to the old proxy only if Blotato is missing.
+  if(!cfg.blotatoKey && (!cfg.socialbuKey||!cfg.makeWebhook||!(cfg.socialbuAccounts||[]).length)){
+    statusEl.innerHTML=`<div class="pub-status error" style="margin-top:10px;">Blotato is not set up. Add your Blotato key and pick an account in ⚙️ Settings.</div>`;
+    btn.disabled=false; btn.textContent='Publish Reel automatically';
+    return;
+  }
+  if(cfg.blotatoKey && !cfg.blotatoAccount){
+    statusEl.innerHTML=`<div class="pub-status error" style="margin-top:10px;">Pick which Blotato profile to post to in ⚙️ Settings.</div>`;
     btn.disabled=false; btn.textContent='Publish Reel automatically';
     return;
   }
@@ -3200,41 +3205,30 @@ async function publishReel(){
 
   statusEl.innerHTML=`<div class="pub-status loading" style="margin-top:10px;">Uploading video and sending to the publishing service… <span class="loading-dots"><span></span><span></span><span></span></span><br/><span style="font-size:11px;opacity:.8;">Large videos may take 30-60 seconds</span></div>`;
 
-  // Convert video to base64 to send via Cloudflare Worker
-  // Worker then uploads to the publishing service which handles the media
   try{
     const base64=await fileToBase64(uploadFile);
-    const payload={
-      socialbuKey: cfg.socialbuKey,
-      socialbuBody:{
-        accounts: cfg.socialbuAccounts||[],
-        content:  caption,
-        options:  {post_as_reel:true},
-      },
-      videoBase64: base64,
-      videoMimeType: 'video/mp4',
-      videoName: (state.videoFile.name||'reel').replace(/\.[^.]+$/,'')+'.mp4',
-    };
+    const vidName=(state.videoFile.name||'reel').replace(/\.[^.]+$/,'')+'.mp4';
+    let done=false, errMsg='';
+    if(cfg.blotatoKey){
+      // New path: upload the video (base64) straight to Blotato and create the post.
+      const r=await blotatoPublish({text:caption, mediaUrls:['data:video/mp4;base64,'+base64], mediaName:vidName});
+      done=r.ok; errMsg=r.ok?'':(r.error||'Unknown error from Blotato');
+    }else{
+      // Old proxy (fallback if the Blotato key is missing).
+      const payload={socialbuKey:cfg.socialbuKey, socialbuBody:{accounts:cfg.socialbuAccounts||[],content:caption,options:{post_as_reel:true}}, videoBase64:base64, videoMimeType:'video/mp4', videoName:vidName};
+      const res=await smartFetch(cfg.makeWebhook,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});
+      done=res.ok; if(!done) errMsg='Proxy returned status '+res.status;
+    }
 
-    const res=await smartFetch(cfg.makeWebhook,{
-      method:'POST',
-      headers:{'Content-Type':'text/plain'},
-      body:JSON.stringify(payload),
-    });
-
-    if(res.ok){
-      statusEl.innerHTML=`<div class="pub-status success" style="margin-top:10px;">
-        🎬✅ <strong>Reel sent to the publishing service!</strong><br/>
-        Check your the publishing service dashboard to confirm it's scheduled or published.<br/>
-        <span style="font-size:11px;margin-top:4px;display:block;">The Cloudflare Worker handles uploading the video to the publishing service and creating the post.</span>
-      </div>`;
+    if(done){
+      statusEl.innerHTML=`<div class="pub-status success" style="margin-top:10px;">🎬✅ <strong>Reel sent to Blotato!</strong><br/>Check <a href="https://my.blotato.com" target="_blank" style="color:var(--rose-d);font-weight:700;">my.blotato.com</a> for status: published, scheduled or failed with a reason.</div>`;
       if(state.history[0]){ state.history[0].published=true; }
       renderCalendar();
     }else{
-      throw new Error('Worker returned status '+res.status);
+      statusEl.innerHTML=`<div class="pub-status error" style="margin-top:10px;">Publishing failed: ${errMsg}<br/><span style="font-size:11px;">Check that your Blotato key and account are selected in Settings, and that the account is connected in Blotato.</span></div>`;
     }
   }catch(e){
-    statusEl.innerHTML=`<div class="pub-status error" style="margin-top:10px;">Error: ${e.message}<br/><span style="font-size:11px;">Check your Cloudflare Worker and the publishing service token.</span></div>`;
+    statusEl.innerHTML=`<div class="pub-status error" style="margin-top:10px;">Error: ${e.message}</div>`;
   }
   btn.disabled=false; btn.textContent='Publish Reel automatically';
 }
@@ -3498,9 +3492,9 @@ async function generateAndPublish(){ await genererBilde(); }
 
 // Central publishing via Blotato (Pages Function /api/publish).
 // mediaUrls must be public URLs; Blotato downloads and re-hosts them.
-async function blotatoPublish({text, mediaUrls, scheduledTime}){
+async function blotatoPublish({text, mediaUrls, scheduledTime, mediaName}){
   if(!cfg.blotatoKey) return {ok:false, error:'Missing Blotato key. Add it in Settings.'};
-  if(!cfg.blotatoAccount) return {ok:false, error:'Missing account ID. Add it in Settings.'};
+  if(!cfg.blotatoAccount) return {ok:false, error:'Missing account. Pick a profile in Settings.'};
   try{
     const res=await fetch('/api/publish',{
       method:'POST',
@@ -3511,6 +3505,7 @@ async function blotatoPublish({text, mediaUrls, scheduledTime}){
         targetType: cfg.blotatoPlatform||'instagram',
         text: text||'',
         mediaUrls: (mediaUrls||[]).filter(Boolean),
+        mediaName: mediaName||undefined,
         scheduledTime: scheduledTime||undefined,
       }),
     });

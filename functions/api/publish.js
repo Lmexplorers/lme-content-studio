@@ -48,11 +48,14 @@ export async function onRequestPost(context) {
   if (!b.accountId) return json({ error: "Mangler konto. Velg hvilken profil du vil poste til." }, 200);
 
   try {
-    // 1) Last opp hver media-kilde til Blotato (returnerer Blotato-hostet URL)
+    // 1) Last opp hver media-kilde til Blotato (returnerer Blotato-hostet URL).
+    // Blotato tar imot både offentlige URL-er og base64/data-URI-er (opp til 200 MB).
     const mediaUrls = [];
     for (const src of (b.mediaUrls || [])) {
       if (!src) continue;
-      const up = await blotato("/media", key, { url: src });
+      const mediaBody = { url: src };
+      if (/^data:/.test(src) && b.mediaName) mediaBody.filename = b.mediaName;
+      const up = await blotato("/media", key, mediaBody);
       if (!up.ok) {
         return json({ error: "Opplasting til Blotato feilet.", step: "media", status: up.status, detail: up.data }, 200);
       }
