@@ -2131,6 +2131,8 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
         <button class="chip" id="txt-bg-gold" onclick="setTextBg('rgba(212,149,106,0.8)')">Gull</button>
       </div>
 
+      <button class="act-btn" style="width:100%;margin-bottom:8px;background:var(--rose);color:#fff;" onclick="generateStoryText(this)">
+        ✨ Generer tekst med AI</button>
       <button class="act-btn sage-btn" style="width:100%;" onclick="loadStoryTextFromContent()">
         📄 Hent tekst fra generert innhold</button>
     </div>
@@ -5421,6 +5423,25 @@ function setLogo(l){
   drawStoryCanvas();
 }
 
+// Generer story-tekst direkte i editoren, uten å måtte lage innhold i Lag innhold-fanen først.
+async function generateStoryText(btn){
+  const key=getApiKey();
+  if(!key||key.length<20){ alert('Legg inn Claude-nøkkelen i Innstillinger først.'); return; }
+  let seed=(document.getElementById('story-headline')?.value||'').trim()
+        || ((typeof state!=='undefined' && (state.customTopic||state.topic))||'').trim();
+  if(!seed || seed==='Eget tema...' || seed==='Custom topic...'){ seed=(prompt('Hva skal storyen handle om? Skriv en kort setning.')||'').trim(); if(!seed) return; }
+  const prev=btn?btn.textContent:''; if(btn){ btn.disabled=true; btn.textContent='Lager…'; }
+  try{
+    const p=`Lag en kort, fengende story-tekst på norsk bokmål for en Instagram-story om: "${seed}". Merkevare: "${cfg.brand||''}". Nisje: "${cfg.niche||''}". Tone: ${cfg.voice||'varm og tydelig'}. Returner nøyaktig to linjer: linje 1 er en scrollstoppende hook (maks 8 ord), linje 2 er en kort støttesetning (maks 12 ord). Uten anførselstegn, uten punktum på slutten av hooken.`;
+    const out=await callClaude(p,key,150);
+    const lines=(out||'').split('\n').map(function(l){return l.replace(/^[-•\d.\s"]+/,'').trim();}).filter(Boolean);
+    const hl=document.getElementById('story-headline'), bd=document.getElementById('story-body');
+    if(hl){ hl.value=lines[0]||''; editorState.headline=hl.value; }
+    if(bd){ bd.value=lines[1]||''; editorState.bodyText=bd.value; }
+    drawStoryCanvas();
+  }catch(e){ alert('Kunne ikke generere: '+((e&&e.message)||e)); }
+  if(btn){ btn.disabled=false; btn.textContent=prev||'✨ Generer tekst med AI'; }
+}
 function loadStoryTextFromContent(){
   if(!state.slides && !state.result){ alert('Generer innhold i "Lag innhold"-fanen først!'); return; }
   const idx = state.currentSlide || 0;

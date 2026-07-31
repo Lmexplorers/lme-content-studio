@@ -1845,6 +1845,8 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
         <button class="chip" id="txt-bg-gold" onclick="setTextBg('rgba(212,149,106,0.8)')">Gold</button>
       </div>
 
+      <button class="act-btn" style="width:100%;margin-bottom:8px;background:var(--rose);color:#fff;" onclick="generateStoryText(this)">
+        ✨ Generate text with AI</button>
       <button class="act-btn sage-btn" style="width:100%;" onclick="loadStoryTextFromContent()">
         📄 Load text from generated content</button>
     </div>
@@ -5015,6 +5017,25 @@ function setLogo(l){
   drawStoryCanvas();
 }
 
+// Generate story text directly in the editor, without generating content in the Create tab first.
+async function generateStoryText(btn){
+  const key=getApiKey();
+  if(!key||key.length<20){ alert('Add your Claude key in Settings first.'); return; }
+  let seed=(document.getElementById('story-headline')?.value||'').trim()
+        || ((typeof state!=='undefined' && (state.customTopic||state.topic))||'').trim();
+  if(!seed || seed==='Eget tema...' || seed==='Custom topic...'){ seed=(prompt('What is the story about? Write a short sentence.')||'').trim(); if(!seed) return; }
+  const prev=btn?btn.textContent:''; if(btn){ btn.disabled=true; btn.textContent='Working…'; }
+  try{
+    const p=`Write a short, scroll-stopping story text in English for an Instagram story about: "${seed}". Brand: "${cfg.brand||''}". Niche: "${cfg.niche||''}". Tone: ${cfg.voice||'warm and clear'}. Return exactly two lines: line 1 is a scroll-stopping hook (max 8 words), line 2 is a short supporting sentence (max 12 words). No quotation marks, no period at the end of the hook.`;
+    const out=await callClaude(p,key,150);
+    const lines=(out||'').split('\n').map(function(l){return l.replace(/^[-•\d.\s"]+/,'').trim();}).filter(Boolean);
+    const hl=document.getElementById('story-headline'), bd=document.getElementById('story-body');
+    if(hl){ hl.value=lines[0]||''; editorState.headline=hl.value; }
+    if(bd){ bd.value=lines[1]||''; editorState.bodyText=bd.value; }
+    drawStoryCanvas();
+  }catch(e){ alert('Could not generate: '+((e&&e.message)||e)); }
+  if(btn){ btn.disabled=false; btn.textContent=prev||'✨ Generate text with AI'; }
+}
 function loadStoryTextFromContent(){
   if(!state.slides && !state.result){ alert('Generate content in the "Create content" tab first!'); return; }
   const idx = state.currentSlide || 0;
