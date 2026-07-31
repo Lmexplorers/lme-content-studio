@@ -3593,7 +3593,7 @@ async function publishReel(){
   const caption=typeof state.result==='string'?state.result:state.result.join('\n\n');
 
   // Krev Blotato-oppsett (nøkkel + valgt konto). Faller tilbake til gammel proxy kun hvis Blotato mangler.
-  if(!cfg.blotatoKey && (!cfg.socialbuKey||!cfg.makeWebhook||!(cfg.socialbuAccounts||[]).length)){
+  if(!_syncBlotatoKey()){
     statusEl.innerHTML=`<div class="pub-status error" style="margin-top:10px;">Blotato er ikke satt opp. Legg inn Blotato-nøkkel og velg konto i ⚙️ Innstillinger.</div>`;
     btn.disabled=false; btn.textContent='Publiser Reel automatisk';
     return;
@@ -3907,10 +3907,15 @@ function brukIStoryEditor(){
 // Keep old function name for compatibility
 async function generateAndPublish(){ await genererBilde(); }
 
+// Hent Blotato-nokkelen robust: fra cfg, ellers fra feltet (om den ikke rakk a bli lagret enda).
+function _syncBlotatoKey(){
+  if(!cfg.blotatoKey){ const el=document.getElementById('s-blotato-key'); const k=(el&&el.value||'').trim(); if(k){ cfg.blotatoKey=k; try{ saveSettings(); }catch(e){} } }
+  return cfg.blotatoKey;
+}
 // Sentral publisering via Blotato (Pages Function /api/publish).
 // mediaUrls maa vaere offentlige URL-er; Blotato laster dem ned og re-hoster.
 async function blotatoPublish({text, mediaUrls, scheduledTime, mediaName, target, contentKind}){
-  if(!cfg.blotatoKey) return {ok:false, error:'Mangler Blotato-nøkkel. Legg den inn i Innstillinger.'};
+  if(!_syncBlotatoKey()) return {ok:false, error:'Mangler Blotato-nøkkel. Legg den inn i Innstillinger.'};
   // Flervalg: poster til alle avhukede kontoer. Faller tilbake til enkelt-konto.
   let accounts=(cfg.blotatoAccounts||[]).filter(a=>a&&a.id).map(a=>({id:String(a.id), platform:a.platform||cfg.blotatoPlatform||'instagram'}));
   if(!accounts.length && cfg.blotatoAccount){ accounts=[{id:String(cfg.blotatoAccount), platform:cfg.blotatoPlatform||'instagram'}]; }
@@ -4010,7 +4015,7 @@ function blotatoPickAccount(sel){
 
 async function sendToSocialBu(text,mediaUrls,format,publishAt){
   // Ny vei: Blotato naar nokkel finnes. Faller tilbake til gammel proxy ellers.
-  if(cfg.blotatoKey){
+  if(_syncBlotatoKey()){
     const r=await blotatoPublish({text, mediaUrls:mediaUrls||[], scheduledTime: blotatoTime(publishAt), contentKind:(format==='reel'?'reel':format==='story'?'story':'post')});
     return r.ok;
   }
@@ -5218,7 +5223,7 @@ async function sendReelTilSocialBu(publishAt, dateStr){
   const statusEl = document.getElementById('reel-export-status');
   const btn = document.querySelector('#editor-reel .export-btn.purple');
 
-  if(!cfg.blotatoKey && (!cfg.socialbuKey || !cfg.makeWebhook || !(cfg.socialbuAccounts||[]).length)){
+  if(!_syncBlotatoKey()){
     statusEl.innerHTML = '<div class="pub-status error" style="margin-top:8px;">Blotato er ikke satt opp. Legg inn Blotato-nøkkel og velg konto i ⚙️ Innstillinger.</div>';
     return;
   }
@@ -6159,7 +6164,7 @@ async function exportAndPublishStory(){
   const statusEl = document.getElementById('story-export-status');
 
   // Krev Blotato (nokkel + valgt konto). Faller tilbake til gammel proxy KUN hvis Blotato mangler.
-  if(!cfg.blotatoKey && (!cfg.socialbuKey || !cfg.makeWebhook || !(cfg.socialbuAccounts||[]).length)){
+  if(!_syncBlotatoKey()){
     statusEl.innerHTML = '<div class="pub-status error" style="margin-top:8px;">Blotato er ikke satt opp. Legg inn Blotato-nøkkel og velg konto i ⚙️ Innstillinger.</div>';
     return;
   }
@@ -6908,7 +6913,7 @@ async function renderAndPublishReel(){
   const statusEl = document.getElementById('reel-export-status');
   const btn      = document.querySelector('#editor-reel .export-btn.purple');
 
-  if(!cfg.blotatoKey && (!cfg.socialbuKey || !cfg.makeWebhook || !(cfg.socialbuAccounts||[]).length)){
+  if(!_syncBlotatoKey()){
     statusEl.innerHTML = '<div class="pub-status error">Blotato er ikke satt opp. Legg inn Blotato-nøkkel og velg konto i ⚙️ Innstillinger.</div>';
     return;
   }

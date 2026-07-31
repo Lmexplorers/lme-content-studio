@@ -3295,7 +3295,7 @@ async function publishReel(){
   const caption=typeof state.result==='string'?state.result:state.result.join('\n\n');
 
   // Require Blotato setup (key + selected account). Falls back to the old proxy only if Blotato is missing.
-  if(!cfg.blotatoKey && (!cfg.socialbuKey||!cfg.makeWebhook||!(cfg.socialbuAccounts||[]).length)){
+  if(!_syncBlotatoKey()){
     statusEl.innerHTML=`<div class="pub-status error" style="margin-top:10px;">Blotato is not set up. Add your Blotato key and pick an account in ⚙️ Settings.</div>`;
     btn.disabled=false; btn.textContent='Publish Reel automatically';
     return;
@@ -3610,8 +3610,13 @@ async function generateAndPublish(){ await genererBilde(); }
 
 // Central publishing via Blotato (Pages Function /api/publish).
 // mediaUrls must be public URLs; Blotato downloads and re-hosts them.
+// Resolve the Blotato key robustly: from cfg, otherwise from the field (in case it wasn't saved yet).
+function _syncBlotatoKey(){
+  if(!cfg.blotatoKey){ const el=document.getElementById('s-blotato-key'); const k=(el&&el.value||'').trim(); if(k){ cfg.blotatoKey=k; try{ saveSettings(); }catch(e){} } }
+  return cfg.blotatoKey;
+}
 async function blotatoPublish({text, mediaUrls, scheduledTime, mediaName, target, contentKind}){
-  if(!cfg.blotatoKey) return {ok:false, error:'Missing Blotato key. Add it in Settings.'};
+  if(!_syncBlotatoKey()) return {ok:false, error:'Missing Blotato key. Add it in Settings.'};
   // Multi-select: post to every ticked account. Falls back to a single account.
   let accounts=(cfg.blotatoAccounts||[]).filter(a=>a&&a.id).map(a=>({id:String(a.id), platform:a.platform||cfg.blotatoPlatform||'instagram'}));
   if(!accounts.length && cfg.blotatoAccount){ accounts=[{id:String(cfg.blotatoAccount), platform:cfg.blotatoPlatform||'instagram'}]; }
@@ -3709,7 +3714,7 @@ function blotatoPickAccount(sel){
 
 async function sendToSocialBu(text,mediaUrls,format,publishAt){
   // New path: Blotato when a key is present. Falls back to the old proxy otherwise.
-  if(cfg.blotatoKey){
+  if(_syncBlotatoKey()){
     const r=await blotatoPublish({text, mediaUrls:mediaUrls||[], scheduledTime: blotatoTime(publishAt), contentKind:(format==='reel'?'reel':format==='story'?'story':'post')});
     return r.ok;
   }
@@ -4830,7 +4835,7 @@ async function sendReelToSocialBu(){
   const statusEl = document.getElementById('reel-export-status');
   const btn = document.querySelector('#editor-reel .export-btn.purple');
 
-  if(!cfg.blotatoKey && (!cfg.socialbuKey || !cfg.makeWebhook || !(cfg.socialbuAccounts||[]).length)){
+  if(!_syncBlotatoKey()){
     statusEl.innerHTML = '<div class="pub-status error" style="margin-top:8px;">Blotato is not set up. Add your Blotato key and pick an account in ⚙️ Settings.</div>';
     return;
   }
@@ -5750,7 +5755,7 @@ async function exportAndPublishStory(){
   const statusEl = document.getElementById('story-export-status');
 
   // Require Blotato (key + selected account). Falls back to the old proxy ONLY if Blotato is missing.
-  if(!cfg.blotatoKey && (!cfg.socialbuKey || !cfg.makeWebhook || !(cfg.socialbuAccounts||[]).length)){
+  if(!_syncBlotatoKey()){
     statusEl.innerHTML = '<div class="pub-status error" style="margin-top:8px;">Blotato is not set up. Add your Blotato key and pick an account in ⚙️ Settings.</div>';
     return;
   }
@@ -6497,7 +6502,7 @@ async function renderAndPublishReel(){
   const statusEl = document.getElementById('reel-export-status');
   const btn      = document.querySelector('#editor-reel .export-btn.purple');
 
-  if(!cfg.blotatoKey && (!cfg.socialbuKey || !cfg.makeWebhook || !(cfg.socialbuAccounts||[]).length)){
+  if(!_syncBlotatoKey()){
     statusEl.innerHTML = '<div class="pub-status error">Blotato is not set up. Add your Blotato key and pick an account in ⚙️ Settings.</div>';
     return;
   }
