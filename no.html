@@ -2021,6 +2021,7 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
     #story-overlay{position:absolute;inset:0;overflow:hidden;border-radius:20px;}
     .st-el{position:absolute;transform:translate(-50%,-50%);cursor:grab;touch-action:none;max-width:90%;text-align:center;}
     .st-el.sel{outline:2px dashed var(--rose);outline-offset:3px;border-radius:8px;}
+    .st-resize{position:absolute;right:-13px;bottom:-13px;width:24px;height:24px;background:var(--rose);border:2px solid #fff;border-radius:50%;cursor:nwse-resize;touch-action:none;box-shadow:0 2px 6px rgba(0,0,0,.35);z-index:6;}
     .st-el.txt{font-family:'Playpen Sans',sans-serif;font-weight:800;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.6);line-height:1.2;white-space:pre-wrap;padding:2px 6px;}
     .st-el.emoji{line-height:1;}
     .st-el.react{background:rgba(255,255,255,.92);border-radius:999px;padding:7px 13px;display:flex;gap:7px;font-size:21px;box-shadow:0 3px 12px rgba(0,0,0,.25);}
@@ -2049,7 +2050,8 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
           <input id="see-opt1" class="text-overlay-input" style="margin-bottom:8px;" placeholder="Valg 1" oninput="updateStoryEl('opt1',this.value)"/>
           <input id="see-opt2" class="text-overlay-input" style="margin-bottom:8px;" placeholder="Valg 2" oninput="updateStoryEl('opt2',this.value)"/>
         </div>
-        <div class="hk-row" id="see-sizerow"><div class="hk-lab">Størrelse</div><input type="range" min="16" max="90" id="see-size" oninput="updateStoryEl('size',this.value)" style="width:100%;accent-color:var(--rose);"></div>
+        <div class="hk-row" id="see-sizerow"><div class="hk-lab">Størrelse (eller dra i hjørnet)</div><input type="range" min="14" max="140" id="see-size" oninput="updateStoryEl('size',this.value)" style="width:100%;accent-color:var(--rose);"></div>
+        <div class="hk-row" id="see-lhrow"><div class="hk-lab">Linjeavstand</div><input type="range" min="0.9" max="2" step="0.1" id="see-lh" oninput="updateStoryEl('lineH',this.value)" style="width:100%;accent-color:var(--rose);"></div>
         <div class="hk-row" id="see-colorrow"><div class="hk-lab">Farge</div><div id="see-colors" class="hk-sws"></div></div>
         <button class="chip" onclick="deleteStoryEl()" style="background:#E5484D;color:#fff;border-color:#E5484D;margin-top:10px;">Slett element</button>
       </div>
@@ -5534,23 +5536,43 @@ function esc2(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').repl
 function storyElHtml(e){
   const pos='left:'+(e.xPct*100)+'%;top:'+(e.yPct*100)+'%;';
   const sel=(_selEl===e.id)?' sel':'';
-  if(e.type==='text') return '<div class="st-el txt'+sel+'" data-eid="'+e.id+'" style="'+pos+'font-size:'+e.size+'px;color:'+e.color+';">'+esc2(e.text)+'</div>';
-  if(e.type==='emoji') return '<div class="st-el emoji'+sel+'" data-eid="'+e.id+'" style="'+pos+'font-size:'+e.size+'px;">'+esc2(e.text||'😊')+'</div>';
+  if(e.type==='text') return '<div class="st-el txt'+sel+'" data-eid="'+e.id+'" style="'+pos+'font-size:'+e.size+'px;color:'+e.color+';line-height:'+(e.lineH||1.2)+';">'+esc2(e.text)+_resizeHandle(e)+'</div>';
+  if(e.type==='emoji') return '<div class="st-el emoji'+sel+'" data-eid="'+e.id+'" style="'+pos+'font-size:'+e.size+'px;">'+esc2(e.text||'😊')+_resizeHandle(e)+'</div>';
   if(e.type==='react') return '<div class="st-el react'+sel+'" data-eid="'+e.id+'" style="'+pos+'">'+(e.text||'').split(' ').filter(Boolean).map(function(x){return '<span>'+esc2(x)+'</span>';}).join('')+'</div>';
   if(e.type==='link'){ var lbg=e.color||'#ffffff'; return '<div class="st-el link'+sel+'" data-eid="'+e.id+'" style="'+pos+'background:'+lbg+';color:'+_contrastText(lbg)+';">🔗 '+esc2(e.text||'Lenke')+'</div>'; }
   const opts=(e.type==='poll')?('<div class="pq-opts"><div class="pq-opt">'+esc2(e.opt1||'Ja')+'</div><div class="pq-opt">'+esc2(e.opt2||'Nei')+'</div></div>'):'<div class="pq-ans">Svar…</div>';
   return '<div class="st-el '+(e.type==='poll'?'poll':'quest')+sel+'" data-eid="'+e.id+'" style="'+pos+'"><div class="pq-q">'+esc2(e.text)+'</div>'+opts+'</div>';
 }
+// Dra-håndtak i hjørnet for å skalere (kun tekst og emoji, som bruker size).
+function _resizeHandle(e){ return (_selEl===e.id && (e.type==='text'||e.type==='emoji')) ? '<span class="st-resize" data-resize="'+e.id+'"></span>' : ''; }
 function renderStoryOverlay(){
   const ov=document.getElementById('story-overlay'); if(!ov) return;
   const els=_storyEls();
   ov.innerHTML=els.map(storyElHtml).join('');
   els.forEach(function(e){ const node=ov.querySelector('[data-eid="'+e.id+'"]'); if(node) attachElDrag(node,e); });
+  const h=ov.querySelector('.st-resize'); if(h) attachResize(h);
+}
+function attachResize(handle){
+  const id=handle.getAttribute('data-resize'); const e=_storyEls().find(function(x){return x.id===id;}); if(!e) return;
+  const ov=document.getElementById('story-overlay');
+  var resizing=false, sx=0, sy=0, startSize=0;
+  handle.addEventListener('pointerdown', function(ev){ ev.stopPropagation(); ev.preventDefault(); resizing=true; try{ handle.setPointerCapture(ev.pointerId); }catch(_){} sx=ev.clientX; sy=ev.clientY; startSize=e.size||26; });
+  handle.addEventListener('pointermove', function(ev){
+    if(!resizing) return;
+    var d=((ev.clientX-sx)+(ev.clientY-sy))/2;
+    var ns=Math.max(14, Math.min(140, Math.round(startSize + d*0.5)));
+    e.size=ns;
+    var elNode=ov.querySelector('[data-eid="'+id+'"]'); if(elNode) elNode.style.fontSize=ns+'px';
+    var se=document.getElementById('see-size'); if(se) se.value=ns;
+    drawStoryCanvas();
+  });
+  handle.addEventListener('pointerup', function(){ resizing=false; renderStoryOverlay(); });
 }
 function attachElDrag(node,e){
   var dragging=false, moved=false, sx=0, sy=0, ox=0, oy=0;
   const ov=document.getElementById('story-overlay');
   node.addEventListener('pointerdown', function(ev){
+    if(ev.target && ev.target.classList && ev.target.classList.contains('st-resize')) return;
     dragging=true; moved=false; try{ node.setPointerCapture(ev.pointerId); }catch(_){}
     sx=ev.clientX; sy=ev.clientY; ox=e.xPct; oy=e.yPct; node.style.cursor='grabbing'; ev.preventDefault();
   });
@@ -5574,6 +5596,7 @@ function selectStoryEl(id){
   // Farge gjelder tekst og lenke-knapp. Størrelse gjelder tekst og emoji. Skjul der det ikke gjør noe.
   { const cr=document.getElementById('see-colorrow'); if(cr) cr.style.display = (e.type==='text'||e.type==='link') ? 'block' : 'none'; }
   { const sr=document.getElementById('see-sizerow'); if(sr) sr.style.display = (e.type==='text'||e.type==='emoji') ? 'block' : 'none'; }
+  { const lr=document.getElementById('see-lhrow'); if(lr) lr.style.display = (e.type==='text') ? 'block' : 'none'; const lh=document.getElementById('see-lh'); if(lh) lh.value=e.lineH||1.2; }
   const t=document.getElementById('see-text'); if(t){ t.value=e.text||''; t.placeholder = e.type==='emoji'?'Emoji':e.type==='react'?'Emoji med mellomrom mellom':e.type==='link'?'Knappetekst':(e.type==='poll'||e.type==='quest')?'Spørsmål':'Tekst'; }
   const u=document.getElementById('see-url'); if(u) u.value=e.url||'';
   const o1=document.getElementById('see-opt1'); if(o1) o1.value=e.opt1||'';
@@ -5581,7 +5604,7 @@ function selectStoryEl(id){
   const s=document.getElementById('see-size'); if(s) s.value=e.size||26;
   renderElColors();
 }
-function updateStoryEl(prop,val){ const e=_storyEls().find(function(x){return x.id===_selEl;}); if(!e) return; if(prop==='text' && e.type!=='text') val=(val||'').replace(/\n/g,' '); e[prop]=(prop==='size')?(parseInt(val,10)||26):val; renderStoryOverlay(); drawStoryCanvas(); }
+function updateStoryEl(prop,val){ const e=_storyEls().find(function(x){return x.id===_selEl;}); if(!e) return; if(prop==='text' && e.type!=='text') val=(val||'').replace(/\n/g,' '); e[prop]=(prop==='size')?(parseInt(val,10)||26):(prop==='lineH')?(parseFloat(val)||1.2):val; renderStoryOverlay(); drawStoryCanvas(); }
 function deleteStoryEl(){ const els=_storyEls(); const i=els.findIndex(function(x){return x.id===_selEl;}); if(i>=0) els.splice(i,1); _selEl=null; const ed=document.getElementById('story-el-editor'); if(ed) ed.style.display='none'; renderStoryOverlay(); drawStoryCanvas(); }
 function renderElColors(){
   const host=document.getElementById('see-colors'); if(!host) return;
@@ -5599,7 +5622,7 @@ function drawStoryElements(ctx,W,H){
       const fs=(e.size||26)*sc; ctx.font='800 '+fs+"px 'Playpen Sans',sans-serif"; ctx.textAlign='center'; ctx.textBaseline='middle';
       ctx.fillStyle=e.color||'#fff'; ctx.shadowColor='rgba(0,0,0,.6)'; ctx.shadowBlur=fs*0.3;
       var lines=[]; (e.text||'').split('\n').forEach(function(part){ var w=wrapText(ctx, part, W*0.86); if(w.length) lines=lines.concat(w); else lines.push(''); });
-      const lh=fs*1.2;
+      const lh=fs*(e.lineH||1.2);
       lines.forEach(function(ln,i){ ctx.fillText(ln, x, y-(lines.length-1)*lh/2+i*lh); });
     } else if(e.type==='emoji'){
       const fs=(e.size||46)*sc; ctx.font=fs+"px 'Apple Color Emoji','Segoe UI Emoji',sans-serif"; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(e.text||'😊', x, y);
