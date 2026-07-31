@@ -4162,9 +4162,10 @@ function saveSettings(){
     // Also keep backwards-compat key
     localStorage.setItem('lme_innstillinger_no',JSON.stringify(cfg));
   }catch(e){}
+  try{ _cfgBackupIdb(); }catch(e){}
   try{ syncActiveProfile(); }catch(e){}
 }
-function persistCfg(){ try{ localStorage.setItem('lme_en_v2',JSON.stringify(cfg)); localStorage.setItem('lme_innstillinger_no',JSON.stringify(cfg)); }catch(e){} }
+function persistCfg(){ try{ localStorage.setItem('lme_en_v2',JSON.stringify(cfg)); localStorage.setItem('lme_innstillinger_no',JSON.stringify(cfg)); }catch(e){} try{ _cfgBackupIdb(); }catch(e){} }
 
 /* ───────── Brand profiles (switch between several brands) ───────── */
 var PROFILE_FIELDS=['brand','niche','voice','audience','greeting','signature','charPreset','charNames','charDesc','logoImage'];
@@ -4955,6 +4956,7 @@ async function smartFetch(url, options){
 
 // ══ START ══
 loadSettings();
+try{ _restoreCfgIdb(); }catch(e){}  // restore Blotato key etc. from IndexedDB if localStorage is empty
 try{ initProfiles(); }catch(e){}
 init();
 
@@ -5246,13 +5248,9 @@ function _applyStory(d){
   try{ const at=document.getElementById('story-ad-toggle'); if(at) at.classList.toggle('active', !!d.adLabel); document.querySelectorAll('.ad-toggle').forEach(function(b){ b.classList.toggle('active', !!d.adLabel); }); }catch(e){}
 }
 function saveStoryDraft(){
-  const base=_captureStory();
-  try{
-    // Include the background image if it fits, otherwise drop it (quota) so text/elements still save.
-    localStorage.setItem('lme_story_draft', JSON.stringify(Object.assign({}, base, { bgImage:editorState.bgImage||'' })));
-  }catch(e){
-    try{ localStorage.setItem('lme_story_draft', JSON.stringify(Object.assign({}, base, { bgImage:'' }))); }catch(e2){}
-  }
+  // Kept deliberately small (without the background image) so it can't fill localStorage and break settings/the Blotato key.
+  // Full stories (with background image) are saved to the library (IndexedDB) via "Save this story to the library".
+  try{ localStorage.setItem('lme_story_draft', JSON.stringify(_captureStory())); }catch(e){}
 }
 function loadStoryDraft(){
   try{ const d=JSON.parse(localStorage.getItem('lme_story_draft')||'null'); if(d) _applyStory(d); }catch(e){}
@@ -5262,15 +5260,43 @@ function loadStoryDraft(){
 var _storyLibCache = [];   // last read list, so Open/Delete can work synchronously
 function _idb(){
   return new Promise(function(resolve,reject){
-    try{ const req=indexedDB.open('lme_studio',2);
+    try{ const req=indexedDB.open('lme_studio',3);
       req.onupgradeneeded=function(){ const db=req.result;
         if(!db.objectStoreNames.contains('stories')) db.createObjectStore('stories',{keyPath:'id'});
         if(!db.objectStoreNames.contains('music')) db.createObjectStore('music',{keyPath:'id'});
+        if(!db.objectStoreNames.contains('settings')) db.createObjectStore('settings',{keyPath:'id'});
       };
       req.onsuccess=function(){ resolve(req.result); };
       req.onerror=function(){ reject(req.error); };
     }catch(e){ reject(e); }
   });
+}
+// ── Settings (incl. Blotato key) backed up in IndexedDB so they survive even if localStorage is cleared on mobile ──
+function _settingsPut(obj){ return _idb().then(function(db){ return new Promise(function(res,rej){ const tx=db.transaction('settings','readwrite'); tx.objectStore('settings').put({id:'cfg', data:obj}); tx.oncomplete=function(){ res(true); }; tx.onerror=function(){ rej(tx.error); }; }); }); }
+function _settingsGet(){ return _idb().then(function(db){ return new Promise(function(res,rej){ const tx=db.transaction('settings','readonly'); const rq=tx.objectStore('settings').get('cfg'); rq.onsuccess=function(){ res(rq.result && rq.result.data || null); }; rq.onerror=function(){ rej(rq.error); }; }); }); }
+// Do not back up before restore has run (otherwise an empty cfg on load could overwrite a good key in IndexedDB).
+function _cfgBackupIdb(){ if(!window._cfgRestored) return; try{ _settingsPut(JSON.parse(JSON.stringify(cfg))).catch(function(){}); }catch(e){} }
+// Restore important fields (Blotato + API keys) from IndexedDB if localStorage lost them.
+async function _restoreCfgIdb(){
+  try{
+    const saved=await _settingsGet();
+    if(saved){
+      let changed=false;
+      ['blotatoKey','blotatoAccount','blotatoPlatform','apiKey','openaiKey','geminiKey','spotifyId','spotifySecret'].forEach(function(k){ if(!cfg[k] && saved[k]){ cfg[k]=saved[k]; changed=true; } });
+      if((!cfg.blotatoAccounts||!cfg.blotatoAccounts.length) && Array.isArray(saved.blotatoAccounts) && saved.blotatoAccounts.length){ cfg.blotatoAccounts=saved.blotatoAccounts; changed=true; }
+      if(changed){
+        try{ localStorage.setItem('lme_en_v2',JSON.stringify(cfg)); }catch(e){}
+        try{ const set=function(id,v){ const el=document.getElementById(id); if(el) el.value=(v||''); };
+          set('s-blotato-key',cfg.blotatoKey); set('s-blotato-account',cfg.blotatoAccount);
+          const pe=document.getElementById('s-blotato-platform'); if(pe) pe.value=cfg.blotatoPlatform||'instagram';
+          set('s-api-key',cfg.apiKey);
+        }catch(e){}
+        try{ updateBlotatoPostToSummary(); }catch(e){}
+      }
+    }
+  }catch(e){}
+  window._cfgRestored = true;
+  try{ _cfgBackupIdb(); }catch(e){}
 }
 // ── Your own music (Suno/uploaded), saved permanently in IndexedDB ──
 var _userMusicCache=[], _userMusicUrls={};
