@@ -2223,6 +2223,16 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
         <div><div style="font-size:12px;font-weight:700;color:var(--text);">Last opp egen musikk</div><div style="font-size:10px;color:var(--text-s);">MP3, M4A eller WAV</div></div>
         <input type="file" accept="audio/*" style="display:none;" onchange="loadCustomMusic(this,'story')"/>
       </label>
+
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);">
+        <div style="font-family:'Playpen Sans';font-weight:800;font-size:14px;color:var(--rose-d);margin-bottom:4px;">Trend-inspirasjon (Spotify)</div>
+        <div style="font-size:11px;color:var(--text-s);margin-bottom:10px;line-height:1.5;">Bla i sanger på Spotify for å finne stemningen. Spotify-sanger legges på i Instagram når du poster, dette er for å forhåndshøre og velge stil.</div>
+        <div style="display:flex;gap:8px;margin-bottom:10px;">
+          <input id="story-spotify-q" class="text-overlay-input" placeholder="Søk, f.eks. rolig akustisk" style="flex:1;margin:0;" onkeydown="if(event.key==='Enter')searchSpotify('story-spotify-q','story-spotify-results')"/>
+          <button type="button" class="chip" style="background:var(--rose);color:#fff;border-color:var(--rose);" onclick="searchSpotify('story-spotify-q','story-spotify-results')">Søk</button>
+        </div>
+        <div id="story-spotify-results"></div>
+      </div>
     </div>
 
     <!-- Export -->
@@ -4057,9 +4067,10 @@ function velgHook(btn){
 }
 
 // ── Spotify trend-inspirasjon (kun forhåndshøring + åpne i Spotify) ──
-async function searchSpotify(){
-  const host=document.getElementById('spotify-results'); if(!host)return;
-  const q=(document.getElementById('spotify-q')?.value||'').trim()||'viral hits 2026';
+async function searchSpotify(qId, resId){
+  qId=qId||'spotify-q'; resId=resId||'spotify-results';
+  const host=document.getElementById(resId); if(!host)return;
+  const q=(document.getElementById(qId)?.value||'').trim()||'viral hits 2026';
   host.innerHTML='<div style="font-size:12px;color:var(--text-s);padding:8px 0;">Søker på Spotify…</div>';
   try{
     const res=await fetch('/api/spotify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q,market:'NO',clientId:cfg.spotifyId||'',clientSecret:cfg.spotifySecret||''})});
