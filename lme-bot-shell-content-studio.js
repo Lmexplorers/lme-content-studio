@@ -1,7 +1,7 @@
 /* ============================================================
-   LME BOT SHELL — LME Content Studio
+   LME BOT SHELL — LME Autopilot
    ------------------------------------------------------------
-   This is the bot config for "LME Content Studio" — the social
+   This is the bot config for "LME Autopilot" — the social
    content creation app (carousels, reels, posts, scheduling).
 
    Note: there is a separate app called "LME Studio" for book
@@ -9,7 +9,7 @@
      lme-bot-shell-lme-studio.js
 
    This shell reads the global `state` object directly. Because
-   Content Studio uses `const state = { ... }` at the top level,
+   Autopilot uses `const state = { ... }` at the top level,
    it isn't on window automatically — see the bridge snippet in
    the README (one line: `window.state = state; window.cfg = cfg;`).
 
@@ -21,11 +21,11 @@
 
 (function () {
   if (typeof LMEBot === 'undefined') {
-    console.error('[LMEBot] core not loaded before Content Studio shell');
+    console.error('[LMEBot] core not loaded before Autopilot shell');
     return;
   }
 
-  // Content Studio is bilingual (NO/EN). Detect language from:
+  // Autopilot is bilingual (NO/EN). Detect language from:
   //   1. URL path (/en/ or /no/) — most reliable
   //   2. <html lang="..."> attribute
   //   3. URL query (?lang=en)
@@ -44,11 +44,11 @@
 
   LMEBot.init({
     appId: 'content-studio',
-    headerBadge: 'Content Studio',
+    headerBadge: 'Autopilot',
     endpoint: 'https://lme-ai-brain.renateshobby.workers.dev/api/ai',
     lang: LANG,
 
-    // Tasks Content Studio cares about
+    // Tasks Autopilot cares about
     tasks: ['content', 'imagePrompt', 'curriculum', 'productBundle', 'educational', 'general'],
     defaultTask: 'content',
 
@@ -74,7 +74,7 @@
     },
 
     // ---- App-specific Project Brain reader ----
-    // Reads window.state directly (after the bridge line in Content Studio).
+    // Reads window.state directly (after the bridge line in Autopilot).
     // Real fields in this app:
     //   state.format / topic / customTopic / ageGroup / char / tone
     //   state.slideCount / cta / extra / platforms[]
@@ -104,7 +104,7 @@
       if (Array.isArray(s.result))      currentResult = { kind: 'slides', slides: s.result };
       else if (typeof s.result === 'string' && s.result) currentResult = { kind: 'text', text: s.result };
 
-      // Reel fields from the textareas (Content Studio stores these in DOM, not state)
+      // Reel fields from the textareas (Autopilot stores these in DOM, not state)
       let reelCaption  = null;
       let reelHashtags = null;
       let reelCTA      = null;
@@ -167,7 +167,7 @@
     },
 
     // ---- App-specific insert handler ----
-    // Routes the bot's reply to the right Content Studio slot:
+    // Routes the bot's reply to the right Autopilot slot:
     //   - content / general  → state.result + renderResult()
     //                           (for reels, also fills #reel-caption)
     //   - imagePrompt        → appended to extra notes (state.extra)
@@ -186,7 +186,7 @@
 
       const s = window.state;
       if (!s) {
-        console.warn('[LMEBot] no window.state — paste `window.state = state;` into Content Studio');
+        console.warn('[LMEBot] no window.state — paste `window.state = state;` into Autopilot');
         return;
       }
 
@@ -238,7 +238,7 @@
           const el = document.getElementById('reel-caption');
           if (el) {
             el.value = text;
-            // Trigger Content Studio's saveReelCaption
+            // Trigger Autopilot's saveReelCaption
             el.dispatchEvent(new Event('input', { bubbles: true }));
           }
         } catch {}
@@ -264,7 +264,7 @@
       }
 
       function showToast(msg) {
-        // Use Content Studio's existing toast if it has one
+        // Use Autopilot's existing toast if it has one
         try {
           if (typeof window.showToast === 'function') return window.showToast(msg);
           if (typeof window.toast === 'function')     return window.toast(msg);
