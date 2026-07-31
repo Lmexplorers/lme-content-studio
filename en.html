@@ -2059,7 +2059,7 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
           <button class="chip" onclick="settCTAReel('Comment YES hvis du kjenner deg igjen 👇')">Comment YES</button>
           <button class="chip" onclick="setReelCTA('Share with a parent who needs this 🌸')">Share</button>
           <button class="chip" onclick="settCTAReel('Link in bio 🌿')">Link in bio</button>
-          <button class="chip" onclick="settCTAReel('Follow for more Montessori inspiration! 🌿')">Follow</button>
+          <button class="chip" onclick="settCTAReel('Follow for more! ✨')">Follow</button>
         </div>
       </div>
 
@@ -3632,7 +3632,7 @@ async function generateHashtags(){
     const res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:400,messages:[{role:'user',content:`Generate 20 niche English Instagram hashtags for Your brand about "${topic}". Mix: 5 large (1M+), 8 medium (100k-1M), 7 small niche (<100k). Return only hashtags separated by spaces, no explanation.`}]})
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:400,messages:[{role:'user',content:`Generate 20 niche English Instagram hashtags for ${cfg.brand||'the brand'}${cfg.niche?(' in the niche '+cfg.niche):''} about "${topic||cfg.niche||cfg.brand||'the content'}". Mix: 5 large (1M+), 8 medium (100k-1M), 7 small niche (<100k). Return only hashtags separated by spaces, no explanation.`}]})
     });
     const data=await res.json();
     const tags=data.content?.map(b=>b.text||'').join('').trim()||'';
@@ -3649,7 +3649,7 @@ async function generateHook(){
   const host=document.getElementById('hook-suggestions');
   const topic=(state.topic==='Custom topic...'?state.customTopic:state.topic)||state.customTopic||'';
   const extra=state.extra||'';
-  const desc=[topic,extra].filter(Boolean).join('. ')||'marketing content for your niche';
+  const desc=[topic,extra].filter(Boolean).join('. ')||(cfg.brand||cfg.niche||'marketing content for your niche');
   const prevLabel=btn?btn.textContent:'';
   if(btn){ btn.disabled=true; btn.textContent='Working…'; }
   if(host) host.innerHTML='<div style="font-size:12px;color:var(--text-s);padding:6px 0;">Generating suggestions…</div>';

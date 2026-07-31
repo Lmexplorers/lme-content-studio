@@ -2345,7 +2345,7 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
           <button class="chip" onclick="settCTAReel('Kommenter JA hvis du kjenner deg igjen 👇')">Kommenter JA</button>
           <button class="chip" onclick="settCTAReel('Del med en forelder som trenger dette 🌸')">Del</button>
           <button class="chip" onclick="settCTAReel('Lenke i bio 🌿')">Lenke i bio</button>
-          <button class="chip" onclick="settCTAReel('Følg for mer Montessori-inspirasjon! 🌿')">Følg</button>
+          <button class="chip" onclick="settCTAReel('Følg for mer! ✨')">Følg</button>
         </div>
       </div>
 
@@ -3932,7 +3932,7 @@ async function generateHashtags(){
     const res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:400,messages:[{role:'user',content:`Generate 20 niche Norwegian Instagram hashtags for Din merkevare about "${topic}". Mix: 5 large (1M+), 8 medium (100k-1M), 7 small niche (<100k). Return only hashtags separated by spaces, no explanation.`}]})
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:400,messages:[{role:'user',content:`Generate 20 niche Norwegian Instagram hashtags for ${cfg.brand||'the brand'}${cfg.niche?(' in the niche '+cfg.niche):''} about "${topic||cfg.niche||cfg.brand||'the content'}". Mix: 5 large (1M+), 8 medium (100k-1M), 7 small niche (<100k). Return only hashtags separated by spaces, no explanation.`}]})
     });
     const data=await res.json();
     const tags=data.content?.map(b=>b.text||'').join('').trim()||'';
@@ -3949,7 +3949,7 @@ async function generateHook(){
   const host=document.getElementById('hook-suggestions');
   const topic=(state.topic==='Custom topic...'?state.customTopic:state.topic)||state.customTopic||'';
   const extra=state.extra||'';
-  const desc=[topic,extra].filter(Boolean).join('. ')||'Montessori-innhold for foreldre';
+  const desc=[topic,extra].filter(Boolean).join('. ')||(cfg.brand||cfg.niche||'innhold for målgruppen din');
   const prevLabel=btn?btn.textContent:'';
   if(btn){ btn.disabled=true; btn.textContent='Lager…'; }
   if(host) host.innerHTML='<div style="font-size:12px;color:var(--text-s);padding:6px 0;">Lager forslag…</div>';
