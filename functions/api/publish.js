@@ -45,10 +45,19 @@ export async function onRequestPost(context) {
 
   const key = b.blotatoKey;
   if (!key) return json({ error: "Mangler Blotato-nokkel. Legg den inn i Innstillinger." }, 200);
-  if (!b.accountId) return json({ error: "Mangler konto. Velg hvilken profil du vil poste til." }, 200);
+
+  // Bygg konto-liste. Ny vei: b.accounts = [{id, platform}] (flervalg).
+  // Bakoverkomp.: enkelt b.accountId + b.targetType.
+  let accounts = Array.isArray(b.accounts)
+    ? b.accounts.filter((a) => a && a.id).map((a) => ({ id: String(a.id), platform: a.platform || a.targetType || b.targetType || "instagram" }))
+    : [];
+  if (!accounts.length && b.accountId) accounts = [{ id: String(b.accountId), platform: b.targetType || "instagram" }];
+  if (!accounts.length) return json({ error: "Mangler konto. Velg minst en profil du vil poste til." }, 200);
+
+  const contentKind = b.contentKind || ""; // 'story' | 'reel' | 'post'
 
   try {
-    // 1) Last opp hver media-kilde til Blotato (returnerer Blotato-hostet URL).
+    // 1) Last opp hver media-kilde til Blotato EN gang (gjenbrukes for alle kontoer).
     // Blotato tar imot både offentlige URL-er og base64/data-URI-er (opp til 200 MB).
     const mediaUrls = [];
     for (const src of (b.mediaUrls || [])) {
@@ -64,24 +73,41 @@ export async function onRequestPost(context) {
       mediaUrls.push(hosted);
     }
 
-    // 2) Publiser posten
-    const post = {
-      accountId: String(b.accountId),
-      target: Object.assign({ targetType: b.targetType || "instagram" }, b.target || {}),
-      content: {
-        text: b.text || "",
-        platform: b.targetType || "instagram",
-        mediaUrls,
-      },
-    };
-    const payload = { post };
-    if (b.scheduledTime) payload.scheduledTime = b.scheduledTime;
+    // 2) Publiser til hver valgt konto.
+    const results = [];
+    for (const acc of accounts) {
+      const plat = acc.platform || "instagram";
+      const target = { targetType: plat };
+      // mediaType (story/reel) gjelder kun Instagram og Facebook.
+      if ((plat === "instagram" || plat === "facebook") && (contentKind === "story" || contentKind === "reel")) target.mediaType = contentKind;
+      if (b.target && typeof b.target === "object") Object.assign(target, b.target);
+      const post = {
+        accountId: String(acc.id),
+        target,
+        content: { text: b.text || "", platform: plat, mediaUrls },
+      };
+      const payload = { post };
+      if (b.scheduledTime) payload.scheduledTime = b.scheduledTime;
 
-    const pub = await blotato("/posts", key, payload);
-    if (!pub.ok) {
-      return json({ error: "Publisering feilet.", step: "post", status: pub.status, detail: pub.data, sent: payload }, 200);
+      const pub = await blotato("/posts", key, payload);
+      results.push({
+        accountId: acc.id,
+        platform: plat,
+        ok: pub.ok,
+        status: pub.status,
+        error: pub.ok ? undefined : ((pub.data && (pub.data.message || pub.data.error)) || ("status " + pub.status)),
+        data: pub.ok ? pub.data : undefined,
+      });
     }
-    return json({ ok: true, blotato: pub.data });
+
+    const okCount = results.filter((r) => r.ok).length;
+    if (okCount === results.length) return json({ ok: true, results });
+    // Delvis eller full feil: gi tydelig, menneskelig oppsummering.
+    const failed = results.filter((r) => !r.ok).map((r) => (r.platform || r.accountId) + (r.error ? " (" + r.error + ")" : "")).join(", ");
+    const msg = okCount > 0
+      ? "Sendt til " + okCount + " av " + results.length + ". Feilet: " + failed
+      : "Publisering feilet for alle. " + failed;
+    return json({ ok: false, error: msg, okCount, total: results.length, results }, 200);
   } catch (e) {
     return json({ error: String((e && e.message) || e) }, 200);
   }

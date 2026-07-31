@@ -1587,10 +1587,16 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
     <input type="password" id="s-blotato-key" placeholder="blotato-api-key" oninput="saveSettings()" style="margin:5px 0 10px;"/>
     <button type="button" class="act-btn sage-btn" id="s-blotato-fetch" onclick="blotatoFetchAccounts()" style="width:100%;margin-bottom:8px;">Fetch my accounts</button>
     <select id="s-blotato-accounts-list" onchange="blotatoPickAccount(this)" style="display:none;width:100%;padding:10px;border-radius:8px;border:1px solid var(--line);margin-bottom:8px;"></select>
-    <div id="s-blotato-note" style="font-size:11px;color:var(--text-s);margin-bottom:12px;line-height:1.5;"></div>
-    <label style="font-size:12px;color:var(--text);font-weight:600;">Account ID</label>
-    <input type="text" id="s-blotato-account" placeholder="pick above, or paste manually" oninput="saveSettings()" style="margin:5px 0 12px;"/>
-    <label style="font-size:12px;color:var(--text);font-weight:600;">Platform</label>
+    <div id="s-blotato-note" style="font-size:11px;color:var(--text-s);margin-bottom:8px;line-height:1.5;"></div>
+    <div id="s-blotato-accounts-checks" style="display:none;border:1px solid var(--line);border-radius:10px;padding:6px 10px;margin-bottom:8px;"></div>
+    <div id="s-blotato-postto" style="font-size:12px;color:var(--rose-d);font-weight:700;margin-bottom:12px;line-height:1.5;"></div>
+    <details style="margin-bottom:12px;">
+      <summary style="font-size:11px;color:var(--text-s);cursor:pointer;">Or add one account manually</summary>
+      <label style="font-size:12px;color:var(--text);font-weight:600;display:block;margin-top:8px;">Account ID</label>
+      <input type="text" id="s-blotato-account" placeholder="paste account ID manually" oninput="saveSettings()" style="margin:5px 0 12px;"/>
+      <div style="font-size:10px;color:var(--text-s);margin-top:-6px;margin-bottom:6px;">Only used if you have not ticked any accounts above.</div>
+    </details>
+    <label style="font-size:12px;color:var(--text);font-weight:600;">Platform (for manual account ID)</label>
     <select id="s-blotato-platform" onchange="saveSettings()" style="margin:5px 0 0;width:100%;padding:10px;border-radius:8px;border:1px solid var(--line);">
       <option value="instagram">Instagram</option>
       <option value="tiktok">TikTok</option>
@@ -2456,6 +2462,7 @@ const DEFAULTS = {
   blotatoKey:'',
   blotatoAccount:'',
   blotatoPlatform:'instagram',
+  blotatoAccounts:[],
 };
 let cfg = {...DEFAULTS};
 
@@ -3285,7 +3292,7 @@ async function publishReel(){
     btn.disabled=false; btn.textContent='Publish Reel automatically';
     return;
   }
-  if(cfg.blotatoKey && !cfg.blotatoAccount){
+  if(cfg.blotatoKey && blotatoNoAccount()){
     statusEl.innerHTML=`<div class="pub-status error" style="margin-top:10px;">Pick which Blotato profile to post to in ⚙️ Settings.</div>`;
     btn.disabled=false; btn.textContent='Publish Reel automatically';
     return;
@@ -3314,7 +3321,7 @@ async function publishReel(){
     let done=false, errMsg='';
     if(cfg.blotatoKey){
       // New path: upload the video (base64) straight to Blotato and create the post.
-      const r=await blotatoPublish({text:caption, mediaUrls:['data:video/mp4;base64,'+base64], mediaName:vidName});
+      const r=await blotatoPublish({text:caption, mediaUrls:['data:video/mp4;base64,'+base64], mediaName:vidName, contentKind:'reel'});
       done=r.ok; errMsg=r.ok?'':(r.error||'Unknown error from Blotato');
     }else{
       // Old proxy (fallback if the Blotato key is missing).
@@ -3595,17 +3602,20 @@ async function generateAndPublish(){ await genererBilde(); }
 
 // Central publishing via Blotato (Pages Function /api/publish).
 // mediaUrls must be public URLs; Blotato downloads and re-hosts them.
-async function blotatoPublish({text, mediaUrls, scheduledTime, mediaName, target}){
+async function blotatoPublish({text, mediaUrls, scheduledTime, mediaName, target, contentKind}){
   if(!cfg.blotatoKey) return {ok:false, error:'Missing Blotato key. Add it in Settings.'};
-  if(!cfg.blotatoAccount) return {ok:false, error:'Missing account. Pick a profile in Settings.'};
+  // Multi-select: post to every ticked account. Falls back to a single account.
+  let accounts=(cfg.blotatoAccounts||[]).filter(a=>a&&a.id).map(a=>({id:String(a.id), platform:a.platform||cfg.blotatoPlatform||'instagram'}));
+  if(!accounts.length && cfg.blotatoAccount){ accounts=[{id:String(cfg.blotatoAccount), platform:cfg.blotatoPlatform||'instagram'}]; }
+  if(!accounts.length) return {ok:false, error:'Missing account. Pick at least one account in Settings.'};
   try{
     const res=await fetch('/api/publish',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         blotatoKey: cfg.blotatoKey,
-        accountId: cfg.blotatoAccount,
-        targetType: cfg.blotatoPlatform||'instagram',
+        accounts: accounts,
+        contentKind: contentKind||'post',
         target: target||undefined,
         text: text||'',
         mediaUrls: (mediaUrls||[]).filter(Boolean),
@@ -3614,8 +3624,8 @@ async function blotatoPublish({text, mediaUrls, scheduledTime, mediaName, target
       }),
     });
     const data=await res.json().catch(()=>({}));
-    if(data&&data.ok) return {ok:true, data};
-    return {ok:false, error:(data&&data.error)||('Publishing failed ('+res.status+').'), detail:data};
+    if(data&&data.ok) return {ok:true, data, results:data.results, count:accounts.length};
+    return {ok:false, error:(data&&data.error)||('Publishing failed ('+res.status+').'), detail:data, results:data&&data.results, okCount:data&&data.okCount};
   }catch(e){ return {ok:false, error:String((e&&e.message)||e)}; }
 }
 function blotatoTime(publishAt){
@@ -3636,13 +3646,51 @@ async function blotatoFetchAccounts(){
     if(!d.ok){ try{ console.log('Blotato accounts error:', d); }catch(_){} if(note){ note.textContent=(d.error||'Could not fetch accounts.'); note.style.color='#C81860'; } btn.disabled=false; btn.textContent=old; return; }
     if(note) note.style.color='var(--text-s)';
     const accts=d.accounts||[];
-    if(!accts.length){ if(note)note.textContent='No connected accounts found. Connect profiles in Blotato first.'; sel.style.display='none'; btn.disabled=false; btn.textContent=old; return; }
-    sel.innerHTML='<option value="">Select account…</option>'+accts.map(a=>`<option value="${String(a.id).replace(/"/g,'&quot;')}" data-plat="${String(a.platform||'').replace(/"/g,'&quot;')}">${(a.platform?a.platform+': ':'')+(a.name||a.id)}</option>`).join('');
-    sel.style.display='block';
-    if(note)note.textContent=accts.length+' account(s) found. Pick the one you want to post to.';
+    if(!accts.length){ if(note)note.textContent='No connected accounts found. Connect profiles in Blotato first.'; if(sel)sel.style.display='none'; btn.disabled=false; btn.textContent=old; return; }
+    renderBlotatoAccountChecks(accts);
+    if(note)note.textContent=accts.length+' account(s) found. Tick everyone you want to post to.';
   }catch(e){ if(note)note.textContent='Error: '+((e&&e.message)||e); }
   btn.disabled=false; btn.textContent=old;
 }
+// Show every connected account as a checkbox so Renate can post to several at once.
+function renderBlotatoAccountChecks(accts){
+  const host=document.getElementById('s-blotato-accounts-checks'); if(!host) return;
+  const sel=new Set((cfg.blotatoAccounts||[]).map(a=>String(a.id)));
+  const esc=function(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); };
+  const emoji={instagram:'📷',tiktok:'🎵',facebook:'👍',youtube:'▶️',threads:'🧵',pinterest:'📌',linkedin:'💼',bluesky:'🦋',twitter:'✖️'};
+  host.innerHTML='<label style="display:flex;align-items:center;gap:8px;padding:5px 2px;font-size:13px;font-weight:700;cursor:pointer;border-bottom:1px solid var(--line);margin-bottom:4px;"><input type="checkbox" id="s-blotato-all" onchange="blotatoToggleAll(this)" style="width:18px;height:18px;accent-color:var(--rose);"> Select all</label>'+
+    accts.map(function(a){
+      const on=sel.has(String(a.id));
+      const label=(emoji[a.platform]?emoji[a.platform]+' ':'')+(a.platform?a.platform+': ':'')+(a.name||a.id);
+      return '<label style="display:flex;align-items:center;gap:8px;padding:5px 2px;font-size:13px;cursor:pointer;"><input type="checkbox" value="'+esc(a.id)+'" data-plat="'+esc(a.platform)+'" data-name="'+esc(a.name)+'" '+(on?'checked':'')+' onchange="blotatoToggleAccount(this)" style="width:18px;height:18px;accent-color:var(--rose);"> '+esc(label)+'</label>';
+    }).join('');
+  host.style.display='block';
+  const all=document.getElementById('s-blotato-all'); if(all) all.checked = accts.length>0 && accts.every(a=>sel.has(String(a.id)));
+  updateBlotatoPostToSummary();
+}
+function blotatoToggleAccount(cb){
+  if(!Array.isArray(cfg.blotatoAccounts)) cfg.blotatoAccounts=[];
+  const id=cb.value, plat=cb.getAttribute('data-plat')||'', name=cb.getAttribute('data-name')||'';
+  const i=cfg.blotatoAccounts.findIndex(a=>String(a.id)===String(id));
+  if(cb.checked){ if(i<0) cfg.blotatoAccounts.push({id:id, platform:plat, name:name}); }
+  else { if(i>=0) cfg.blotatoAccounts.splice(i,1); }
+  updateBlotatoPostToSummary(); saveSettings();
+}
+function blotatoToggleAll(cb){
+  document.querySelectorAll('#s-blotato-accounts-checks input[type=checkbox]').forEach(function(x){
+    if(x.id==='s-blotato-all') return;
+    if(x.checked!==cb.checked){ x.checked=cb.checked; blotatoToggleAccount(x); }
+  });
+}
+function updateBlotatoPostToSummary(){
+  const el=document.getElementById('s-blotato-postto'); if(!el) return;
+  const list=(cfg.blotatoAccounts||[]);
+  if(!list.length){ el.textContent = cfg.blotatoAccount ? '' : 'No account selected yet.'; return; }
+  const names=list.map(a=>a.platform||a.name||a.id);
+  el.textContent='Posting to: '+names.join(', ');
+}
+// Do we have at least one account (multi-select or manual)?
+function blotatoNoAccount(){ return !((cfg.blotatoAccounts||[]).length || cfg.blotatoAccount); }
 function blotatoPickAccount(sel){
   const opt=sel.options[sel.selectedIndex]; if(!opt||!opt.value)return;
   const accEl=document.getElementById('s-blotato-account'); if(accEl)accEl.value=opt.value;
@@ -3654,7 +3702,7 @@ function blotatoPickAccount(sel){
 async function sendToSocialBu(text,mediaUrls,format,publishAt){
   // New path: Blotato when a key is present. Falls back to the old proxy otherwise.
   if(cfg.blotatoKey){
-    const r=await blotatoPublish({text, mediaUrls:mediaUrls||[], scheduledTime: blotatoTime(publishAt)});
+    const r=await blotatoPublish({text, mediaUrls:mediaUrls||[], scheduledTime: blotatoTime(publishAt), contentKind:(format==='reel'?'reel':format==='story'?'story':'post')});
     return r.ok;
   }
   if(!cfg.socialbuKey||!cfg.makeWebhook||!(cfg.socialbuAccounts||[]).length)return false;
@@ -4062,6 +4110,7 @@ function applySettingsToUI(){
   s('s-blotato-key',cfg.blotatoKey);
   s('s-blotato-account',cfg.blotatoAccount);
   { const el=document.getElementById('s-blotato-platform'); if(el)el.value=cfg.blotatoPlatform||'instagram'; }
+  try{ if(!Array.isArray(cfg.blotatoAccounts)) cfg.blotatoAccounts=[]; updateBlotatoPostToSummary(); }catch(e){}
   s('s-char-names',cfg.charNames); s('s-char-desc',cfg.charDesc);
   selectCharPreset(cfg.charPreset||'none');
   loadNotificationState();
@@ -4777,7 +4826,7 @@ async function sendReelToSocialBu(){
     statusEl.innerHTML = '<div class="pub-status error" style="margin-top:8px;">Blotato is not set up. Add your Blotato key and pick an account in ⚙️ Settings.</div>';
     return;
   }
-  if(cfg.blotatoKey && !cfg.blotatoAccount){
+  if(cfg.blotatoKey && blotatoNoAccount()){
     statusEl.innerHTML = '<div class="pub-status error" style="margin-top:8px;">Pick which Blotato profile to post to in ⚙️ Settings.</div>';
     return;
   }
@@ -4813,7 +4862,7 @@ async function sendReelToSocialBu(){
     if(cfg.blotatoKey){
       const plat = cfg.blotatoPlatform||'instagram';
       const asReel = (plat==='instagram' || plat==='facebook');
-      const r = await blotatoPublish({ text: fullCaption, mediaUrls:[videoBase64], mediaName: editorState.reelVideoFile.name || 'lme-reel.mp4', target: asReel?{mediaType:'reel'}:undefined });
+      const r = await blotatoPublish({ text: fullCaption, mediaUrls:[videoBase64], mediaName: editorState.reelVideoFile.name || 'lme-reel.mp4', contentKind:'reel' });
       done=r.ok; errMsg=r.ok?'':(r.error||'Unknown error from Blotato');
     } else {
       const payload = { socialbuKey: cfg.socialbuKey, socialbuBody: { accounts: cfg.socialbuAccounts || [], content: fullCaption, post_as_reel: true, video_base64: videoBase64, video_filename: editorState.reelVideoFile.name, video_mime: editorState.reelVideoFile.type || 'video/mp4' } };
@@ -5625,7 +5674,7 @@ async function exportAndPublishStory(){
     statusEl.innerHTML = '<div class="pub-status error" style="margin-top:8px;">Blotato is not set up. Add your Blotato key and pick an account in ⚙️ Settings.</div>';
     return;
   }
-  if(cfg.blotatoKey && !cfg.blotatoAccount){
+  if(cfg.blotatoKey && blotatoNoAccount()){
     statusEl.innerHTML = '<div class="pub-status error" style="margin-top:8px;">Pick which Blotato profile to post to in ⚙️ Settings.</div>';
     return;
   }
@@ -5656,7 +5705,7 @@ async function exportAndPublishStory(){
           // New path: send the story image straight to Blotato. On Instagram/Facebook it posts as a Story.
           const plat = cfg.blotatoPlatform||'instagram';
           const asStory = (plat==='instagram' || plat==='facebook');
-          const r = await blotatoPublish({ text: fullCaption||caption, mediaUrls:[dataUri], mediaName:'lme-story.png', target: asStory?{mediaType:'story'}:undefined });
+          const r = await blotatoPublish({ text: fullCaption||caption, mediaUrls:[dataUri], mediaName:'lme-story.png', contentKind:'story' });
           done=r.ok; errMsg=r.ok?'':(r.error||'Unknown error from Blotato');
         } else {
           // Old proxy (fallback if the Blotato key is missing).
@@ -6372,7 +6421,7 @@ async function renderAndPublishReel(){
     statusEl.innerHTML = '<div class="pub-status error">Blotato is not set up. Add your Blotato key and pick an account in ⚙️ Settings.</div>';
     return;
   }
-  if(cfg.blotatoKey && !cfg.blotatoAccount){
+  if(cfg.blotatoKey && blotatoNoAccount()){
     statusEl.innerHTML = '<div class="pub-status error">Pick which Blotato profile to post to in ⚙️ Settings.</div>';
     return;
   }
@@ -6401,7 +6450,7 @@ async function renderAndPublishReel(){
     if(cfg.blotatoKey){
       const plat = cfg.blotatoPlatform||'instagram';
       const asReel = (plat==='instagram' || plat==='facebook');
-      const r = await blotatoPublish({ text: fullCaption, mediaUrls:['data:video/mp4;base64,'+base64], mediaName:'lme-reel-with-music.mp4', target: asReel?{mediaType:'reel'}:undefined });
+      const r = await blotatoPublish({ text: fullCaption, mediaUrls:['data:video/mp4;base64,'+base64], mediaName:'lme-reel-with-music.mp4', contentKind:'reel' });
       done=r.ok; errMsg=r.ok?'':(r.error||'Unknown error from Blotato');
     } else {
       const payload = { socialbuKey: cfg.socialbuKey, socialbuBody:{ accounts:cfg.socialbuAccounts, content:fullCaption, options:{post_as_reel:true} }, videoBase64:base64, videoMimeType:'video/mp4', videoName:'lme-reel-with-music.mp4' };
