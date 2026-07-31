@@ -4469,12 +4469,12 @@ function saveSettings(){
   try{ syncActiveProfile(); }catch(e){}
 }
 // Lagre cfg direkte uten å lese skjemafeltene (brukes av nisje/veiviser, så nøkler aldri røres).
-function persistCfg(){ try{ localStorage.setItem('lme_no_v1',JSON.stringify(cfg)); localStorage.setItem('lme_innstillinger_no',JSON.stringify(cfg)); }catch(e){} try{ _cfgBackupIdb(); }catch(e){} }
+function persistCfg(){ try{ localStorage.setItem('lme_no_v1',JSON.stringify(cfg)); localStorage.setItem('lme_innstillinger_no',JSON.stringify(cfg)); }catch(e){} try{ _cfgBackupIdb(); }catch(e){} try{ pushSettingsToServer(); }catch(e){} }
 
 /* ───────── Merkevareprofiler (bytt mellom flere merkevarer) ───────── */
 var PROFILE_FIELDS=['brand','niche','voice','audience','greeting','signature','charPreset','charNames','charDesc','logoImage'];
 function loadProfiles(){ try{ return JSON.parse(localStorage.getItem('lme_profiles')||'null'); }catch(e){ return null; } }
-function saveProfiles(p){ try{ localStorage.setItem('lme_profiles', JSON.stringify(p)); }catch(e){} }
+function saveProfiles(p){ try{ localStorage.setItem('lme_profiles', JSON.stringify(p)); }catch(e){} try{ pushProfilesToServer(); }catch(e){} }
 function ensureProfiles(){
   var p=loadProfiles();
   if(!p || !p.list || !p.list.length){
@@ -5720,7 +5720,9 @@ async function lmeStoreLoad(slot){ const t=lmeToken(); if(!t) return null; try{ 
 async function lmeStoreSave(slot,data){ const t=lmeToken(); if(!t) return false; try{ const r=await fetch('/api/store',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'save',token:t,slot:slot,data:data})}); const d=await r.json().catch(function(){return{};}); return !!(d&&d.ok); }catch(e){ return false; } }
 var _pushT={};
 // Ikke send til server for forste henting er ferdig (ellers kan et tomt cfg pa oppstart overskrive gode data pa kontoen).
-function pushSettingsToServer(){ if(!lmeToken() || !window._serverPulled) return; clearTimeout(_pushT.s); _pushT.s=setTimeout(function(){ lmeStoreSave('settings', { blotatoKey:cfg.blotatoKey, blotatoAccount:cfg.blotatoAccount, blotatoPlatform:cfg.blotatoPlatform, blotatoAccounts:cfg.blotatoAccounts||[], apiKey:cfg.apiKey, openaiKey:cfg.openaiKey, geminiKey:cfg.geminiKey, spotifyId:cfg.spotifyId, spotifySecret:cfg.spotifySecret }); }, 800); }
+// Lagrer HELE innstillingene (inkl. logo, merkevare, nokler) sa alt overlever.
+function pushSettingsToServer(){ if(!lmeToken() || !window._serverPulled) return; clearTimeout(_pushT.s); _pushT.s=setTimeout(function(){ try{ lmeStoreSave('settings', JSON.parse(JSON.stringify(cfg))); }catch(e){} }, 800); }
+function pushProfilesToServer(){ if(!lmeToken() || !window._serverPulled) return; clearTimeout(_pushT.p); _pushT.p=setTimeout(function(){ try{ lmeStoreSave('profiles', loadProfiles()); }catch(e){} }, 900); }
 function pushStoriesToServer(){ if(!lmeToken() || !window._serverPulled) return; clearTimeout(_pushT.st); _pushT.st=setTimeout(function(){ _libAll().then(function(arr){ lmeStoreSave('stories', arr||[]); }).catch(function(){}); }, 1200); }
 // Hentes ved oppstart: gjenoppretter token, henter Blotato-innstillinger og story-lageret fra kontoen din.
 async function lmeServerSync(){
@@ -5734,10 +5736,27 @@ async function lmeServerSync(){
     const s=await lmeStoreLoad('settings');
     if(s && typeof s==='object'){
       let changed=false;
-      ['blotatoKey','blotatoAccount','blotatoPlatform','apiKey','openaiKey','geminiKey','spotifyId','spotifySecret'].forEach(function(k){ if(!cfg[k] && s[k]){ cfg[k]=s[k]; changed=true; } });
-      if((!cfg.blotatoAccounts||!cfg.blotatoAccounts.length) && Array.isArray(s.blotatoAccounts) && s.blotatoAccounts.length){ cfg.blotatoAccounts=s.blotatoAccounts; changed=true; }
-      if(changed){ try{ persistCfg(); }catch(e){} _applyBlotatoFieldsFromCfg(); try{ updateBlotatoPostToSummary(); }catch(e){} }
+      // Fyll inn ALT som mangler lokalt (logo, merkevare, nokler, Blotato ...) fra kontoen.
+      Object.keys(s).forEach(function(k){
+        const cur=cfg[k], sv=s[k];
+        const curEmpty=(cur===undefined||cur===null||cur===''||(Array.isArray(cur)&&cur.length===0));
+        const svHas=(sv!==undefined&&sv!==null&&sv!==''&&!(Array.isArray(sv)&&sv.length===0));
+        if(curEmpty && svHas){ cfg[k]=sv; changed=true; }
+      });
+      if(changed){ try{ persistCfg(); }catch(e){} }
     }
+    // Profiler (inneholder bl.a. logoen)
+    const pr=await lmeStoreLoad('profiles');
+    if(pr && pr.list && pr.list.length){
+      const local=loadProfiles();
+      const localHasLogo = local && local.list && local.list.some(function(x){return x.logoImage;});
+      if(!local || !local.list || !local.list.length || (!localHasLogo && pr.list.some(function(x){return x.logoImage;}))){ try{ saveProfiles(pr); }catch(e){} }
+    }
+    // Oppdater grensesnittet med det gjenopprettede (logo, innstillinger, profiler)
+    try{ syncActiveProfile(); }catch(e){}
+    try{ applySettingsToUI(); }catch(e){}
+    try{ refreshLogoUI(); }catch(e){}
+    try{ updateBlotatoPostToSummary(); }catch(e){}
     // Story-lageret
     const arr=await lmeStoreLoad('stories');
     if(Array.isArray(arr) && arr.length){
