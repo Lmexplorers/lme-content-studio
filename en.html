@@ -5249,15 +5249,39 @@ function loadStoryDraft(){
   try{ const d=JSON.parse(localStorage.getItem('lme_story_draft')||'null'); if(d) _applyStory(d); }catch(e){}
 }
 
-/* ───────── Story library: save several stories and open them again ───────── */
-function _libGet(){ try{ const a=JSON.parse(localStorage.getItem('lme_story_library')||'[]'); return Array.isArray(a)?a:[]; }catch(e){ return []; } }
-function _libSet(list){
-  // Try saving with background images. On quota error: drop the background images (keep everything else) so the library survives.
-  try{ localStorage.setItem('lme_story_library', JSON.stringify(list)); return true; }
-  catch(e){
-    try{ const slim=list.map(function(x){ return Object.assign({}, x, { bgImage:'' }); }); localStorage.setItem('lme_story_library', JSON.stringify(slim)); return 'slim'; }
-    catch(e2){ return false; }
-  }
+/* ───────── Story library (IndexedDB: large, reliable storage that handles background images) ───────── */
+var _storyLibCache = [];   // last read list, so Open/Delete can work synchronously
+function _idb(){
+  return new Promise(function(resolve,reject){
+    try{ const req=indexedDB.open('lme_studio',1);
+      req.onupgradeneeded=function(){ const db=req.result; if(!db.objectStoreNames.contains('stories')) db.createObjectStore('stories',{keyPath:'id'}); };
+      req.onsuccess=function(){ resolve(req.result); };
+      req.onerror=function(){ reject(req.error); };
+    }catch(e){ reject(e); }
+  });
+}
+function _idbAll(){
+  return _idb().then(function(db){ return new Promise(function(res,rej){ const tx=db.transaction('stories','readonly'); const rq=tx.objectStore('stories').getAll(); rq.onsuccess=function(){ res(rq.result||[]); }; rq.onerror=function(){ rej(rq.error); }; }); });
+}
+function _idbPut(entry){
+  return _idb().then(function(db){ return new Promise(function(res,rej){ const tx=db.transaction('stories','readwrite'); tx.objectStore('stories').put(entry); tx.oncomplete=function(){ res(true); }; tx.onerror=function(){ rej(tx.error); }; }); });
+}
+function _idbDel(id){
+  return _idb().then(function(db){ return new Promise(function(res,rej){ const tx=db.transaction('stories','readwrite'); tx.objectStore('stories').delete(id); tx.oncomplete=function(){ res(true); }; tx.onerror=function(){ rej(tx.error); }; }); });
+}
+// Read all saved stories. Migrates old localStorage entries to IndexedDB the first time.
+async function _libAll(){
+  let list=[];
+  try{ list=await _idbAll(); }catch(e){ list=[]; }
+  try{
+    const old=JSON.parse(localStorage.getItem('lme_story_library')||'[]');
+    if(Array.isArray(old) && old.length){
+      for(const o of old){ if(o&&o.id && !list.some(function(x){return x.id===o.id;})){ try{ await _idbPut(Object.assign({ts:0}, o)); list.push(o); }catch(_){} } }
+      try{ localStorage.removeItem('lme_story_library'); }catch(_){}
+    }
+  }catch(e){}
+  list.sort(function(a,b){ return (b.ts||0)-(a.ts||0); });
+  _storyLibCache=list; return list;
 }
 // Small preview image of the story (what is currently drawn on the canvas).
 function _storyThumb(){
@@ -5267,25 +5291,22 @@ function _storyThumb(){
     return c.toDataURL('image/jpeg',0.55);
   }catch(e){ return ''; }
 }
-function saveStoryToLibrary(){
-  const list=_libGet();
+async function saveStoryToLibrary(){
   const d=Object.assign({}, _captureStory(), { bgImage:editorState.bgImage||'' });
   const title=(_sv('story-headline')||_sv('story-topic')||'Story').trim().slice(0,60) || 'Story';
   let when=''; try{ when=new Date().toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}); }catch(e){ when=''; }
-  const entry={ id:'s'+(list.length+1)+'_'+Math.round(performance.now()), title:title, when:when, thumb:_storyThumb(), data:d };
-  list.unshift(entry);
-  if(list.length>60) list.length=60;
-  const res=_libSet(list);
-  renderStoryLibrary();
+  const ts=Date.now();
+  const entry={ id:'s_'+ts+'_'+Math.round(performance.now()), ts:ts, title:title, when:when, thumb:_storyThumb(), data:d };
   const note=document.getElementById('story-export-status');
+  let ok=false; try{ ok=await _idbPut(entry); }catch(e){ ok=false; }
+  await renderStoryLibrary();
   if(note){
-    if(res===true) note.innerHTML='<div class="pub-status success" style="margin-top:8px;">💾 Saved to the library! Find it under "My saved stories".</div>';
-    else if(res==='slim') note.innerHTML='<div class="pub-status success" style="margin-top:8px;">💾 Saved! (The library is nearly full, so background images on older stories were removed to make room. Text and elements are kept.)</div>';
-    else note.innerHTML='<div class="pub-status error" style="margin-top:8px;">Could not save, the library is full. Delete some old stories and try again.</div>';
+    if(ok) note.innerHTML='<div class="pub-status success" style="margin-top:8px;">💾 Saved to the library! Find it under "My saved stories", also after you refresh the page.</div>';
+    else note.innerHTML='<div class="pub-status error" style="margin-top:8px;">Could not save right now. Try again, or let me know.</div>';
   }
 }
 function openStoryFromLibrary(id){
-  const e=_libGet().find(function(x){return x.id===id;}); if(!e) return;
+  const e=_storyLibCache.find(function(x){return x.id===id;}); if(!e) return;
   window._storyDraftLoaded=true;
   _applyStory(e.data);
   try{ refreshLogoUI(); }catch(_){}
@@ -5295,14 +5316,14 @@ function openStoryFromLibrary(id){
   if(note) note.innerHTML='<div class="pub-status success" style="margin-top:8px;">📂 Opened. Edit as usual.</div>';
   try{ document.getElementById('story-canvas').scrollIntoView({behavior:'smooth',block:'center'}); }catch(_){}
 }
-function deleteStoryFromLibrary(id){
+async function deleteStoryFromLibrary(id){
   if(!confirm('Delete this saved story? This cannot be undone.')) return;
-  const list=_libGet().filter(function(x){return x.id!==id;});
-  _libSet(list); renderStoryLibrary();
+  try{ await _idbDel(id); }catch(e){}
+  await renderStoryLibrary();
 }
-function renderStoryLibrary(){
+async function renderStoryLibrary(){
   const host=document.getElementById('story-library-list'); if(!host) return;
-  const list=_libGet();
+  let list=[]; try{ list=await _libAll(); }catch(e){ list=_storyLibCache||[]; }
   if(!list.length){ host.innerHTML='<div style="font-size:11px;color:var(--text-s);font-style:italic;">No saved stories yet. Press the button above to save the one you are working on.</div>'; return; }
   const esc=function(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); };
   host.innerHTML=list.map(function(e){
