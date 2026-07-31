@@ -2003,7 +2003,9 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
           <button class="chip" id="reel-bg-sage" onclick="setReelTextBg('rgba(156,192,0,0.85)')">Green</button>
         </div>
 
-        <button class="act-btn sage-btn" style="width:100%;" onclick="loadReelTextFromContent()">
+        <button class="act-btn" style="width:100%;background:var(--rose);color:#fff;" onclick="generateHookOverlay(this)">
+          ✨ Generate hook with AI</button>
+        <button class="act-btn sage-btn" style="width:100%;margin-top:8px;" onclick="loadReelTextFromContent()">
           📄 Load HOOK from generated content</button>
       </div>
 
@@ -2015,6 +2017,8 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
       </div>
       <div id="emoji-picker-reel-caption" class="emoji-picker-wrap"></div>
         <textarea id="reel-caption" rows="4" placeholder="Write your caption here, sent automatically with the Reel to the publishing service..." style="width:100%;border-radius:10px;border:2px solid var(--border);padding:10px 13px;font-family:'Sasson Montessori';font-size:12px;color:var(--text);outline:none;resize:vertical;" oninput="saveReelCaption()"></textarea>
+        <button class="act-btn" style="width:100%;margin-top:8px;background:var(--rose);color:#fff;" onclick="generateCaptionDirect(this)">
+          ✨ Generate caption with AI</button>
         <button class="act-btn sage-btn" style="width:100%;margin-top:8px;" onclick="loadCaptionFromContent()">
           📄 Load caption from generated content</button>
       </div>
@@ -4450,6 +4454,41 @@ function loadCaptionFromContent(){
   const text = Array.isArray(state.result) ? state.result.join('\n\n') : state.result;
   const el = document.getElementById('reel-caption');
   if(el) el.value = text;
+}
+
+// Generate a caption directly in the editor, without generating content in the Create tab first.
+async function generateCaptionDirect(btn){
+  const key=getApiKey();
+  if(!key||key.length<20){ alert('Add your Claude key in Settings first.'); return; }
+  let seed=(document.getElementById('reel-overlay-text')?.value||'').trim()
+        || ((typeof state!=='undefined'&&state.reelHook)||'').trim()
+        || (document.getElementById('reel-caption')?.value||'').trim();
+  if(!seed){ seed=(prompt('What is the reel about? Write a short sentence.')||'').trim(); if(!seed) return; }
+  const ta=document.getElementById('reel-caption');
+  const prev=btn?btn.textContent:''; if(btn){ btn.disabled=true; btn.textContent='Working…'; }
+  try{
+    const p=`Write an engaging Instagram caption in English for a reel about: "${seed}". Brand: "${cfg.brand||''}". Niche: "${cfg.niche||''}". Tone: ${cfg.voice||'warm and clear'}. Start with a scroll-stopping opening, give value, and end with a clear call to action. Max four short paragraphs. No hashtags, no quotation marks, no dashes.`;
+    const out=await callClaude(p,key,600);
+    if(ta&&out){ ta.value=out.trim(); saveReelCaption(); }
+  }catch(e){ alert('Could not generate caption: '+((e&&e.message)||e)); }
+  if(btn){ btn.disabled=false; btn.textContent=prev||'✨ Generate caption with AI'; }
+}
+
+// Generate a short hook straight into the editor's hook overlay.
+async function generateHookOverlay(btn){
+  const key=getApiKey();
+  if(!key||key.length<20){ alert('Add your Claude key in Settings first.'); return; }
+  let seed=(document.getElementById('reel-caption')?.value||'').trim()
+        || (document.getElementById('reel-overlay-text')?.value||'').trim();
+  if(!seed){ seed=(prompt('What is the reel about? Write a short sentence.')||'').trim(); if(!seed) return; }
+  const inp=document.getElementById('reel-overlay-text');
+  const prev=btn?btn.textContent:''; if(btn){ btn.disabled=true; btn.textContent='Working…'; }
+  try{
+    const p=`Write one short, scroll-stopping hook (max 8 words, under 60 characters) for a reel about: "${seed}". English. No quotation marks, no period at the end. Return only the hook, no explanation.`;
+    const out=await callClaude(p,key,60);
+    if(inp&&out){ inp.value=out.split('\n')[0].replace(/^["'«»\s]+|["'«»\s]+$/g,'').trim().slice(0,90); if(typeof updateReelOverlay==='function') updateReelOverlay(); }
+  }catch(e){ alert('Could not generate hook: '+((e&&e.message)||e)); }
+  if(btn){ btn.disabled=false; btn.textContent=prev||'✨ Generate hook with AI'; }
 }
 
 function saveReelCaption(){ /* auto-saves via state */ }

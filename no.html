@@ -2289,7 +2289,9 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
           <button class="chip" id="reel-bg-sage" onclick="setReelTextBg('rgba(156,192,0,0.85)')">Grønn</button>
         </div>
 
-        <button class="act-btn sage-btn" style="width:100%;" onclick="loadReelTextFromContent()">
+        <button class="act-btn" style="width:100%;background:var(--rose);color:#fff;" onclick="generateHookOverlay(this)">
+          ✨ Generer hook med AI</button>
+        <button class="act-btn sage-btn" style="width:100%;margin-top:8px;" onclick="loadReelTextFromContent()">
           📄 Hent HOOK fra generert innhold</button>
       </div>
 
@@ -2301,6 +2303,8 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
       </div>
       <div id="emoji-picker-reel-caption" class="emoji-picker-wrap"></div>
         <textarea id="reel-caption" rows="4" placeholder="Skriv bildeteksten her, sendes automatisk med Reelen til publiseringstjenesten..." style="width:100%;border-radius:10px;border:2px solid var(--border);padding:10px 13px;font-family:'Sasson Montessori';font-size:12px;color:var(--text);outline:none;resize:vertical;" oninput="saveReelCaption()"></textarea>
+        <button class="act-btn" style="width:100%;margin-top:8px;background:var(--rose);color:#fff;" onclick="generateCaptionDirect(this)">
+          ✨ Generer caption med AI</button>
         <button class="act-btn sage-btn" style="width:100%;margin-top:8px;" onclick="hentCaptionFraInnhold()">
           📄 Hent caption fra generert innhold</button>
       </div>
@@ -4747,6 +4751,41 @@ function hentCaptionFraInnhold(){
   const text = Array.isArray(state.result) ? state.result.join('\n\n') : state.result;
   const el = document.getElementById('reel-caption');
   if(el) el.value = text;
+}
+
+// Generer caption direkte i editoren, uten å måtte lage innhold i Lag innhold-fanen først.
+async function generateCaptionDirect(btn){
+  const key=getApiKey();
+  if(!key||key.length<20){ alert('Legg inn Claude-nøkkelen i Innstillinger først.'); return; }
+  let seed=(document.getElementById('reel-overlay-text')?.value||'').trim()
+        || ((typeof state!=='undefined'&&state.reelHook)||'').trim()
+        || (document.getElementById('reel-caption')?.value||'').trim();
+  if(!seed){ seed=(prompt('Hva handler reelen om? Skriv en kort setning.')||'').trim(); if(!seed) return; }
+  const ta=document.getElementById('reel-caption');
+  const prev=btn?btn.textContent:''; if(btn){ btn.disabled=true; btn.textContent='Lager…'; }
+  try{
+    const p=`Skriv en engasjerende Instagram-bildetekst (caption) på norsk bokmål for en reel om: "${seed}". Merkevare: "${cfg.brand||''}". Nisje: "${cfg.niche||''}". Tone: ${cfg.voice||'varm og tydelig'}. Start med en fengende åpning, gi verdi, og avslutt med en tydelig oppfordring til handling. Maks fire korte avsnitt. Ikke bruk hashtags, ikke anførselstegn, ikke tankestreker.`;
+    const out=await callClaude(p,key,600);
+    if(ta&&out){ ta.value=out.trim(); saveReelCaption(); }
+  }catch(e){ alert('Kunne ikke generere caption: '+((e&&e.message)||e)); }
+  if(btn){ btn.disabled=false; btn.textContent=prev||'✨ Generer caption med AI'; }
+}
+
+// Generer en kort hook-tekst direkte til hook-overlayen i editoren.
+async function generateHookOverlay(btn){
+  const key=getApiKey();
+  if(!key||key.length<20){ alert('Legg inn Claude-nøkkelen i Innstillinger først.'); return; }
+  let seed=(document.getElementById('reel-caption')?.value||'').trim()
+        || (document.getElementById('reel-overlay-text')?.value||'').trim();
+  if(!seed){ seed=(prompt('Hva handler reelen om? Skriv en kort setning.')||'').trim(); if(!seed) return; }
+  const inp=document.getElementById('reel-overlay-text');
+  const prev=btn?btn.textContent:''; if(btn){ btn.disabled=true; btn.textContent='Lager…'; }
+  try{
+    const p=`Lag én kort, fengende hook (maks 8 ord, under 60 tegn) for en reel om: "${seed}". Den skal stoppe scrollingen. Norsk bokmål, uten anførselstegn, uten punktum på slutten. Returner kun hooken, ingen forklaring.`;
+    const out=await callClaude(p,key,60);
+    if(inp&&out){ inp.value=out.split('\n')[0].replace(/^["'«»\s]+|["'«»\s]+$/g,'').trim().slice(0,90); if(typeof updateReelOverlay==='function') updateReelOverlay(); }
+  }catch(e){ alert('Kunne ikke generere hook: '+((e&&e.message)||e)); }
+  if(btn){ btn.disabled=false; btn.textContent=prev||'✨ Generer hook med AI'; }
 }
 
 function saveReelCaption(){ /* auto-saves via state */ }
