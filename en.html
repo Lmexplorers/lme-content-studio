@@ -1945,6 +1945,13 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
       <div style="background:var(--rose-l);border-radius:10px;padding:10px 12px;font-size:11px;color:var(--rose-d);margin-bottom:10px;line-height:1.6;">
         Music is added directly in Instagram after uploading, select here to <strong>preview</strong> while designing your story.
       </div>
+      <!-- Preview volume for the story music (mute / up / down) -->
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <button type="button" id="story-music-mute" onclick="toggleMusicMute()" title="Mute or unmute" style="background:none;border:none;font-size:20px;cursor:pointer;padding:2px;line-height:1;">🔊</button>
+        <label style="font-size:11px;color:var(--text-s);white-space:nowrap;">Volume:</label>
+        <input type="range" min="0" max="100" value="40" id="story-music-volume" style="flex:1;accent-color:var(--rose);" oninput="updateMusicVolume(this.value)"/>
+        <span id="story-music-volume-val" style="font-size:11px;color:var(--text-s);min-width:32px;">40%</span>
+      </div>
       <div class="music-list" id="story-music-list"></div>
       <label style="display:flex;align-items:center;gap:10px;margin-top:10px;padding:10px 12px;border-radius:12px;border:2px dashed var(--border);cursor:pointer;">
         <span style="font-size:22px;">📁</span>
@@ -2176,7 +2183,7 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
 
         <!-- Forhørsvolum -->
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-          <span style="font-size:16px;">🔊</span>
+          <button type="button" id="reel-music-mute" onclick="toggleMusicMute()" title="Mute or unmute" style="background:none;border:none;font-size:20px;cursor:pointer;padding:2px;line-height:1;">🔊</button>
           <label style="font-size:11px;color:var(--text-s);white-space:nowrap;">Music volume:</label>
           <input type="range" min="0" max="100" value="40" id="music-volume" style="flex:1;accent-color:var(--rose);" oninput="updateMusicVolume(this.value)"/>
           <span id="music-volume-val" style="font-size:11px;color:var(--text-s);min-width:30px;">40%</span>
@@ -6161,7 +6168,7 @@ function toggleMusic(id, url){
   }
 
   // Play (preview)
-  const vol = (document.getElementById('music-volume')?.value || 40) / 100;
+  const vol = _musicVol();
   const audio = new Audio();
   audio.src    = url;
   audio.loop   = true;
@@ -6193,7 +6200,7 @@ function loadCustomMusic(input, context){
   const url = URL.createObjectURL(file);
   const audio = new Audio(url);
   audio.loop   = true;
-  audio.volume = (document.getElementById('music-volume')?.value || 40) / 100;
+  audio.volume = _musicVol();
   editorState.currentAudio = audio;
   window._lmeAudio = audio;
   audio.play().catch(e => console.error('Audio error:', e));
@@ -6254,13 +6261,34 @@ async function loadFFmpeg(){
   return ffmpegInstance;
 }
 
-// ── Music volume ──
+// ── Music volume (shared between the story and reel editors) ──
+// Current preview volume (0..1), read from whichever slider exists.
+function _musicVol(){
+  const a=document.getElementById('music-volume'); const b=document.getElementById('story-music-volume');
+  let v=(a&&a.value)||(b&&b.value)||40; v=parseInt(v,10); if(isNaN(v)) v=40;
+  return v/100;
+}
 function updateMusicVolume(val){
-  document.getElementById('music-volume-val').textContent = val+'%';
-  // Also update preview audio
+  val=parseInt(val,10); if(isNaN(val)) val=40;
+  // Keep both sliders and labels in sync
+  ['music-volume','story-music-volume'].forEach(function(id){ const s=document.getElementById(id); if(s && String(s.value)!==String(val)) s.value=val; });
+  ['music-volume-val','story-music-volume-val'].forEach(function(id){ const l=document.getElementById(id); if(l) l.textContent=val+'%'; });
+  // Update the audio playing right now
   const audio = document.getElementById('reel-audio');
   if(audio) audio.volume = val / 100;
+  if(window._lmeAudio) window._lmeAudio.volume = val / 100;
   if(editorState.currentAudio) editorState.currentAudio.volume = val / 100;
+  updateMuteBtns();
+}
+// Mute button: toggles between 0 and the previous volume.
+function toggleMusicMute(){
+  const cur=Math.round(_musicVol()*100);
+  if(cur>0){ window._musicPrevVol=cur; updateMusicVolume(0); }
+  else { updateMusicVolume(window._musicPrevVol||40); }
+}
+function updateMuteBtns(){
+  const muted=_musicVol()===0;
+  ['story-music-mute','reel-music-mute'].forEach(function(id){ const b=document.getElementById(id); if(b) b.textContent=muted?'🔇':'🔊'; });
 }
 
 // ── Core render function: clips + optional audio → MP4 blob ──
@@ -6272,7 +6300,7 @@ async function renderReelToBlob(statusEl){
   const { fetchFile } = FFmpegWASM;
 
   const hasMusic = !!(editorState.customMusicFile || (editorState.selectedMusicId && editorState.selectedMusicUrl));
-  const vol = (document.getElementById('music-volume')?.value || 40) / 100;
+  const vol = _musicVol();
   const video = document.getElementById('reel-editor-video');
   const dur   = video?.duration || 0;
   const tStart = dur * editorState.trimStart;
@@ -6598,7 +6626,7 @@ function loadCustomMusic(input, context){
   if(editorState.currentAudio){ editorState.currentAudio.pause(); editorState.currentAudio=null; }
   const url   = URL.createObjectURL(file);
   const audio = new Audio(url);
-  audio.volume = (document.getElementById('music-volume')?.value || 40) / 100;
+  audio.volume = _musicVol();
   audio.loop   = true;
   audio.play().catch(()=>{});
   editorState.currentAudio = audio;
