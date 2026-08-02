@@ -195,7 +195,7 @@
 
       // For curriculum, just stash in extra notes (it's reference material)
       if (taskType === 'curriculum') {
-        s.extra = appendBlock(s.extra, text, `Renate AI · ${stamp}`);
+        s.extra = appendBlock(s.extra, text, `Nathalie AI · ${stamp}`);
         showToast('Lagt til i ekstra notater 🩷');
         return;
       }
@@ -203,7 +203,7 @@
       // For imagePrompt, stash in extra notes too — image prompts go to
       // the user's image generator, not to the post itself
       if (taskType === 'imagePrompt') {
-        s.extra = appendBlock(s.extra, text, `Renate AI · imagePrompt · ${stamp}`);
+        s.extra = appendBlock(s.extra, text, `Nathalie AI · imagePrompt · ${stamp}`);
         showToast('Bildeprompt lagt i ekstra notater 🎨');
         return;
       }
@@ -223,7 +223,7 @@
         s.history.unshift({
           id: Date.now(),
           format: s.format,
-          topic: `[Renate AI] ${resolvedTopic || taskType || 'general'}`,
+          topic: `[Nathalie AI] ${resolvedTopic || taskType || 'general'}`,
           ageGroup: s.ageGroup,
           result: text,
           ts: stamp,

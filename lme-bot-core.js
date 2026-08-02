@@ -27,10 +27,10 @@
   // ============================================================
   const STRINGS = {
     en: {
-      title: 'Renate AI',
+      title: 'Nathalie AI',
       subtitle: 'Your publishing & Montessori helper',
-      fabLabel: 'Ask Renate AI',
-      placeholder: 'Ask Renate AI...',
+      fabLabel: 'Ask Nathalie AI',
+      placeholder: 'Ask Nathalie AI...',
       send: 'Send',
       clear: 'Clear chat',
       useBrain: 'Use Project Brain as context',
@@ -46,10 +46,10 @@
       noInsert: 'No insert handler configured for this app.',
     },
     no: {
-      title: 'Renate AI',
+      title: 'Nathalie AI',
       subtitle: 'Din publiserings- og Montessori-hjelper',
-      fabLabel: 'Spør Renate AI',
-      placeholder: 'Spør Renate AI...',
+      fabLabel: 'Spør Nathalie AI',
+      placeholder: 'Spør Nathalie AI...',
       send: 'Send',
       clear: 'Tøm chat',
       useBrain: 'Bruk Project Brain som kontekst',
