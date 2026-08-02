@@ -28,7 +28,7 @@
   const STRINGS = {
     en: {
       title: 'Nathalie AI',
-      subtitle: 'Your publishing & Montessori helper',
+      subtitle: 'Your Creative Academy content helper',
       fabLabel: 'Ask Nathalie AI',
       placeholder: 'Ask Nathalie AI...',
       send: 'Send',
@@ -47,7 +47,7 @@
     },
     no: {
       title: 'Nathalie AI',
-      subtitle: 'Din publiserings- og Montessori-hjelper',
+      subtitle: 'Din innholds-hjelper i Creative Academy',
       fabLabel: 'Spør Nathalie AI',
       placeholder: 'Spør Nathalie AI...',
       send: 'Send',
