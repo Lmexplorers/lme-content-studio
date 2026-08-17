@@ -48,8 +48,10 @@
     endpoint: 'https://lme-ai-brain.renateshobby.workers.dev/api/ai',
     lang: LANG,
 
-    // Tasks Autopilot cares about
-    tasks: ['content', 'imagePrompt', 'curriculum', 'productBundle', 'educational', 'general'],
+    // Tasks Autopilot cares about. Autopilot works across many niches
+    // (Montessori is just one example), so suggestions below must stay
+    // generic and never assume a schooling/homeschool business.
+    tasks: ['content', 'imagePrompt', 'productBundle', 'educational', 'general'],
     defaultTask: 'content',
 
     suggestions: {
@@ -59,15 +61,12 @@
       imagePrompt: NO
         ? ['Bildeprompt for dagens post', 'Variant med myk akvarell', 'Negativ prompt']
         : ["Image prompt for today's post", 'Soft watercolor variant', 'Negative prompt'],
-      curriculum: NO
-        ? ['Foreslå LK20-koblinger (forsiktig)', 'AMI-tradisjon-kobling', 'Aldersgruppe 3-6']
-        : ['Suggest LK20 links (cautious)', 'AMI tradition alignment', 'Ages 3-6'],
       productBundle: NO
-        ? ['Lag promo-tekst for vårpakken', 'Bundle for nybegynnere', 'Pakke med Mia & Teo-bok']
-        : ['Promo text for spring bundle', 'Beginner bundle', 'Bundle with Mia & Teo book'],
+        ? ['Lag promo-tekst for en pakkeløsning', 'Bundle for nybegynnere', 'Sesongtilbud']
+        : ['Promo text for a bundle', 'Beginner bundle', 'Seasonal offer'],
       educational: NO
-        ? ['Kort leksjonsplan (6-9)', 'Plan for hjemmemiljø']
-        : ['Short lesson plan (6-9)', 'Home-environment plan'],
+        ? ['Kort forklar-innlegg om et vanlig spørsmål', 'Tips-liste for nybegynnere i min bransje']
+        : ['Short explainer post about a common question', 'Tips list for beginners in my field'],
       general: NO
         ? ['Hjelp meg å starte', 'Hva mangler i dagens innhold?']
         : ['Help me start', "What's missing in today's content?"],
