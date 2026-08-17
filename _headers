@@ -5,3 +5,20 @@
   Cache-Control: no-store
 /lme-bot-shell-content-studio.js
   Cache-Control: no-store
+
+# Selve appsidene (no.html/en.html, apnes som /no og /en) endres svaert ofte
+# akkurat na under feilretting, og har ingen egen cache-bust-versjonering.
+# Uten dette kan Renate teste en fiks rett etter push og fortsatt se den
+# gamle, ufiksede siden fra buffer.
+/no
+  Cache-Control: no-store
+/no.html
+  Cache-Control: no-store
+/en
+  Cache-Control: no-store
+/en.html
+  Cache-Control: no-store
+/
+  Cache-Control: no-store
+/index.html
+  Cache-Control: no-store
