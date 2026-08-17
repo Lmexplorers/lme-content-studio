@@ -1,7 +1,7 @@
 // LME Autopilot — Service Worker
 // Enables PWA installation + basic offline support for app shell.
 
-const CACHE_VERSION = 'lme-v133';
+const CACHE_VERSION = 'lme-v134';
 const APP_SHELL = [
   '/',
   '/index.html',
@@ -57,7 +57,14 @@ self.addEventListener('fetch', (event) => {
   const isHTML = req.mode === 'navigate' ||
                  (req.headers.get('accept') || '').includes('text/html');
 
-  if (isHTML) {
+  // Nathalie AI-widgeten endres ofte under feilretting (samme grunn som no-store i
+  // _headers). Cache-first her betyr at CACHE_VERSION ma bumpes manuelt for hver eneste
+  // endring, ellers sitter alle igjen med den gamle, ufiksede filen pa ubestemt tid, selv
+  // etter en frisk utrulling og hard refresh. Nettverk-forst her fjerner det problemet helt.
+  const isFrequentlyEdited = url.pathname === '/lme-bot-core.js' ||
+                              url.pathname === '/lme-bot-shell-content-studio.js';
+
+  if (isHTML || isFrequentlyEdited) {
     event.respondWith(
       fetch(req)
         .then((res) => {
