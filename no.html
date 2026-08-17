@@ -2587,16 +2587,20 @@ const TOPICS = [
 
 const AGE_GROUPS  = ['3-6 år','6-9 år','9-12 år','13-16 år (kommer)','Alle aldersgrupper','Foreldre generelt'];
 const CHARACTERS  = ['Egne karakterer','Ingen karakter'];
-// Mia & Teo (LMEs Montessori-figurer) er kun aktuelt når Montessori-nisjen er valgt.
-function charOptions(){ return (typeof state!=='undefined' && state.niche==='montessori') ? ['Mia & Teo'].concat(CHARACTERS) : CHARACTERS.slice(); }
 // Er dette LME sin egen konto (Renate)? Da er Mia & Teo alltid tilgjengelig.
 const OWNER_EMAILS=['renate@lmexplorers.com','renateshobby@hotmail.com'];
 function _isLmeOwner(){ try{ return !!(window.lmeAccount && OWNER_EMAILS.includes(String(window.lmeAccount.email||'').toLowerCase())); }catch(e){ return false; } }
-// Vis/skjul Mia & Teo-valget: alltid for eieren (Renate), ellers kun ved Montessori-nisje.
+// Mia & Teo (LMEs Montessori-figurer) er kun aktuelt når Montessori-nisjen er valgt, unntatt for eieren.
+function charOptions(){ return (_isLmeOwner() || (typeof state!=='undefined' && state.niche==='montessori')) ? ['Mia & Teo'].concat(CHARACTERS) : CHARACTERS.slice(); }
+// Vis/skjul Mia & Teo-KNAPPEN: alltid for eieren (Renate), ellers kun ved Montessori-nisje.
+// Selve VALGET nullstilles derimot alltid når nisjen ikke er Montessori, uavhengig av eier,
+// ellers blir Mia & Teo (og "Montessori" i beskrivelsen) hengende igjen i genereringen etter
+// at eieren har byttet nisje, selv om chippen ikke lenger vises som valgt.
 function updateCharAvailability(){
-  const show = _isLmeOwner() || (typeof state!=='undefined' && state.niche==='montessori');
+  const isMontessoriNiche = (typeof state!=='undefined' && state.niche==='montessori');
+  const show = _isLmeOwner() || isMontessoriNiche;
   const st = document.getElementById('char-miateo'); if(st) st.style.display = show ? '' : 'none';
-  if(!show){
+  if(!isMontessoriNiche){
     if(typeof state!=='undefined' && state.char==='Mia & Teo') state.char='Ingen karakter';
     if(typeof cfg!=='undefined' && cfg.charPreset==='miateo'){ cfg.charPreset='none'; }
   }
