@@ -1,7 +1,7 @@
 /**
  * LME Autopilot — autoposting via Blotato.
  *
- * Kontrollerbar publiserings-motor (erstatter den gamle SocialBu-proxyen).
+ * Kontrollerbar publiserings-motor.
  * Klienten sender Blotato-nokkel + post-data hit; vi laster opp media til
  * Blotato og publiserer. Auto-deployes med Pages, sa den kan feilsokes/rettes.
  *
