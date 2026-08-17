@@ -336,7 +336,10 @@
     fab.className = 'lme-bot-fab';
     fab.setAttribute('aria-label', T.title);
     fab.setAttribute('title', T.fabLabel);
-    fab.innerHTML = '🩷<img class="lme-bot-fab-avatar" src="https://lmexplorers.com/images/nathalie-portrait.jpg?v=3" alt="" onerror="this.remove()">';
+    // Inline SVG in stedet for et emoji (f.eks. 🩷) som fallback/underlag bak bildet:
+    // nyere emoji mangler skrifttegn (glyph) på eldre OS/nettlesere og vises da som en
+    // stygg "tofu"-boks med Unicode-koden i stedet for et hjerte. SVG rendres likt overalt.
+    fab.innerHTML = '<svg viewBox="0 0 24 24" width="22" height="22" fill="#fff" aria-hidden="true" style="position:relative;z-index:0;"><path d="M12 21s-6.7-4.35-9.3-8.1C1.1 10.7 1 8.3 2.6 6.4 4.1 4.6 6.8 4.4 8.5 6l3.5 3.6L15.5 6c1.7-1.6 4.4-1.4 5.9.4 1.6 1.9 1.5 4.3-.1 6.5C18.7 16.65 12 21 12 21z"/></svg><img class="lme-bot-fab-avatar" src="https://lmexplorers.com/images/nathalie-portrait.jpg?v=3" alt="" onerror="this.remove()">';
     document.body.appendChild(fab);
 
     fabLabel = document.createElement('div');
