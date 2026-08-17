@@ -5386,9 +5386,18 @@ function setEditorMode(mode){
 
 // ── Story: hvilke av de tilkoblede kontoene skal DENNE storyen publiseres til ──
 let storyPickedAccountIds = null; // null = ikke satt ennaa -> faller tilbake til alle
+// Kontoliste for velg-plattform-panelene. Bruker den avhukede lista (cfg.blotatoAccounts)
+// hvis den finnes, ellers den manuelt limte inn enkelt-konto-ID-en (cfg.blotatoAccount),
+// sa panelet ikke bare sier "ingen kontoer" for de som har satt opp Blotato den gamle veien.
+function _pickerAccounts(){
+  const list=(cfg.blotatoAccounts||[]).filter(a=>a&&a.id);
+  if(list.length) return list;
+  if(cfg.blotatoAccount) return [{ id:String(cfg.blotatoAccount), platform:cfg.blotatoPlatform||'instagram', name:'' }];
+  return [];
+}
 function renderStoryAccountPicker(){
   const host=document.getElementById('story-account-picker'); if(!host) return;
-  const accts=(cfg.blotatoAccounts||[]).filter(a=>a&&a.id);
+  const accts=_pickerAccounts();
   if(storyPickedAccountIds===null) storyPickedAccountIds=accts.map(a=>String(a.id));
   storyPickedAccountIds=storyPickedAccountIds.filter(id=>accts.some(a=>String(a.id)===id));
   if(!accts.length){ host.innerHTML='<span style="font-size:11px;color:var(--text-s);">Ingen kontoer koblet til ennå. Legg til i ⚙️ Innstillinger.</span>'; return; }
@@ -5401,7 +5410,7 @@ function renderStoryAccountPicker(){
   }).join('');
 }
 function toggleStoryAccount(id){
-  if(storyPickedAccountIds===null) storyPickedAccountIds=(cfg.blotatoAccounts||[]).filter(a=>a&&a.id).map(a=>String(a.id));
+  if(storyPickedAccountIds===null) storyPickedAccountIds=_pickerAccounts().map(a=>String(a.id));
   storyPickedAccountIds = storyPickedAccountIds.includes(id) ? storyPickedAccountIds.filter(x=>x!==id) : [...storyPickedAccountIds, id];
   renderStoryAccountPicker();
 }
@@ -5411,7 +5420,7 @@ function toggleStoryAccount(id){
 let reelPickedAccountIds = null; // null = ikke satt ennaa -> faller tilbake til alle
 function renderReelAccountPicker(){
   const host=document.getElementById('reel-account-picker'); if(!host) return;
-  const accts=(cfg.blotatoAccounts||[]).filter(a=>a&&a.id);
+  const accts=_pickerAccounts();
   if(reelPickedAccountIds===null) reelPickedAccountIds=accts.map(a=>String(a.id));
   // Fjern valg av kontoer som ikke lenger finnes (f.eks. fjernet i Innstillinger).
   reelPickedAccountIds=reelPickedAccountIds.filter(id=>accts.some(a=>String(a.id)===id));
@@ -5425,7 +5434,7 @@ function renderReelAccountPicker(){
   }).join('');
 }
 function toggleReelAccount(id){
-  if(reelPickedAccountIds===null) reelPickedAccountIds=(cfg.blotatoAccounts||[]).filter(a=>a&&a.id).map(a=>String(a.id));
+  if(reelPickedAccountIds===null) reelPickedAccountIds=_pickerAccounts().map(a=>String(a.id));
   reelPickedAccountIds = reelPickedAccountIds.includes(id) ? reelPickedAccountIds.filter(x=>x!==id) : [...reelPickedAccountIds, id];
   renderReelAccountPicker();
 }

@@ -4987,9 +4987,18 @@ function setEditorMode(mode){
 
 // ── Story: which of the connected accounts should THIS story be published to ──
 let storyPickedAccountIds = null; // null = not set yet -> falls back to all
+// Account list for the choose-platform panels. Uses the ticked list (cfg.blotatoAccounts)
+// when present, otherwise the manually pasted single account ID (cfg.blotatoAccount),
+// so the panel doesn't just say "no accounts" for anyone who set up Blotato the old way.
+function _pickerAccounts(){
+  const list=(cfg.blotatoAccounts||[]).filter(a=>a&&a.id);
+  if(list.length) return list;
+  if(cfg.blotatoAccount) return [{ id:String(cfg.blotatoAccount), platform:cfg.blotatoPlatform||'instagram', name:'' }];
+  return [];
+}
 function renderStoryAccountPicker(){
   const host=document.getElementById('story-account-picker'); if(!host) return;
-  const accts=(cfg.blotatoAccounts||[]).filter(a=>a&&a.id);
+  const accts=_pickerAccounts();
   if(storyPickedAccountIds===null) storyPickedAccountIds=accts.map(a=>String(a.id));
   storyPickedAccountIds=storyPickedAccountIds.filter(id=>accts.some(a=>String(a.id)===id));
   if(!accts.length){ host.innerHTML='<span style="font-size:11px;color:var(--text-s);">No accounts connected yet. Add one in ⚙️ Settings.</span>'; return; }
@@ -5002,7 +5011,7 @@ function renderStoryAccountPicker(){
   }).join('');
 }
 function toggleStoryAccount(id){
-  if(storyPickedAccountIds===null) storyPickedAccountIds=(cfg.blotatoAccounts||[]).filter(a=>a&&a.id).map(a=>String(a.id));
+  if(storyPickedAccountIds===null) storyPickedAccountIds=_pickerAccounts().map(a=>String(a.id));
   storyPickedAccountIds = storyPickedAccountIds.includes(id) ? storyPickedAccountIds.filter(x=>x!==id) : [...storyPickedAccountIds, id];
   renderStoryAccountPicker();
 }
@@ -5012,7 +5021,7 @@ function toggleStoryAccount(id){
 let reelPickedAccountIds = null; // null = not set yet -> falls back to all
 function renderReelAccountPicker(){
   const host=document.getElementById('reel-account-picker'); if(!host) return;
-  const accts=(cfg.blotatoAccounts||[]).filter(a=>a&&a.id);
+  const accts=_pickerAccounts();
   if(reelPickedAccountIds===null) reelPickedAccountIds=accts.map(a=>String(a.id));
   // Drop selections for accounts that no longer exist (e.g. removed in Settings).
   reelPickedAccountIds=reelPickedAccountIds.filter(id=>accts.some(a=>String(a.id)===id));
@@ -5026,7 +5035,7 @@ function renderReelAccountPicker(){
   }).join('');
 }
 function toggleReelAccount(id){
-  if(reelPickedAccountIds===null) reelPickedAccountIds=(cfg.blotatoAccounts||[]).filter(a=>a&&a.id).map(a=>String(a.id));
+  if(reelPickedAccountIds===null) reelPickedAccountIds=_pickerAccounts().map(a=>String(a.id));
   reelPickedAccountIds = reelPickedAccountIds.includes(id) ? reelPickedAccountIds.filter(x=>x!==id) : [...reelPickedAccountIds, id];
   renderReelAccountPicker();
 }
