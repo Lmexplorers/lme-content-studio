@@ -183,6 +183,8 @@
         // ---- Brand voice (from cfg, no secrets) ----
         brand: c.brand,
         niche: c.niche,
+        website: c.website,   // used to ground web search on the user's own site
+        offers: c.offers,     // saved courses / workshops / bundles from Settings
         voice: c.voice,
         audience: c.audience,
         signature: c.signature,

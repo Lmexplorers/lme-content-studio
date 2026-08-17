@@ -1785,6 +1785,19 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
     </div>
   </div>
 
+  <div class="card">
+    <div class="card-title">Mine tilbud og kurs</div>
+    <div style="font-size:11px;color:var(--text-s);margin-bottom:10px;line-height:1.6;">Det du selger: kurs, workshops, signaturkurset, pakker. Nathalie AI bruker dette til å skrive tekst og CTA som peker på de riktige tilbudene. Skriv fritt, eller la henne hente det fra nettsiden din.</div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div><div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Nettstedet ditt</div><input type="text" id="s-website" placeholder="https://lmexplorers.com" oninput="saveSettings()"/></div>
+      <div><div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Tilbudene dine</div><textarea id="s-offers" rows="6" placeholder="F.eks.
+Signaturkurset «…» – 3 uker, 2 490 kr – for …
+Workshop «…» – halvdag – for …" oninput="saveSettings()"></textarea></div>
+      <div><button class="act-btn sage-btn" id="fetch-offers-btn" onclick="fetchOffersFromWebsite(this)">Hent fra nettsiden min</button></div>
+      <div style="font-size:11px;color:var(--text-s);line-height:1.6;">Henting bruker nettsøk og koster litt. Resultatet fylles inn her og lagres med én gang, så Nathalie kan bruke det uten å søke på nytt. Endre fritt — endringer lagres mens du skriver.</div>
+    </div>
+  </div>
+
   <div class="card" style="border-color:var(--gold);">
     <div class="card-title" style="color:var(--gold);">Karakterer</div>
     <div style="font-size:11px;color:var(--text-s);margin-bottom:10px;line-height:1.6;">Velg hvilke karakterer som brukes i innholdet ditt</div>
@@ -2789,6 +2802,8 @@ const DEFAULTS = {
   niche:'',
   voice:'',
   audience:'',
+  website:'',
+  offers:'',
   greeting:'Hei!',
   signature:'',
   email:'',
@@ -4439,6 +4454,7 @@ function loadSettings(){
 function applySettingsToUI(){
   const s=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
   s('s-brand',cfg.brand); s('s-niche',cfg.niche); s('s-voice',cfg.voice); s('s-audience',cfg.audience);
+  s('s-website',cfg.website); s('s-offers',cfg.offers);
   s('s-email',cfg.email);
   s('s-greeting',cfg.greeting); s('s-signature',cfg.signature);
   visProfiler();
@@ -4457,6 +4473,7 @@ function applySettingsToUI(){
 function saveSettings(){
   const g=id=>{const el=document.getElementById(id);return el?el.value:'';};
   cfg.brand=g('s-brand'); cfg.niche=g('s-niche'); cfg.voice=g('s-voice'); cfg.audience=g('s-audience');
+  cfg.website=g('s-website'); cfg.offers=g('s-offers');
   cfg.email=g('s-email');
   cfg.greeting=g('s-greeting'); cfg.signature=g('s-signature');
   // Nøkler: overskriv aldri en lagret nøkkel med tomt felt (hindrer utilsiktet sletting).
@@ -4484,7 +4501,43 @@ function saveSettings(){
 function persistCfg(){ try{ localStorage.setItem('lme_no_v1',JSON.stringify(cfg)); localStorage.setItem('lme_innstillinger_no',JSON.stringify(cfg)); }catch(e){} try{ _cfgBackupIdb(); }catch(e){} try{ pushSettingsToServer(); }catch(e){} }
 
 /* ───────── Merkevareprofiler (bytt mellom flere merkevarer) ───────── */
-var PROFILE_FIELDS=['brand','niche','voice','audience','greeting','signature','charPreset','charNames','charDesc','logoImage'];
+// ══ MINE TILBUD ══
+// Henter tilbudene dine fra ditt eget nettsted via Nathalie AI, slik at de kan
+// LAGRES én gang i stedet for å søkes opp på nytt ved hver eneste forespørsel.
+// Nettsøk koster per søk, og er avslått som standard i botpanelet — derfor er
+// det lagrede feltet det Nathalie normalt leser fra.
+const LME_BRAIN_ENDPOINT='https://lme-ai-brain.renateshobby.workers.dev/api/ai';
+async function fetchOffersFromWebsite(btn){
+  const site=((document.getElementById('s-website')||{}).value||'').trim();
+  if(!site){ alert('Skriv inn nettstedet ditt i feltet over først.'); return; }
+  const box=document.getElementById('s-offers');
+  if(!box) return;
+  const prev=btn?btn.textContent:'';
+  if(btn){ btn.disabled=true; btn.textContent='Henter…'; }
+  try{
+    const res=await fetch(LME_BRAIN_ENDPOINT,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-LME-App':'content-studio'},
+      body:JSON.stringify({
+        appId:'content-studio', lang:'no', provider:'anthropic',
+        taskType:'general', webSearch:true,
+        projectContext:{brand:cfg.brand,niche:cfg.niche,website:site},
+        messages:[{role:'user',content:'Søk opp nettstedet '+site+' og finn ut hva som faktisk selges der. List opp hvert tilbud på egen linje: navn, type (kurs, workshop, pakke, e-bok), pris hvis oppgitt, og hvem det er for. Ta bare med det du faktisk finner på nettstedet — ikke gjett, og ikke finn på priser. Skriv kort og rent, uten innledning.'}],
+      }),
+    });
+    const data=await res.json();
+    if(data.error) throw new Error(data.error);
+    const txt=(data.reply||'').trim();
+    if(!txt) throw new Error('Fant ingen tilbud på nettstedet.');
+    box.value=txt;
+    saveSettings();
+  }catch(e){
+    alert('Kunne ikke hente fra nettstedet: '+((e&&e.message)||e));
+  }finally{
+    if(btn){ btn.disabled=false; btn.textContent=prev; }
+  }
+}
+var PROFILE_FIELDS=['brand','niche','voice','audience','website','offers','greeting','signature','charPreset','charNames','charDesc','logoImage'];
 function loadProfiles(){ try{ return JSON.parse(localStorage.getItem('lme_profiles')||'null'); }catch(e){ return null; } }
 function saveProfiles(p){ try{ localStorage.setItem('lme_profiles', JSON.stringify(p)); }catch(e){} try{ pushProfilesToServer(); }catch(e){} }
 function ensureProfiles(){

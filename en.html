@@ -1499,6 +1499,19 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
     </div>
   </div>
 
+  <div class="card">
+    <div class="card-title">My offers and courses</div>
+    <div style="font-size:11px;color:var(--text-s);margin-bottom:10px;line-height:1.6;">What you sell: courses, workshops, your signature course, bundles. Nathalie AI uses this to write copy and CTAs that point at the right offers. Write freely, or let her pull it from your website.</div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div><div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Your website</div><input type="text" id="s-website" placeholder="https://lmexplorers.com" oninput="saveSettings()"/></div>
+      <div><div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Your offers</div><textarea id="s-offers" rows="6" placeholder="e.g.
+Signature course "…" – 3 weeks, $249 – for …
+Workshop "…" – half day – for …" oninput="saveSettings()"></textarea></div>
+      <div><button class="act-btn sage-btn" id="fetch-offers-btn" onclick="fetchOffersFromWebsite(this)">Pull from my website</button></div>
+      <div style="font-size:11px;color:var(--text-s);line-height:1.6;">Pulling uses web search and costs a little. The result is filled in here and saved right away, so Nathalie can use it without searching again. Edit freely — changes save as you type.</div>
+    </div>
+  </div>
+
   <div class="card" style="border-color:var(--gold);">
     <div class="card-title" style="color:var(--gold);">Characters</div>
     <div style="font-size:11px;color:var(--text-s);margin-bottom:10px;line-height:1.6;">Choose which characters to use in your content</div>
@@ -2497,6 +2510,8 @@ const DEFAULTS = {
   niche:'',
   voice:'',
   audience:'',
+  website:'',
+  offers:'',
   greeting:'Hi!',
   signature:'',
   email:'',
@@ -4139,6 +4154,7 @@ function loadSettings(){
 function applySettingsToUI(){
   const s=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
   s('s-brand',cfg.brand); s('s-niche',cfg.niche); s('s-voice',cfg.voice); s('s-audience',cfg.audience);
+  s('s-website',cfg.website); s('s-offers',cfg.offers);
   s('s-email',cfg.email);
   s('s-greeting',cfg.greeting); s('s-signature',cfg.signature);
   visProfiler();
@@ -4157,6 +4173,7 @@ function applySettingsToUI(){
 function saveSettings(){
   const g=id=>{const el=document.getElementById(id);return el?el.value:'';};
   cfg.brand=g('s-brand'); cfg.niche=g('s-niche'); cfg.voice=g('s-voice'); cfg.audience=g('s-audience');
+  cfg.website=g('s-website'); cfg.offers=g('s-offers');
   cfg.email=g('s-email');
   cfg.greeting=g('s-greeting'); cfg.signature=g('s-signature');
   // Keys: never overwrite a stored key with an empty field (prevents accidental wipe).
@@ -4183,7 +4200,43 @@ function saveSettings(){
 function persistCfg(){ try{ localStorage.setItem('lme_en_v2',JSON.stringify(cfg)); localStorage.setItem('lme_innstillinger_no',JSON.stringify(cfg)); }catch(e){} try{ _cfgBackupIdb(); }catch(e){} try{ pushSettingsToServer(); }catch(e){} }
 
 /* ───────── Brand profiles (switch between several brands) ───────── */
-var PROFILE_FIELDS=['brand','niche','voice','audience','greeting','signature','charPreset','charNames','charDesc','logoImage'];
+// ══ MY OFFERS ══
+// Pulls your offers from your own website via Nathalie AI so they can be SAVED
+// once instead of being searched for again on every single request. Web search
+// costs per search and is off by default in the bot panel, so the saved field
+// is what Nathalie normally reads from.
+const LME_BRAIN_ENDPOINT='https://lme-ai-brain.renateshobby.workers.dev/api/ai';
+async function fetchOffersFromWebsite(btn){
+  const site=((document.getElementById('s-website')||{}).value||'').trim();
+  if(!site){ alert('Enter your website in the field above first.'); return; }
+  const box=document.getElementById('s-offers');
+  if(!box) return;
+  const prev=btn?btn.textContent:'';
+  if(btn){ btn.disabled=true; btn.textContent='Pulling…'; }
+  try{
+    const res=await fetch(LME_BRAIN_ENDPOINT,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-LME-App':'content-studio'},
+      body:JSON.stringify({
+        appId:'content-studio', lang:'en', provider:'anthropic',
+        taskType:'general', webSearch:true,
+        projectContext:{brand:cfg.brand,niche:cfg.niche,website:site},
+        messages:[{role:'user',content:'Search the website '+site+' and find what is actually sold there. List each offer on its own line: name, type (course, workshop, bundle, ebook), price if stated, and who it is for. Include only what you actually find on the site — do not guess, and do not invent prices. Keep it short and clean, with no preamble.'}],
+      }),
+    });
+    const data=await res.json();
+    if(data.error) throw new Error(data.error);
+    const txt=(data.reply||'').trim();
+    if(!txt) throw new Error('Found no offers on the website.');
+    box.value=txt;
+    saveSettings();
+  }catch(e){
+    alert('Could not pull from the website: '+((e&&e.message)||e));
+  }finally{
+    if(btn){ btn.disabled=false; btn.textContent=prev; }
+  }
+}
+var PROFILE_FIELDS=['brand','niche','voice','audience','website','offers','greeting','signature','charPreset','charNames','charDesc','logoImage'];
 function loadProfiles(){ try{ return JSON.parse(localStorage.getItem('lme_profiles')||'null'); }catch(e){ return null; } }
 function saveProfiles(p){ try{ localStorage.setItem('lme_profiles', JSON.stringify(p)); }catch(e){} try{ pushProfilesToServer(); }catch(e){} }
 function ensureProfiles(){

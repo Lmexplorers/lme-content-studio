@@ -48,8 +48,44 @@ uavhengig av frontend-fiksene i `no.html`.
 - Svaret inkluderer `miaTeoMode: true|false`, så det er mulig å se hvilken modus
   workeren faktisk brukte.
 
-Endepunkter, CORS, providere og payload-formatet er uendret — appene trenger
-ingen endring.
+## App-kunnskap
+
+`APP_KNOWLEDGE['content-studio']` beskriver hva Autopilot faktisk kan: faner,
+formater, kalender, publiseringskanaler, Innstillinger, og selve Nathalie-panelet.
+Uten denne gjettet hun på spørsmål som «hvordan planlegger jeg en uke her?».
+
+Den vedlikeholdes for hånd. Får appen en ny fane eller kanal, må blokken
+oppdateres — ingenting synkroniserer den.
+
+## Nettsøk
+
+Av som standard. Brukeren skrur det på med «Søk på nett» i botpanelet, som
+sender `webSearch: true`. Workeren legger da på Anthropics serverside-verktøy
+`web_search_20260209` med `max_uses: 5`, følger `pause_turn` i inntil fire hopp,
+og henger kildene på svaret.
+
+Merk:
+- Søk krever en modell som støtter verktøyet. Standardmodellen er derfor byttet
+  fra `claude-sonnet-4-20250514` til `claude-opus-5`. Panelet har ingen
+  modellvelger, så standarden er det som faktisk brukes for alle forespørsler.
+- Søkefeil kommer tilbake som HTTP 200 med et feilobjekt i stedet for lista,
+  ikke som en exception. `collectSources()` hopper over dem.
+- `fallbacks: 'default'` er slått på, så en sikkerhetsavvisning rutes videre i
+  stedet for å bli en blindvei for brukeren.
+- Hvert søk koster. Derfor leser hun normalt fra det lagrede tilbudsfeltet.
+
+## Tilbud og kurs
+
+`Innstillinger → Mine tilbud og kurs` har et nettsted-felt og et fritekstfelt som
+lagres per merkevareprofil. Knappen «Hent fra nettsiden min» kjører ett
+søkedrevet kall mot dette endepunktet og fyller feltet, som så lagres.
+
+Poenget er at tilbudene hentes én gang og **lagres**, i stedet for å søkes opp
+på nytt ved hver forespørsel. Nathalie behandler det lagrede feltet som fasit for
+navn og priser, og skal aldri finne på et tilbud som ikke står der.
+
+Endepunkter, CORS, providere og payload-formatet er uendret bortsett fra det nye
+valgfrie `webSearch`-feltet — eldre klienter fungerer som før.
 
 ## Deploy
 
