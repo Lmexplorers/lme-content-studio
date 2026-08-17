@@ -4964,6 +4964,11 @@ function initEditor(){
   drawStoryCanvas();
   // Load saved own music (Suno etc.) and show it in the lists.
   try{ loadUserMusic().then(function(){ try{ renderMusicList('story-music-list'); renderMusicList('reel-music-list'); }catch(_){} }); }catch(e){}
+  // setEditorMode() renders the account picker ("Publish to"), among other things, but it
+  // previously only ran when manually switching the Story/Reel toggle inside the editor.
+  // Without this call the account picker stayed empty (never rendered) until that toggle
+  // was clicked, even though Story is already shown by default when opening the Editor tab.
+  try{ setEditorMode(editorState.mode||'story'); }catch(e){}
 }
 
 function setEditorMode(mode){

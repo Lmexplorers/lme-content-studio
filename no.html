@@ -5363,6 +5363,11 @@ function initEditor(){
   drawStoryCanvas();
   // Hent lagret egen musikk (Suno o.l.) og vis den i listene.
   try{ loadUserMusic().then(function(){ try{ renderMusicList('story-music-list'); renderMusicList('reel-music-list'); }catch(_){} }); }catch(e){}
+  // setEditorMode() gjor bl.a. kontovelgeren ("Publiser til"), men kjorte kun ved a bytte
+  // Story/Reel-fane manuelt inni editoren. Uten dette kallet her forble kontovelgeren tom
+  // (aldri rendret) helt til du trykket pa fane-knappen, selv om Story allerede vises som
+  // standard nar du apner Editor-fanen fra hovedmenyen.
+  try{ setEditorMode(editorState.mode||'story'); }catch(e){}
 }
 
 function setEditorMode(mode){
