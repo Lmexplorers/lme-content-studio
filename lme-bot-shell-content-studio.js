@@ -116,12 +116,38 @@
         if (cta  && cta.value)  reelCTA      = cta.value;
       } catch {}
 
+      // Resolve the character selection the same way buildPrompt() does.
+      // Sending the raw s.char meant the bot received the literal string
+      // "Egne karakterer" and had no idea who they were, while the main
+      // generator saw the actual names and description from Settings.
+      let resolvedCharacters = s.char;
+      if (/egne karakterer|custom characters/i.test(String(s.char || '')) && c.charNames) {
+        resolvedCharacters = c.charNames + (c.charDesc ? ', ' + c.charDesc : '');
+      }
+
+      // Upcoming scheduled posts, so the bot can answer "what's next?" and
+      // write content that fits the plan instead of guessing.
+      const upcomingPlan = Array.isArray(s.plan)
+        ? s.plan
+            .filter(p => p && p.scheduledDate)
+            .sort((a, b) => String(a.scheduledDate).localeCompare(String(b.scheduledDate)))
+            .slice(0, 10)
+            .map(p => ({
+              format: p.format,
+              topic: p.topic,
+              date: p.scheduledDate,
+              time: p.scheduledTime,
+              platforms: p.platforms,
+              published: !!p.published,
+            }))
+        : [];
+
       const brain = {
         // ---- Active editing context ----
         format:      s.format,         // 'carousel' | 'reel' | 'story' | ...
         topic:       resolvedTopic,
         ageGroup:    s.ageGroup,       // '3–6 år' | '6-9 år' | ...
-        characters:  s.char,           // 'Mia og Teo' | ...
+        characters:  resolvedCharacters,
         tone:        s.tone,           // 'Varm og personlig' | ...
         slideCount:  s.slideCount,
         cta:         s.cta,
@@ -148,6 +174,11 @@
             ? h.result.slice(0, 200)
             : Array.isArray(h.result) ? (h.result[0] || '').slice(0, 200) : null,
         })) : [],
+
+        // ---- Strategy (from the wizard) ----
+        goal:      s.goal,        // marketing goal, e.g. 'flere kunder'
+        timeLevel: s.timeLevel,   // how much time the user has per week
+        upcomingPlan,             // next 10 scheduled posts from the calendar
 
         // ---- Brand voice (from cfg, no secrets) ----
         brand: c.brand,
