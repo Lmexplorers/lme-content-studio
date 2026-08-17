@@ -1771,6 +1771,7 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
           <input id="see-opt1" class="text-overlay-input" style="margin-bottom:8px;" placeholder="Option 1" oninput="updateStoryEl('opt1',this.value)"/>
           <input id="see-opt2" class="text-overlay-input" style="margin-bottom:8px;" placeholder="Option 2" oninput="updateStoryEl('opt2',this.value)"/>
         </div>
+        <div id="see-answerrow" style="display:none;"><input id="see-answer" class="text-overlay-input" style="margin-bottom:8px;" placeholder="Answer…" oninput="updateStoryEl('answerPh',this.value)"/></div>
         <div class="hk-row" id="see-sizerow"><div class="hk-lab" id="see-sizelab">Size (or drag the corner)</div><input type="range" min="14" max="140" id="see-size" oninput="updateStoryEl('size',this.value)" style="width:100%;accent-color:var(--rose);"></div>
         <div class="hk-row" id="see-lhrow"><div class="hk-lab">Line spacing</div><input type="range" min="0.9" max="2" step="0.1" id="see-lh" oninput="updateStoryEl('lineH',this.value)" style="width:100%;accent-color:var(--rose);"></div>
         <div class="hk-row" id="see-colorrow"><div class="hk-lab">Color</div><div id="see-colors" class="hk-sws"></div></div>
@@ -5520,7 +5521,7 @@ function storyElHtml(e){
   if(e.type==='emoji') return '<div class="st-el emoji'+sel+'" data-eid="'+e.id+'" style="'+pos+'font-size:'+e.size+'px;">'+esc2(e.text||'😊')+_resizeHandle(e)+'</div>';
   if(e.type==='react') return '<div class="st-el react'+sel+'" data-eid="'+e.id+'" style="'+pos+'">'+(e.text||'').split(' ').filter(Boolean).map(function(x){return '<span>'+esc2(x)+'</span>';}).join('')+'</div>';
   if(e.type==='link'){ var lbg=e.color||'#ffffff'; return '<div class="st-el link'+sel+'" data-eid="'+e.id+'" style="'+pos+'background:'+lbg+';color:'+_contrastText(lbg)+';">🔗 '+esc2(e.text||'Link')+'</div>'; }
-  const opts=(e.type==='poll')?('<div class="pq-opts"><div class="pq-opt">'+esc2(e.opt1||'Yes')+'</div><div class="pq-opt">'+esc2(e.opt2||'No')+'</div></div>'):'<div class="pq-ans">Answer…</div>';
+  const opts=(e.type==='poll')?('<div class="pq-opts"><div class="pq-opt">'+esc2(e.opt1||'Yes')+'</div><div class="pq-opt">'+esc2(e.opt2||'No')+'</div></div>'):'<div class="pq-ans">'+esc2(e.answerPh||'Answer…')+'</div>';
   const boxW=e.size||190, boxBg=e.color||'rgba(255,255,255,.96)';
   return '<div class="st-el '+(e.type==='poll'?'poll':'quest')+sel+'" data-eid="'+e.id+'" style="'+pos+'width:'+boxW+'px;background:'+boxBg+';"><div class="pq-q">'+esc2(e.text)+'</div>'+opts+_resizeHandle(e)+'</div>';
 }
@@ -5583,6 +5584,7 @@ function selectStoryEl(id){
   ed.style.display='block';
   document.getElementById('see-urlrow').style.display = (e.type==='link') ? 'block' : 'none';
   document.getElementById('see-pollrow').style.display = (e.type==='poll') ? 'block' : 'none';
+  { const ar=document.getElementById('see-answerrow'); if(ar) ar.style.display = (e.type==='quest') ? 'block' : 'none'; }
   const isBox=(e.type==='poll'||e.type==='quest');
   { const cr=document.getElementById('see-colorrow'); if(cr) cr.style.display = (e.type==='text'||e.type==='link'||isBox) ? 'block' : 'none'; }
   { const sr=document.getElementById('see-sizerow'); if(sr) sr.style.display = (e.type==='text'||e.type==='emoji'||isBox) ? 'block' : 'none'; }
@@ -5591,6 +5593,7 @@ function selectStoryEl(id){
   const u=document.getElementById('see-url'); if(u) u.value=e.url||'';
   const o1=document.getElementById('see-opt1'); if(o1) o1.value=e.opt1||'';
   const o2=document.getElementById('see-opt2'); if(o2) o2.value=e.opt2||'';
+  const an=document.getElementById('see-answer'); if(an) an.value=e.answerPh||'';
   const s=document.getElementById('see-size'); if(s){ s.min=isBox?120:14; s.max=isBox?360:140; s.value=e.size||(isBox?190:26); }
   const sl=document.getElementById('see-sizelab'); if(sl) sl.textContent = isBox ? 'Width' : 'Size (or drag the corner)';
   renderElColors();
@@ -5644,7 +5647,7 @@ function drawStoryElements(ctx,W,H){
           ctx.fillStyle='#fff'; ctx.textBaseline='middle'; ctx.fillText(op, ox+ow/2, oy+optH/2); ctx.textBaseline='top';
         });
       } else {
-        roundRectPath(ctx,bx+pad,oy,w-pad*2,optH,fs*0.7); ctx.fillStyle='#f0f0f3'; ctx.fill(); ctx.fillStyle='#999'; ctx.textBaseline='middle'; ctx.fillText('Answer…', x, oy+optH/2);
+        roundRectPath(ctx,bx+pad,oy,w-pad*2,optH,fs*0.7); ctx.fillStyle='#f0f0f3'; ctx.fill(); ctx.fillStyle='#999'; ctx.textBaseline='middle'; ctx.fillText(e.answerPh||'Answer…', x, oy+optH/2);
       }
     }
     ctx.restore();
