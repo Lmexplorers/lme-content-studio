@@ -2146,7 +2146,7 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
       </div>
 
       <!-- Background behind text -->
-      <div style="font-size:11px;color:var(--text-s);margin-bottom:6px;">Bakgrunn bak hook:</div>
+      <div style="font-size:11px;color:var(--text-s);margin-bottom:6px;">Bakgrunn bak tekst (hook og brødtekst):</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
         <button class="chip active" id="txt-bg-none" onclick="setTextBg('none')">- Ingen</button>
         <button class="chip" id="txt-bg-black" onclick="setTextBg('rgba(0,0,0,0.55)')">Svart</button>
@@ -6114,6 +6114,28 @@ function drawStoryOverlays(ctx, W, H){
   ctx.shadowBlur = 0;
 }
 
+// Tegner en avrundet fargeplate bak en tekstlinje (brukes av bade hook og brodtekst).
+function _drawTextBgPill(ctx, cx, y, lineWidth, fontSize, bg){
+  const pad = fontSize * 0.4;
+  const rx = cx - lineWidth/2 - pad;
+  const ry = y - fontSize * 0.85;
+  const rw = lineWidth + pad * 2;
+  const rh = fontSize * 1.25;
+  const radius = 14;
+  ctx.fillStyle = bg;
+  ctx.beginPath();
+  ctx.moveTo(rx + radius, ry);
+  ctx.lineTo(rx + rw - radius, ry);
+  ctx.arcTo(rx + rw, ry, rx + rw, ry + radius, radius);
+  ctx.lineTo(rx + rw, ry + rh - radius);
+  ctx.arcTo(rx + rw, ry + rh, rx + rw - radius, ry + rh, radius);
+  ctx.lineTo(rx + radius, ry + rh);
+  ctx.arcTo(rx, ry + rh, rx, ry + rh - radius, radius);
+  ctx.lineTo(rx, ry + radius);
+  ctx.arcTo(rx, ry, rx + radius, ry, radius);
+  ctx.closePath();
+  ctx.fill();
+}
 function drawStoryText(ctx, W, H){
   const headline = document.getElementById('story-headline')?.value || '';
   const body     = document.getElementById('story-body')?.value || '';
@@ -6152,28 +6174,10 @@ function drawStoryText(ctx, W, H){
     let maxLineW = 0;
     if(textBg !== 'none'){
       ctx.shadowBlur = 0;
-      const pad = fontSize * 0.4;
       lines.forEach((line, i) => {
         const tw = ctx.measureText(line).width;
         if(tw > maxLineW) maxLineW = tw;
-        const rx = hcx - tw/2 - pad;
-        const ry = startY + i * lineH - fontSize * 0.85;
-        const rw = tw + pad * 2;
-        const rh = fontSize * 1.25;
-        const radius = 18;
-        ctx.fillStyle = textBg;
-        ctx.beginPath();
-        ctx.moveTo(rx + radius, ry);
-        ctx.lineTo(rx + rw - radius, ry);
-        ctx.arcTo(rx + rw, ry, rx + rw, ry + radius, radius);
-        ctx.lineTo(rx + rw, ry + rh - radius);
-        ctx.arcTo(rx + rw, ry + rh, rx + rw - radius, ry + rh, radius);
-        ctx.lineTo(rx + radius, ry + rh);
-        ctx.arcTo(rx, ry + rh, rx, ry + rh - radius, radius);
-        ctx.lineTo(rx, ry + radius);
-        ctx.arcTo(rx, ry, rx + radius, ry, radius);
-        ctx.closePath();
-        ctx.fill();
+        _drawTextBgPill(ctx, hcx, startY + i * lineH, tw, fontSize, textBg);
       });
       ctx.shadowBlur = 10;
     }
@@ -6190,8 +6194,6 @@ function drawStoryText(ctx, W, H){
       ctx.shadowBlur = 0;
       const bodyFs = editorState.bodySize || Math.round(fontSize*0.52);
       ctx.font = `${bodyFs}px 'Sasson Montessori', sans-serif`;
-      ctx.globalAlpha = 0.9;
-      ctx.fillStyle = editorState.bodyColor || textColor;
       const bodyLines = wrapText(ctx, body, W - 160);
       const bLH = bodyFs * 1.4;
       const bBlockH = bodyLines.length * bLH;
@@ -6201,8 +6203,15 @@ function drawStoryText(ctx, W, H){
       const bCenterY = bp ? bp.yPct * H : (bDefaultStartY + bBlockH/2 - bLH*0.75);
       const bodyStartY = bCenterY - bBlockH/2 + bLH*0.75;
       let maxBodyW = 0;
+      bodyLines.forEach(line => { const tw = ctx.measureText(line).width; if(tw > maxBodyW) maxBodyW = tw; });
+      if(textBg !== 'none'){
+        bodyLines.forEach((line, i) => {
+          _drawTextBgPill(ctx, bcx, bodyStartY + i * bLH, ctx.measureText(line).width, bodyFs, textBg);
+        });
+      }
+      ctx.globalAlpha = 0.9;
+      ctx.fillStyle = editorState.bodyColor || textColor;
       bodyLines.forEach((line, i) => {
-        const tw = ctx.measureText(line).width; if(tw > maxBodyW) maxBodyW = tw;
         ctx.fillText(line, bcx, bodyStartY + i * bLH);
       });
       ctx.globalAlpha = 1;
