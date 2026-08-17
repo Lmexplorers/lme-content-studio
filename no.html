@@ -2043,12 +2043,9 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
       <div class="card-title">Legg til på storyen</div>
       <div style="display:flex;gap:7px;flex-wrap:wrap;">
         <button class="chip" onclick="addStoryEl('text')">✏️ Tekst</button>
-        <button class="chip" onclick="addStoryEl('poll')">📊 Poll</button>
-        <button class="chip" onclick="addStoryEl('quest')">❓ Spørsmål</button>
-        <button class="chip" onclick="addStoryEl('link')">🔗 Lenke</button>
         <button class="chip" onclick="addStoryEl('emoji')">😊 Emoji</button>
-        <button class="chip" onclick="addStoryEl('react')">💗 Reaksjoner</button>
       </div>
+      <div style="font-size:10.5px;color:var(--text-s);margin-top:8px;line-height:1.5;">Poll, spørsmål, lenke og reaksjoner er fjernet herfra: Instagram tillater ikke ekte, klikkbare stickere ved autoposting (kun tekst/bilde legges på), så de var kun visuell dekorasjon. Legg dem heller til manuelt i Instagram-appen etter opplasting, om du vil ha ekte funksjon.</div>
       <div style="font-size:11px;color:var(--text-s);margin-top:8px;line-height:1.5;">Dra elementene dit du vil på storyen. Trykk et element for å endre tekst, farge og størrelse.</div>
       <div id="story-el-editor" style="display:none;margin-top:12px;padding:12px;background:var(--rose-l);border-radius:12px;">
         <div id="see-textrow"><textarea id="see-text" class="text-overlay-input" rows="2" style="margin-bottom:4px;resize:vertical;" placeholder="Tekst (trykk Enter for ny linje)" oninput="updateStoryEl('text',this.value)"></textarea><div style="font-size:10px;color:var(--text-s);margin-bottom:8px;">Trykk Enter for flere rader. Størrelse justeres under.</div></div>
