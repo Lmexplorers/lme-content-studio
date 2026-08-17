@@ -331,6 +331,16 @@
     document.head.appendChild(style);
   }
 
+  // Fjerner et avatarbilde om det ikke er ferdig lastet innen noen sekunder. En treg eller
+  // hengende forespørsel utløser verken onload eller onerror med det samme, og kan da bli
+  // sittende usynlig og skjule fallback-hjertet bak i lang tid (eller for alltid).
+  function _fallbackIfStuck(img) {
+    if (!img) return;
+    setTimeout(function () {
+      if (img.isConnected && (!img.complete || img.naturalWidth === 0)) img.remove();
+    }, 4000);
+  }
+
   function buildUI() {
     fab = document.createElement('button');
     fab.className = 'lme-bot-fab';
@@ -341,6 +351,10 @@
     // stygg "tofu"-boks med Unicode-koden i stedet for et hjerte. SVG rendres likt overalt.
     fab.innerHTML = '<svg viewBox="0 0 24 24" width="22" height="22" fill="#fff" aria-hidden="true" style="position:relative;z-index:0;"><path d="M12 21s-6.7-4.35-9.3-8.1C1.1 10.7 1 8.3 2.6 6.4 4.1 4.6 6.8 4.4 8.5 6l3.5 3.6L15.5 6c1.7-1.6 4.4-1.4 5.9.4 1.6 1.9 1.5 4.3-.1 6.5C18.7 16.65 12 21 12 21z"/></svg><img class="lme-bot-fab-avatar" src="https://lmexplorers.com/images/nathalie-portrait.jpg?v=3" alt="" onerror="this.remove()">';
     document.body.appendChild(fab);
+    // Et bilde som verken laster ferdig eller feiler tydelig (treg/ustabil tilkobling) kan
+    // henge igjen usynlig og skjule hjertet bak. Fjern det etter noen sekunder om det ikke
+    // er ferdig lastet enna, sa hjertet i det minste alltid blir synlig til slutt.
+    _fallbackIfStuck(fab.querySelector('.lme-bot-fab-avatar'));
 
     fabLabel = document.createElement('div');
     fabLabel.className = 'lme-bot-fab-label';
@@ -387,6 +401,7 @@
       </div>
     `;
     document.body.appendChild(panel);
+    _fallbackIfStuck(panel.querySelector('.lme-bot-header-avatar'));
 
     $messages    = panel.querySelector('.lme-bot-messages');
     $suggestions = panel.querySelector('.lme-bot-suggestions');
