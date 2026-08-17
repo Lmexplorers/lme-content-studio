@@ -2057,7 +2057,7 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
           <input id="see-opt1" class="text-overlay-input" style="margin-bottom:8px;" placeholder="Valg 1" oninput="updateStoryEl('opt1',this.value)"/>
           <input id="see-opt2" class="text-overlay-input" style="margin-bottom:8px;" placeholder="Valg 2" oninput="updateStoryEl('opt2',this.value)"/>
         </div>
-        <div class="hk-row" id="see-sizerow"><div class="hk-lab">Størrelse (eller dra i hjørnet)</div><input type="range" min="14" max="140" id="see-size" oninput="updateStoryEl('size',this.value)" style="width:100%;accent-color:var(--rose);"></div>
+        <div class="hk-row" id="see-sizerow"><div class="hk-lab" id="see-sizelab">Størrelse (eller dra i hjørnet)</div><input type="range" min="14" max="140" id="see-size" oninput="updateStoryEl('size',this.value)" style="width:100%;accent-color:var(--rose);"></div>
         <div class="hk-row" id="see-lhrow"><div class="hk-lab">Linjeavstand</div><input type="range" min="0.9" max="2" step="0.1" id="see-lh" oninput="updateStoryEl('lineH',this.value)" style="width:100%;accent-color:var(--rose);"></div>
         <div class="hk-row" id="see-colorrow"><div class="hk-lab">Farge</div><div id="see-colors" class="hk-sws"></div></div>
         <button class="chip" onclick="deleteStoryEl()" style="background:#E5484D;color:#fff;border-color:#E5484D;margin-top:10px;">Slett element</button>
@@ -5904,7 +5904,8 @@ function _contrastText(hex){
 }
 function addStoryEl(type){
   const els=_storyEls();
-  const e={ id:'e'+(_elId++), type:type, xPct:0.5, yPct:0.42, size:(type==='emoji'?46:26), color:'#ffffff' };
+  const isBox=(type==='poll'||type==='quest');
+  const e={ id:'e'+(_elId++), type:type, xPct:0.5, yPct:0.42, size:(type==='emoji'?46:isBox?190:26), color:isBox?null:'#ffffff' };
   if(type==='text') e.text='Din tekst';
   else if(type==='link'){ e.url='https://'; e.text='Lenke'; }
   else if(type==='poll'||type==='quest'){ e.text=(type==='poll'?'Ditt spørsmål?':'Spør meg om noe'); e.opt1='Ja'; e.opt2='Nei'; }
@@ -5921,10 +5922,11 @@ function storyElHtml(e){
   if(e.type==='react') return '<div class="st-el react'+sel+'" data-eid="'+e.id+'" style="'+pos+'">'+(e.text||'').split(' ').filter(Boolean).map(function(x){return '<span>'+esc2(x)+'</span>';}).join('')+'</div>';
   if(e.type==='link'){ var lbg=e.color||'#ffffff'; return '<div class="st-el link'+sel+'" data-eid="'+e.id+'" style="'+pos+'background:'+lbg+';color:'+_contrastText(lbg)+';">🔗 '+esc2(e.text||'Lenke')+'</div>'; }
   const opts=(e.type==='poll')?('<div class="pq-opts"><div class="pq-opt">'+esc2(e.opt1||'Ja')+'</div><div class="pq-opt">'+esc2(e.opt2||'Nei')+'</div></div>'):'<div class="pq-ans">Svar…</div>';
-  return '<div class="st-el '+(e.type==='poll'?'poll':'quest')+sel+'" data-eid="'+e.id+'" style="'+pos+'"><div class="pq-q">'+esc2(e.text)+'</div>'+opts+'</div>';
+  const boxW=e.size||190, boxBg=e.color||'rgba(255,255,255,.96)';
+  return '<div class="st-el '+(e.type==='poll'?'poll':'quest')+sel+'" data-eid="'+e.id+'" style="'+pos+'width:'+boxW+'px;background:'+boxBg+';"><div class="pq-q">'+esc2(e.text)+'</div>'+opts+_resizeHandle(e)+'</div>';
 }
-// Dra-håndtak i hjørnet for å skalere (kun tekst og emoji, som bruker size).
-function _resizeHandle(e){ return (_selEl===e.id && (e.type==='text'||e.type==='emoji')) ? '<span class="st-resize" data-resize="'+e.id+'">⤡</span>' : ''; }
+// Dra-håndtak i hjørnet for å skalere (tekst/emoji: skriftstørrelse. Poll/spørsmål: boksbredde.).
+function _resizeHandle(e){ return (_selEl===e.id && (e.type==='text'||e.type==='emoji'||e.type==='poll'||e.type==='quest')) ? '<span class="st-resize" data-resize="'+e.id+'">⤡</span>' : ''; }
 function renderStoryOverlay(){
   const ov=document.getElementById('story-overlay'); if(!ov) return;
   const els=_storyEls();
@@ -5934,16 +5936,25 @@ function renderStoryOverlay(){
 }
 function attachResize(handle){
   const id=handle.getAttribute('data-resize'); const e=_storyEls().find(function(x){return x.id===id;}); if(!e) return;
+  const isBox=(e.type==='poll'||e.type==='quest');
   const ov=document.getElementById('story-overlay');
   var resizing=false, sx=0, sy=0, startSize=0;
-  handle.addEventListener('pointerdown', function(ev){ ev.stopPropagation(); ev.preventDefault(); resizing=true; try{ handle.setPointerCapture(ev.pointerId); }catch(_){} sx=ev.clientX; sy=ev.clientY; startSize=e.size||26; });
+  handle.addEventListener('pointerdown', function(ev){ ev.stopPropagation(); ev.preventDefault(); resizing=true; try{ handle.setPointerCapture(ev.pointerId); }catch(_){} sx=ev.clientX; sy=ev.clientY; startSize=e.size||(isBox?190:26); });
   handle.addEventListener('pointermove', function(ev){
     if(!resizing) return;
     var d=((ev.clientX-sx)+(ev.clientY-sy))/2;
-    var ns=Math.max(14, Math.min(140, Math.round(startSize + d*0.5)));
-    e.size=ns;
-    var elNode=ov.querySelector('[data-eid="'+id+'"]'); if(elNode) elNode.style.fontSize=ns+'px';
-    var se=document.getElementById('see-size'); if(se) se.value=ns;
+    var elNode=ov.querySelector('[data-eid="'+id+'"]');
+    if(isBox){
+      var nw=Math.max(120, Math.min(360, Math.round(startSize + d*1.4)));
+      e.size=nw;
+      if(elNode) elNode.style.width=nw+'px';
+      var sw=document.getElementById('see-size'); if(sw) sw.value=nw;
+    } else {
+      var ns=Math.max(14, Math.min(140, Math.round(startSize + d*0.5)));
+      e.size=ns;
+      if(elNode) elNode.style.fontSize=ns+'px';
+      var se=document.getElementById('see-size'); if(se) se.value=ns;
+    }
     drawStoryCanvas();
   });
   handle.addEventListener('pointerup', function(){ resizing=false; renderStoryOverlay(); });
@@ -5973,15 +5984,17 @@ function selectStoryEl(id){
   ed.style.display='block';
   document.getElementById('see-urlrow').style.display = (e.type==='link') ? 'block' : 'none';
   document.getElementById('see-pollrow').style.display = (e.type==='poll') ? 'block' : 'none';
-  // Farge gjelder tekst og lenke-knapp. Størrelse gjelder tekst og emoji. Skjul der det ikke gjør noe.
-  { const cr=document.getElementById('see-colorrow'); if(cr) cr.style.display = (e.type==='text'||e.type==='link') ? 'block' : 'none'; }
-  { const sr=document.getElementById('see-sizerow'); if(sr) sr.style.display = (e.type==='text'||e.type==='emoji') ? 'block' : 'none'; }
+  const isBox=(e.type==='poll'||e.type==='quest');
+  // Farge gjelder tekst, lenke-knapp og spørsmål/poll-boksen. Størrelse gjelder tekst, emoji og boksene.
+  { const cr=document.getElementById('see-colorrow'); if(cr) cr.style.display = (e.type==='text'||e.type==='link'||isBox) ? 'block' : 'none'; }
+  { const sr=document.getElementById('see-sizerow'); if(sr) sr.style.display = (e.type==='text'||e.type==='emoji'||isBox) ? 'block' : 'none'; }
   { const lr=document.getElementById('see-lhrow'); if(lr) lr.style.display = (e.type==='text') ? 'block' : 'none'; const lh=document.getElementById('see-lh'); if(lh) lh.value=e.lineH||1.2; }
   const t=document.getElementById('see-text'); if(t){ t.value=e.text||''; t.placeholder = e.type==='emoji'?'Emoji':e.type==='react'?'Emoji med mellomrom mellom':e.type==='link'?'Knappetekst':(e.type==='poll'||e.type==='quest')?'Spørsmål':'Tekst'; }
   const u=document.getElementById('see-url'); if(u) u.value=e.url||'';
   const o1=document.getElementById('see-opt1'); if(o1) o1.value=e.opt1||'';
   const o2=document.getElementById('see-opt2'); if(o2) o2.value=e.opt2||'';
-  const s=document.getElementById('see-size'); if(s) s.value=e.size||26;
+  const s=document.getElementById('see-size'); if(s){ s.min=isBox?120:14; s.max=isBox?360:140; s.value=e.size||(isBox?190:26); }
+  const sl=document.getElementById('see-sizelab'); if(sl) sl.textContent = isBox ? (document.documentElement.lang==='no'?'Bredde':'Width') : (document.documentElement.lang==='no'?'Størrelse (eller dra i hjørnet)':'Size (or drag the corner)');
   renderElColors();
 }
 function updateStoryEl(prop,val){ const e=_storyEls().find(function(x){return x.id===_selEl;}); if(!e) return; if(prop==='text' && e.type!=='text') val=(val||'').replace(/\n/g,' '); e[prop]=(prop==='size')?(parseInt(val,10)||26):(prop==='lineH')?(parseFloat(val)||1.2):val; renderStoryOverlay(); drawStoryCanvas(); }
@@ -6018,10 +6031,11 @@ function drawStoryElements(ctx,W,H){
       const label='🔗 '+(e.text||'Lenke'); const tw=ctx.measureText(label).width; const pad=fs*0.8, h=fs*2.2, w=tw+pad*2;
       const bx=x-w/2, by=y-h/2; roundRectPath(ctx,bx,by,w,h,fs*0.6); ctx.fillStyle=bg; ctx.fill(); ctx.fillStyle=_contrastText(bg); ctx.fillText(label, bx+pad, y);
     } else {
-      const fs=16*sc; const w=W*0.62, pad=fs*0.9; ctx.font='800 '+fs+"px 'Playpen Sans',sans-serif"; ctx.textAlign='center';
+      const fs=16*sc; const w=(e.size||190)/340*W, pad=fs*0.9; ctx.font='800 '+fs+"px 'Playpen Sans',sans-serif"; ctx.textAlign='center';
+      const boxBg=e.color||'rgba(255,255,255,.96)', boxText=e.color?_contrastText(e.color):'#111111';
       const qlines=wrapText(ctx, e.text||'', w-pad*2); const optH=fs*2.4; const qH=qlines.length*fs*1.25;
       const h=pad+qH+fs*0.6+optH+pad; const bx=x-w/2, by=y-h/2;
-      roundRectPath(ctx,bx,by,w,h,fs*1.1); ctx.fillStyle='rgba(255,255,255,.96)'; ctx.fill(); ctx.fillStyle='#111'; ctx.textBaseline='top';
+      roundRectPath(ctx,bx,by,w,h,fs*1.1); ctx.fillStyle=boxBg; ctx.fill(); ctx.fillStyle=boxText; ctx.textBaseline='top';
       qlines.forEach(function(ln,i){ ctx.fillText(ln, x, by+pad+i*fs*1.25); });
       const oy=by+pad+qH+fs*0.6;
       if(e.type==='poll'){
