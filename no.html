@@ -2271,6 +2271,12 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
       </div>
     </div>
 
+    <!-- Hvilke plattformer skal denne storyen publiseres til -->
+    <div style="margin-bottom:14px;">
+      <div style="font-size:11px;color:var(--text-s);margin-bottom:6px;">Publiser til</div>
+      <div id="story-account-picker" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+    </div>
+
     <!-- Export -->
     <button class="export-btn" onclick="exportStory()">
       ⬇️ Last ned story-bilde (1080×1920px)</button>
@@ -4010,6 +4016,7 @@ function blotatoToggleAccount(cb){
   else { if(i>=0) cfg.blotatoAccounts.splice(i,1); }
   updateBlotatoPostToSummary(); saveSettings();
   reelPickedAccountIds=null; try{ renderReelAccountPicker(); }catch(e){}
+  storyPickedAccountIds=null; try{ renderStoryAccountPicker(); }catch(e){}
 }
 function blotatoToggleAll(cb){
   document.querySelectorAll('#s-blotato-accounts-checks input[type=checkbox]').forEach(function(x){
@@ -5375,8 +5382,30 @@ function setEditorMode(mode){
   ['story','reel'].forEach(m=>{
     document.getElementById('emode-'+m).classList.toggle('active', m===mode);
   });
-  if(mode==='story'){ try{ if(!window._storyDraftLoaded){ window._storyDraftLoaded=true; loadStoryDraft(); } }catch(e){} try{ renderStoryOverlay(); }catch(e){} try{ if(editorState.logo==='lme') editorState.logo = cfg.logoImage?'image':'name'; refreshLogoUI(); setLogo(editorState.logo); }catch(e){} try{ drawStoryCanvas(); }catch(e){} try{ renderStoryLibrary(); }catch(e){} }
+  if(mode==='story'){ try{ if(!window._storyDraftLoaded){ window._storyDraftLoaded=true; loadStoryDraft(); } }catch(e){} try{ renderStoryOverlay(); }catch(e){} try{ if(editorState.logo==='lme') editorState.logo = cfg.logoImage?'image':'name'; refreshLogoUI(); setLogo(editorState.logo); }catch(e){} try{ drawStoryCanvas(); }catch(e){} try{ renderStoryLibrary(); }catch(e){} try{ renderStoryAccountPicker(); }catch(e){} }
   if(mode==='reel'){ try{ renderReelAccountPicker(); }catch(e){} }
+}
+
+// ── Story: hvilke av de tilkoblede kontoene skal DENNE storyen publiseres til ──
+let storyPickedAccountIds = null; // null = ikke satt ennaa -> faller tilbake til alle
+function renderStoryAccountPicker(){
+  const host=document.getElementById('story-account-picker'); if(!host) return;
+  const accts=(cfg.blotatoAccounts||[]).filter(a=>a&&a.id);
+  if(storyPickedAccountIds===null) storyPickedAccountIds=accts.map(a=>String(a.id));
+  storyPickedAccountIds=storyPickedAccountIds.filter(id=>accts.some(a=>String(a.id)===id));
+  if(!accts.length){ host.innerHTML='<span style="font-size:11px;color:var(--text-s);">Ingen kontoer koblet til ennå. Legg til i ⚙️ Innstillinger.</span>'; return; }
+  const emoji={instagram:'📷',tiktok:'🎵',facebook:'👍',youtube:'▶️',threads:'🧵',pinterest:'📌',linkedin:'💼',bluesky:'🦋',twitter:'✖️'};
+  host.innerHTML=accts.map(function(a){
+    const id=String(a.id);
+    const on=storyPickedAccountIds.includes(id);
+    const label=(emoji[a.platform]?emoji[a.platform]+' ':'')+(a.name||a.platform||id);
+    return '<button type="button" class="chip'+(on?' active':'')+'" onclick="toggleStoryAccount(\''+id.replace(/'/g,"\\'")+'\')">'+label.replace(/'/g,"&#39;")+'</button>';
+  }).join('');
+}
+function toggleStoryAccount(id){
+  if(storyPickedAccountIds===null) storyPickedAccountIds=(cfg.blotatoAccounts||[]).filter(a=>a&&a.id).map(a=>String(a.id));
+  storyPickedAccountIds = storyPickedAccountIds.includes(id) ? storyPickedAccountIds.filter(x=>x!==id) : [...storyPickedAccountIds, id];
+  renderStoryAccountPicker();
 }
 
 // ── Reel: hvilke av de tilkoblede kontoene skal DENNE reelen publiseres til ──
@@ -6340,6 +6369,10 @@ async function exportAndPublishStory(){
     statusEl.innerHTML = '<div class="pub-status error" style="margin-top:8px;">Velg hvilken Blotato-profil du vil poste til i ⚙️ Innstillinger.</div>';
     return;
   }
+  if(cfg.blotatoKey && storyPickedAccountIds && !storyPickedAccountIds.length){
+    statusEl.innerHTML = '<div class="pub-status error" style="margin-top:8px;">Velg minst én plattform under «Publiser til» over.</div>';
+    return;
+  }
 
   window._storyExporting=true; drawStoryCanvas();
   await new Promise(r => setTimeout(r, 150));
@@ -6362,7 +6395,7 @@ async function exportAndPublishStory(){
 
       try {
         // Send story-bildet direkte til Blotato. For Instagram/Facebook postes det som Story.
-        const r = await blotatoPublish({ text: fullCaption||caption, mediaUrls:[dataUri], mediaName:'lme-story.png', contentKind:'story' });
+        const r = await blotatoPublish({ text: fullCaption||caption, mediaUrls:[dataUri], mediaName:'lme-story.png', contentKind:'story', accountIds: storyPickedAccountIds });
         const done=r.ok, errMsg=r.ok?'':(r.error||'Ukjent feil fra Blotato');
         if(done){
           statusEl.innerHTML = '<div class="pub-status success" style="margin-top:8px;">📸✅ <strong>Story sendt til Blotato!</strong><br/>Sjekk <a href="https://my.blotato.com" target="_blank" style="color:var(--rose-d);font-weight:700;">my.blotato.com</a> for status: publisert, planlagt eller feilet med årsak.</div>';
