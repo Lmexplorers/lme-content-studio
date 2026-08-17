@@ -1947,7 +1947,7 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
       </div>
       <div style="margin-top:10px;display:flex;gap:8px;align-items:center;">
         <label style="font-size:11px;color:var(--text-s);white-space:nowrap;">Position:</label>
-        <select id="logo-position" onchange="drawStoryCanvas()" style="flex:1;border-radius:8px;border:1.5px solid var(--border);padding:6px 10px;font-family:'Sasson Montessori';font-size:12px;">
+        <select id="logo-position" onchange="storyLogoPos()" style="flex:1;border-radius:8px;border:1.5px solid var(--border);padding:6px 10px;font-family:'Sasson Montessori';font-size:12px;">
           <option value="top">Top</option>
           <option value="bottom" selected>Bottom</option>
         </select>
@@ -4925,7 +4925,8 @@ const editorState = {
   fontSize: 52,
   textColor: 'white',
   logo: 'lme',
-  logoPos: 'bottom',
+  logoDragPos: null,
+  logoScale: 1,
   adLabel: false,
   // Reel
   reelVideoFile: null,
@@ -5233,7 +5234,7 @@ function _storyEls(){ if(!editorState.storyEls) editorState.storyEls=[]; return 
 function _sv(id){ const el=document.getElementById(id); return el?el.value:''; }
 // Capture the whole story design as an object (without the background image, added where needed).
 function _captureStory(){
-  return { storyEls:editorState.storyEls||[], bgType:editorState.bgType, bgGradient:editorState.bgGradient, bgColor:editorState.bgColor, logo:editorState.logo, adLabel:!!editorState.adLabel, textColor:editorState.textColor, textBg:editorState.textBg, headlinePos:editorState.headlinePos||null, bodyPos:editorState.bodyPos||null, bodySize:editorState.bodySize||null, bodyColor:editorState.bodyColor||null,
+  return { storyEls:editorState.storyEls||[], bgType:editorState.bgType, bgGradient:editorState.bgGradient, bgColor:editorState.bgColor, logo:editorState.logo, adLabel:!!editorState.adLabel, textColor:editorState.textColor, textBg:editorState.textBg, headlinePos:editorState.headlinePos||null, bodyPos:editorState.bodyPos||null, bodySize:editorState.bodySize||null, bodyColor:editorState.bodyColor||null, logoDragPos:editorState.logoDragPos||null, logoScale:editorState.logoScale||1,
     headline:_sv('story-headline'), body:_sv('story-body'), topic:_sv('story-topic'), poll:_sv('story-poll'), cta:_sv('story-cta-overlay'), link:_sv('story-link'), fontSize:_sv('story-font-size'), textPos:_sv('story-text-pos'), logoPos:_sv('logo-position') };
 }
 // Put a saved story object back into the editor.
@@ -5252,6 +5253,8 @@ function _applyStory(d){
   editorState.bodyPos = d.bodyPos || null;
   editorState.bodySize = d.bodySize || null;
   editorState.bodyColor = d.bodyColor || null;
+  editorState.logoDragPos = d.logoDragPos || null;
+  editorState.logoScale = d.logoScale || 1;
   const set=function(id,v){ const el=document.getElementById(id); if(el){ el.value=(v!=null?v:''); } };
   set('story-headline',d.headline); set('story-body',d.body); set('story-topic',d.topic);
   set('story-poll',d.poll); set('story-cta-overlay',d.cta); set('story-link',d.link);
@@ -5815,21 +5818,25 @@ function drawStoryText(ctx, W, H){
   try{ if(!window._storyExporting) renderTextProxies(); }catch(e){}
 }
 
-// Draggable "grab" bands for the hook and body text right over the preview (editor only, never exported).
+// Draggable "grab" bands for the hook, body text and logo right over the preview (editor only, never exported).
 function renderTextProxies(){
   if(window._storyExporting) return;
   const ov = document.getElementById('story-overlay'); if(!ov) return;
-  [['head','story-headline'],['body','story-body']].forEach(function(pair){
-    const kind = pair[0];
-    const center = (kind==='head') ? editorState._headCenter : editorState._bodyCenter;
-    const val = (document.getElementById(pair[1])?.value || '').trim();
+  const no = document.documentElement.lang==='no';
+  const KINDS = {
+    head: { center: ()=>editorState._headCenter, active: ()=>!!(document.getElementById('story-headline')?.value||'').trim(), label: no?'Flytt hook':'Move hook' },
+    body: { center: ()=>editorState._bodyCenter, active: ()=>!!(document.getElementById('story-body')?.value||'').trim(), label: no?'Flytt tekst':'Move text' },
+    logo: { center: ()=>editorState._logoCenter, active: ()=>editorState.logo!=='none', label: no?'Flytt logo':'Move logo' },
+  };
+  Object.keys(KINDS).forEach(function(kind){
+    const cfgK = KINDS[kind];
+    const center = cfgK.center();
     let node = ov.querySelector('.st-textproxy[data-txt="'+kind+'"]');
-    if(!center || !val){ if(node) node.remove(); return; }
+    if(!center || !cfgK.active()){ if(node) node.remove(); return; }
     if(!node){
       node = document.createElement('div');
       node.className = 'st-textproxy'; node.setAttribute('data-txt', kind);
-      const no = document.documentElement.lang==='no';
-      node.innerHTML = '<span class="stp-tag">✋ '+(kind==='head'?(no?'Flytt hook':'Move hook'):(no?'Flytt tekst':'Move text'))+'</span><span class="stp-resize" title="'+(no?'Dra for å endre størrelse':'Drag to resize')+'">⤡</span>';
+      node.innerHTML = '<span class="stp-tag">✋ '+cfgK.label+'</span><span class="stp-resize" title="'+(no?'Dra for å endre størrelse':'Drag to resize')+'">⤡</span>';
       ov.appendChild(node);
       attachProxyDrag(node, kind);
       const h=node.querySelector('.stp-resize'); if(h) attachProxyResize(h, kind);
@@ -5840,7 +5847,13 @@ function renderTextProxies(){
     node.style.height = Math.max(5,  (center.hPct||0.08)*100)+'%';
   });
 }
-// Drag the corner to make the hook/body bigger or smaller.
+// Gets/sets the position and center for hook, body text, or logo, so drag/resize code avoids per-field branches.
+function _proxyPos(kind){
+  if(kind==='head') return { pos: editorState.headlinePos, center: editorState._headCenter, set:function(p){ editorState.headlinePos=p; } };
+  if(kind==='logo') return { pos: editorState.logoDragPos, center: editorState._logoCenter, set:function(p){ editorState.logoDragPos=p; } };
+  return { pos: editorState.bodyPos, center: editorState._bodyCenter, set:function(p){ editorState.bodyPos=p; } };
+}
+// Drag the corner to make the hook/body/logo bigger or smaller.
 function attachProxyResize(handle, kind){
   const ov = document.getElementById('story-overlay');
   var resizing=false, sy=0, start=0;
@@ -5848,6 +5861,7 @@ function attachProxyResize(handle, kind){
     ev.stopPropagation(); ev.preventDefault(); resizing=true; window._proxyDragging=true; try{ handle.setPointerCapture(ev.pointerId); }catch(_){}
     sy=ev.clientY;
     if(kind==='head'){ start=parseInt(document.getElementById('story-font-size')?.value,10)||52; }
+    else if(kind==='logo'){ start=(editorState.logoScale||1)*100; }
     else { start=editorState.bodySize || Math.round((parseInt(document.getElementById('story-font-size')?.value,10)||52)*0.52); }
   });
   handle.addEventListener('pointermove', function(ev){
@@ -5856,6 +5870,7 @@ function attachProxyResize(handle, kind){
     const d = ((ev.clientY - sy)/Math.max(1,r.height)) * 1920 * 0.6;
     let ns = Math.round(start + d);
     if(kind==='head'){ ns=Math.max(28,Math.min(120,ns)); const s=document.getElementById('story-font-size'); if(s){ s.value=ns; } const l=document.getElementById('story-font-size-val'); if(l) l.textContent=ns; }
+    else if(kind==='logo'){ ns=Math.max(40,Math.min(220,ns)); editorState.logoScale=ns/100; }
     else { ns=Math.max(14,Math.min(90,ns)); editorState.bodySize=ns; const bs=document.getElementById('story-body-size'); if(bs) bs.value=ns; const bl=document.getElementById('story-body-size-val'); if(bl) bl.textContent=ns; }
     drawStoryCanvas();
   });
@@ -5867,10 +5882,9 @@ function attachProxyDrag(node, kind){
   node.addEventListener('pointerdown', function(ev){
     if(ev.target && ev.target.classList && ev.target.classList.contains('stp-resize')) return;
     dragging=true; window._proxyDragging=true; try{ node.setPointerCapture(ev.pointerId); }catch(_){}
-    const c = (kind==='head') ? editorState._headCenter : editorState._bodyCenter;
-    const cur = (kind==='head') ? editorState.headlinePos : editorState.bodyPos;
-    ox = cur ? cur.xPct : (c?c.xPct:0.5);
-    oy = cur ? cur.yPct : (c?c.yPct:0.5);
+    const p = _proxyPos(kind);
+    ox = p.pos ? p.pos.xPct : (p.center?p.center.xPct:0.5);
+    oy = p.pos ? p.pos.yPct : (p.center?p.center.yPct:0.5);
     sx=ev.clientX; sy=ev.clientY; node.style.cursor='grabbing'; ev.preventDefault(); ev.stopPropagation();
   });
   node.addEventListener('pointermove', function(ev){
@@ -5878,18 +5892,21 @@ function attachProxyDrag(node, kind){
     const r = ov.getBoundingClientRect();
     var nx = ox + (ev.clientX-sx)/r.width, ny = oy + (ev.clientY-sy)/r.height;
     nx = Math.max(0.05, Math.min(0.95, nx)); ny = Math.max(0.05, Math.min(0.95, ny));
-    if(kind==='head') editorState.headlinePos = { xPct:nx, yPct:ny };
-    else editorState.bodyPos = { xPct:nx, yPct:ny };
+    _proxyPos(kind).set({ xPct:nx, yPct:ny });
     drawStoryCanvas();
   });
   node.addEventListener('pointerup', function(){ dragging=false; window._proxyDragging=false; node.style.cursor='grab'; drawStoryCanvas(); try{ saveStoryDraft(); }catch(e){} });
 }
 // The position slider clears the custom placement (moves the whole block up/down again).
 function storyTextPos(){ editorState.headlinePos=null; editorState.bodyPos=null; drawStoryCanvas(); }
+// The logo "Position" dropdown (Top/Bottom) clears the custom drag placement.
+function storyLogoPos(){ editorState.logoDragPos=null; drawStoryCanvas(); }
 
 function drawStoryLogo(ctx, W, H){
-  if(editorState.logo === 'none') return;
+  if(editorState.logo === 'none'){ editorState._logoCenter = null; return; }
   const pos = document.getElementById('logo-position')?.value || 'bottom';
+  const drag = editorState.logoDragPos; // {xPct,yPct} if freely dragged, else null (use top/bottom preset)
+  const scale = editorState.logoScale || 1;
 
   if(editorState.logo === 'image' && cfg.logoImage){
     let img = editorState._logoImg;
@@ -5899,25 +5916,31 @@ function drawStoryLogo(ctx, W, H){
       img.src = cfg.logoImage;
     }
     if(img.complete && img.naturalWidth){
-      const maxW = W*0.44, maxH = H*0.11;
-      const scale = Math.min(maxW/img.naturalWidth, maxH/img.naturalHeight);
-      const lw = img.naturalWidth*scale, lh = img.naturalHeight*scale;
-      const y = pos === 'bottom' ? H - 70 - lh : 60;
+      const maxW = W*0.44*scale, maxH = H*0.11*scale;
+      const fit = Math.min(maxW/img.naturalWidth, maxH/img.naturalHeight);
+      const lw = img.naturalWidth*fit, lh = img.naturalHeight*fit;
+      const cx = drag ? drag.xPct*W : W/2;
+      const cy = drag ? drag.yPct*H : (pos === 'bottom' ? H - 70 - lh/2 : 60 + lh/2);
       ctx.save(); ctx.shadowColor='rgba(0,0,0,0.25)'; ctx.shadowBlur=10;
-      ctx.drawImage(img, W/2 - lw/2, y, lw, lh);
+      ctx.drawImage(img, cx - lw/2, cy - lh/2, lw, lh);
       ctx.restore();
+      editorState._logoCenter = { xPct: cx/W, yPct: cy/H, wPct: Math.min(0.6, lw/W + 0.03), hPct: Math.min(0.4, lh/H + 0.03) };
     }
     return;
   }
 
-  const y = pos === 'bottom' ? H - 80 : 80;
+  const fontSize = 36*scale;
+  const cx = drag ? drag.xPct*W : W/2;
+  const cy = drag ? drag.yPct*H : (pos === 'bottom' ? H - 80 : 80);
   ctx.textAlign = 'center';
-  ctx.font = "bold 36px 'Playpen Sans', sans-serif";
+  ctx.font = "bold "+fontSize+"px 'Playpen Sans', sans-serif";
   ctx.fillStyle = editorState.textColor === '#1A1A1A' ? '#1A1A1A' : 'rgba(255,255,255,0.9)';
   ctx.shadowColor = 'rgba(0,0,0,0.3)';
   ctx.shadowBlur = 8;
-  ctx.fillText(cfg.brand || 'Your brand', W/2, y);
+  ctx.fillText(cfg.brand || 'Your brand', cx, cy);
   ctx.shadowBlur = 0;
+  const textW = ctx.measureText(cfg.brand || 'Your brand').width;
+  editorState._logoCenter = { xPct: cx/W, yPct: cy/H, wPct: Math.min(0.7, textW/W + 0.06), hPct: Math.min(0.15, fontSize*1.4/H) };
 }
 
 function wrapText(ctx, text, maxWidth){
