@@ -28,7 +28,7 @@
   const STRINGS = {
     en: {
       title: 'Nathalie AI',
-      subtitle: 'Your Creative Academy content helper',
+      subtitle: 'Your LME content helper',
       fabLabel: 'Ask Nathalie AI',
       placeholder: 'Ask Nathalie AI...',
       send: 'Send',
@@ -47,7 +47,7 @@
     },
     no: {
       title: 'Nathalie AI',
-      subtitle: 'Din innholds-hjelper i Creative Academy',
+      subtitle: 'Din innholds-hjelper hos LME',
       fabLabel: 'Spør Nathalie AI',
       placeholder: 'Spør Nathalie AI...',
       send: 'Send',
@@ -96,6 +96,10 @@
     }
     .lme-bot-fab:hover { transform: translateY(-2px) scale(1.05); box-shadow: 0 10px 28px rgba(240,36,120,0.6); }
     .lme-bot-fab.open { transform: rotate(45deg); }
+    .lme-bot-fab-avatar {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      border-radius: 50%; object-fit: cover;
+    }
 
     .lme-bot-panel {
       position: fixed; bottom: 92px; right: 24px; z-index: 99997;
@@ -112,8 +116,13 @@
 
     .lme-bot-header {
       padding: 16px; background: linear-gradient(135deg, #F02478 0%, #C81860 100%);
-      color: #fff;
+      color: #fff; display: flex; align-items: center; gap: 10px;
     }
+    .lme-bot-header-avatar {
+      width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex: 0 0 auto;
+      border: 2px solid rgba(255,255,255,0.6);
+    }
+    .lme-bot-header-text { flex: 1; min-width: 0; }
     .lme-bot-header h3 { margin: 0; font-size: 16px; font-weight: 600; font-family: 'Playpen Sans', system-ui, sans-serif; }
     .lme-bot-header p  { margin: 2px 0 0; font-size: 12px; opacity: 0.8; }
     .lme-bot-app-badge {
@@ -327,7 +336,7 @@
     fab.className = 'lme-bot-fab';
     fab.setAttribute('aria-label', T.title);
     fab.setAttribute('title', T.fabLabel);
-    fab.innerHTML = '🩷';
+    fab.innerHTML = '🩷<img class="lme-bot-fab-avatar" src="https://lmexplorers.com/images/nathalie-portrait.jpg?v=2" alt="" onerror="this.remove()">';
     document.body.appendChild(fab);
 
     fabLabel = document.createElement('div');
@@ -339,9 +348,12 @@
     panel.className = 'lme-bot-panel';
     panel.innerHTML = `
       <div class="lme-bot-header">
-        <h3>${T.title}</h3>
-        <p>${T.subtitle}</p>
-        <span class="lme-bot-app-badge">${escapeHtml(cfg.headerBadge)}</span>
+        <img class="lme-bot-header-avatar" src="https://lmexplorers.com/images/nathalie-portrait.jpg?v=2" alt="" onerror="this.remove()">
+        <div class="lme-bot-header-text">
+          <h3>${T.title}</h3>
+          <p>${T.subtitle}</p>
+          <span class="lme-bot-app-badge">${escapeHtml(cfg.headerBadge)}</span>
+        </div>
       </div>
       <div class="lme-bot-controls">
         <div class="row">
