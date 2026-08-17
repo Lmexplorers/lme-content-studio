@@ -1779,9 +1779,9 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
     <div class="card-title">Your brand & niche</div>
     <div style="display:flex;flex-direction:column;gap:10px;">
       <div><div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Brand name</div><input type="text" id="s-brand" placeholder="Din merkevare" oninput="saveSettings()"/></div>
-      <div><div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Your niche</div><input type="text" id="s-niche" placeholder="F.eks. AI-innholdsverktøy, kaffebar, yoga…" oninput="saveSettings()"/></div>
+      <div><div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Your niche</div><input type="text" id="s-niche" placeholder="F.eks. AI-innholdsverktøy, kaffebar, yoga…" oninput="saveSettings();try{updateCharAvailability();}catch(e){}"/></div>
       <div><div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Brand voice</div><textarea id="s-voice" rows="2" placeholder="Varm, pedagogisk, naturbasert." oninput="saveSettings()"></textarea></div>
-      <div><div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Target audience</div><input type="text" id="s-audience" placeholder="Foreldre og pedagoger med barn 3-9 år" oninput="saveSettings()"/></div>
+      <div><div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Target audience</div><input type="text" id="s-audience" placeholder="Foreldre og pedagoger med barn 3-16 år" oninput="saveSettings()"/></div>
     </div>
   </div>
 
@@ -2585,19 +2585,28 @@ const TOPICS = [
   {label:'Eget tema...',             emoji:'✨'},
 ];
 
-const AGE_GROUPS  = ['3-6 år','6-9 år','9-12 år','13-16 år (kommer)','Alle aldersgrupper','Foreldre generelt'];
+const AGE_GROUPS  = ['3-6 år','6-9 år','9-12 år','13-16 år','Alle aldersgrupper','Foreldre generelt'];
 const CHARACTERS  = ['Egne karakterer','Ingen karakter'];
 // Er dette LME sin egen konto (Renate)? Da er Mia & Teo alltid tilgjengelig.
 const OWNER_EMAILS=['renate@lmexplorers.com','renateshobby@hotmail.com'];
 function _isLmeOwner(){ try{ return !!(window.lmeAccount && OWNER_EMAILS.includes(String(window.lmeAccount.email||'').toLowerCase())); }catch(e){ return false; } }
+// cfg.niche (den frie nisje-teksten i Innstillinger) er det som faktisk sendes til AI-en
+// ("Niche: ..."), sa den er alltid fasit her. state.niche (chippen) brukes bare som
+// reserve nar cfg.niche er helt tom, ellers kan et gammelt chip-valg ("montessori") henge
+// igjen og holde Mia & Teo aktiv selv etter at du har skrevet en helt annen nisje i feltet.
+function _isMontessoriNiche(){
+  const n=(typeof cfg!=='undefined' && cfg.niche || '').toLowerCase();
+  if(n) return n.includes('montessori');
+  return (typeof state!=='undefined' && state.niche==='montessori');
+}
 // Mia & Teo (LMEs Montessori-figurer) er kun aktuelt når Montessori-nisjen er valgt, unntatt for eieren.
-function charOptions(){ return (_isLmeOwner() || (typeof state!=='undefined' && state.niche==='montessori')) ? ['Mia & Teo'].concat(CHARACTERS) : CHARACTERS.slice(); }
+function charOptions(){ return (_isLmeOwner() || _isMontessoriNiche()) ? ['Mia & Teo'].concat(CHARACTERS) : CHARACTERS.slice(); }
 // Vis/skjul Mia & Teo-KNAPPEN: alltid for eieren (Renate), ellers kun ved Montessori-nisje.
 // Selve VALGET nullstilles derimot alltid når nisjen ikke er Montessori, uavhengig av eier,
 // ellers blir Mia & Teo (og "Montessori" i beskrivelsen) hengende igjen i genereringen etter
 // at eieren har byttet nisje, selv om chippen ikke lenger vises som valgt.
 function updateCharAvailability(){
-  const isMontessoriNiche = (typeof state!=='undefined' && state.niche==='montessori');
+  const isMontessoriNiche = _isMontessoriNiche();
   const show = _isLmeOwner() || isMontessoriNiche;
   const st = document.getElementById('char-miateo'); if(st) st.style.display = show ? '' : 'none';
   if(!isMontessoriNiche){
