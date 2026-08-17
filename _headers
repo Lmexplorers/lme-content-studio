@@ -1,0 +1,7 @@
+# Nathalie AI-widgeten (delt JS uten cache-bust-versjonsnummer) endres av og
+# til, og nettleseren/CDN-en kan da sitte igjen med en gammel, ufiksed utgave
+# lenge etter en frisk utrulling (samme mønster som bet oss på lme-platform).
+/lme-bot-core.js
+  Cache-Control: no-store
+/lme-bot-shell-content-studio.js
+  Cache-Control: no-store
