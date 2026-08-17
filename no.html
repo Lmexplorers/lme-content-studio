@@ -2599,7 +2599,8 @@ const CHARACTERS  = ['Egne karakterer','Ingen karakter'];
 // Mia & Teo (LMEs Montessori-figurer) er kun aktuelt når Montessori-nisjen er valgt.
 function charOptions(){ return (typeof state!=='undefined' && state.niche==='montessori') ? ['Mia & Teo'].concat(CHARACTERS) : CHARACTERS.slice(); }
 // Er dette LME sin egen konto (Renate)? Da er Mia & Teo alltid tilgjengelig.
-function _isLmeOwner(){ try{ return !!(window.lmeAccount && String(window.lmeAccount.email||'').toLowerCase()==='renateshobby@hotmail.com'); }catch(e){ return false; } }
+const OWNER_EMAILS=['renate@lmexplorers.com','renateshobby@hotmail.com'];
+function _isLmeOwner(){ try{ return !!(window.lmeAccount && OWNER_EMAILS.includes(String(window.lmeAccount.email||'').toLowerCase())); }catch(e){ return false; } }
 // Vis/skjul Mia & Teo-valget: alltid for eieren (Renate), ellers kun ved Montessori-nisje.
 function updateCharAvailability(){
   const show = _isLmeOwner() || (typeof state!=='undefined' && state.niche==='montessori');
