@@ -27,6 +27,26 @@ function json(o, s) {
   });
 }
 
+// Blotato/plattformene avviser hele innlegget hvis teksten er for lang eller har for mange
+// emneknagger, sa vi tilpasser teksten per plattform for a sende (i stedet for a sende samme
+// lange Instagram-tekst overalt og fa en kryptisk feil tilbake fra Blotato).
+const TEXT_LIMITS = { twitter: 280, x: 280, bluesky: 300, threads: 500 };
+const HASHTAG_LIMITS = { instagram: 5 };
+
+function capHashtags(text, max) {
+  let count = 0;
+  return text.replace(/#[^\s#]+/g, (tag) => (++count <= max ? tag : "")).replace(/[ \t]{2,}/g, " ").trim();
+}
+
+function fitTextForPlatform(text, plat) {
+  let out = text || "";
+  const hMax = HASHTAG_LIMITS[plat];
+  if (hMax) out = capHashtags(out, hMax);
+  const cMax = TEXT_LIMITS[plat];
+  if (cMax && out.length > cMax) out = out.slice(0, cMax - 1).replace(/\s+\S*$/, "") + "…";
+  return out;
+}
+
 async function blotato(path, key, body) {
   const r = await fetch(BLOTATO + path, {
     method: "POST",
@@ -77,6 +97,19 @@ export async function onRequestPost(context) {
     const results = [];
     for (const acc of accounts) {
       const plat = acc.platform || "instagram";
+
+      // Facebook krever pageId, Pinterest krever boardId. Uten dem avviser Blotato hele
+      // innlegget med en kryptisk feil, sa vi hopper over med en forstaelig beskjed i stedet
+      // for a bruke opp et forsok pa et innlegg som uansett aldri kan lykkes.
+      if (plat === "facebook" && !acc.pageId) {
+        results.push({ accountId: acc.id, platform: plat, ok: false, error: "mangler Facebook-side (pageId). Velg riktig side pa nytt i Innstillinger, sa hent kontoer pa nytt." });
+        continue;
+      }
+      if (plat === "pinterest" && !acc.boardId) {
+        results.push({ accountId: acc.id, platform: plat, ok: false, error: "mangler Pinterest-tavle (boardId). Velg riktig tavle pa nytt i Innstillinger, sa hent kontoer pa nytt." });
+        continue;
+      }
+
       const target = { targetType: plat };
       // mediaType (story/reel) gjelder kun Instagram og Facebook.
       if ((plat === "instagram" || plat === "facebook") && (contentKind === "story" || contentKind === "reel")) target.mediaType = contentKind;
@@ -95,14 +128,15 @@ export async function onRequestPost(context) {
         target.privacyStatus = "public";
         target.shouldNotifySubscribers = false;
       }
-      // Facebook krever pageId, Pinterest krever boardId. Sendes med kontoen hvis Blotato oppgir dem.
-      if (plat === "facebook" && acc.pageId) target.pageId = String(acc.pageId);
-      if (plat === "pinterest" && acc.boardId) target.boardId = String(acc.boardId);
+      if (plat === "facebook") target.pageId = String(acc.pageId);
+      if (plat === "pinterest") target.boardId = String(acc.boardId);
       if (b.target && typeof b.target === "object") Object.assign(target, b.target);
       const post = {
         accountId: String(acc.id),
         target,
-        content: { text: b.text || "", platform: plat, mediaUrls },
+        // Samme lange bildetekst passer ikke overalt: kutt til plattformens tegngrense
+        // og emneknagg-tak (f.eks. Twitter 280 tegn, Bluesky 300, Instagram maks 5 emneknagger).
+        content: { text: fitTextForPlatform(b.text || "", plat), platform: plat, mediaUrls },
       };
       const payload = { post };
       if (b.scheduledTime) payload.scheduledTime = b.scheduledTime;

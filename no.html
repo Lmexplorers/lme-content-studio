@@ -1316,7 +1316,7 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
   function imgPrompt(topic,styleKey,styleCustom){
     var c=cfgGet();
     var st=styleText(styleKey||'pixar',styleCustom);
-    var chars=(c.charPreset==='custom'&&c.charNames)?('Featuring '+c.charNames+(c.charDesc?' ('+c.charDesc+')':'')+'. '):'';
+    var chars=(c.charPreset==='miateo')?('Featuring '+MIA_TEO_DESC+'. '):(c.charPreset==='custom'&&c.charNames)?('Featuring '+c.charNames+(c.charDesc?' ('+c.charDesc+')':'')+'. '):'';
     var brand=c.brand?(c.brand+'. '):'';
     var ref=varRefData?'Use the supplied reference image as inspiration for style and composition. ':'';
     var custEl=document.getElementById('var-imgprompt'); var cust=custEl?(custEl.value||'').trim():'';
@@ -2598,7 +2598,7 @@ const CHARACTERS  = ['Egne karakterer','Ingen karakter'];
 // Mia & Teo (LMEs Montessori-figurer) er kun aktuelt når Montessori-nisjen er valgt.
 function charOptions(){ return (typeof state!=='undefined' && state.niche==='montessori') ? ['Mia & Teo'].concat(CHARACTERS) : CHARACTERS.slice(); }
 // Er dette LME sin egen konto (Renate)? Da er Mia & Teo alltid tilgjengelig.
-function _isLmeOwner(){ try{ return !!(window.lmeAccount && String(window.lmeAccount.email||'').toLowerCase()==='renate@lmexplorers.com'); }catch(e){ return false; } }
+function _isLmeOwner(){ try{ return !!(window.lmeAccount && String(window.lmeAccount.email||'').toLowerCase()==='renateshobby@hotmail.com'); }catch(e){ return false; } }
 // Vis/skjul Mia & Teo-valget: alltid for eieren (Renate), ellers kun ved Montessori-nisje.
 function updateCharAvailability(){
   const show = _isLmeOwner() || (typeof state!=='undefined' && state.niche==='montessori');

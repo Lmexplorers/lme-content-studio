@@ -2306,7 +2306,7 @@ const CHARACTERS  = ['Custom characters','No character'];
 // Mia & Teo (LME's Montessori characters) is only relevant when the Montessori niche is selected.
 function charOptions(){ return (typeof state!=='undefined' && state.niche==='montessori') ? ['Mia & Teo'].concat(CHARACTERS) : CHARACTERS.slice(); }
 // Is this LME's own account (Renate)? Then Mia & Teo is always available.
-function _isLmeOwner(){ try{ return !!(window.lmeAccount && String(window.lmeAccount.email||'').toLowerCase()==='renate@lmexplorers.com'); }catch(e){ return false; } }
+function _isLmeOwner(){ try{ return !!(window.lmeAccount && String(window.lmeAccount.email||'').toLowerCase()==='renateshobby@hotmail.com'); }catch(e){ return false; } }
 // Show/hide the Mia & Teo option: always for the owner (Renate), otherwise only for the Montessori niche.
 function updateCharAvailability(){
   const show = _isLmeOwner() || (typeof state!=='undefined' && state.niche==='montessori');
