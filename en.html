@@ -4993,15 +4993,15 @@ function _pickerAccounts(){
   if(cfg.blotatoAccount) return [{ id:String(cfg.blotatoAccount), platform:cfg.blotatoPlatform||'instagram', name:'' }];
   return [];
 }
-// Chip label for the account pickers. Always shows the platform name (Instagram, TikTok, etc.),
-// not just a small emoji, so it's clear WHERE the button posts to, in addition to the account name.
+// Chip label for the account pickers. Same simple style as the platform chips on the
+// front page (Create): just the platform name, plain text, no emoji. The account name is
+// only added when you have multiple accounts on the SAME platform (e.g. two Instagram
+// accounts), otherwise they'd be impossible to tell apart.
 const PLATFORM_LABELS={instagram:'Instagram',tiktok:'TikTok',facebook:'Facebook',youtube:'YouTube',threads:'Threads',pinterest:'Pinterest',linkedin:'LinkedIn',bluesky:'Bluesky',twitter:'X (Twitter)'};
-const PLATFORM_EMOJI={instagram:'📷',tiktok:'🎵',facebook:'👍',youtube:'▶️',threads:'🧵',pinterest:'📌',linkedin:'💼',bluesky:'🦋',twitter:'✖️'};
-function _accountLabel(a){
+function _accountLabel(a,accts){
   const plat=PLATFORM_LABELS[a.platform]||a.platform||'';
-  const emoji=PLATFORM_EMOJI[a.platform]||'';
-  const namePart=(a.name&&a.name!==plat)?(': '+a.name):'';
-  return (emoji?emoji+' ':'')+plat+namePart;
+  const dup=(accts||[]).filter(function(x){return x.platform===a.platform;}).length>1;
+  return dup ? (plat+(a.name?(': '+a.name):'')) : plat;
 }
 function renderStoryAccountPicker(){
   const host=document.getElementById('story-account-picker'); if(!host) return;
@@ -5012,8 +5012,8 @@ function renderStoryAccountPicker(){
   host.innerHTML=accts.map(function(a){
     const id=String(a.id);
     const on=storyPickedAccountIds.includes(id);
-    const label=_accountLabel(a);
-    return '<button type="button" class="chip'+(on?' active':'')+'" onclick="toggleStoryAccount(\''+id.replace(/'/g,"\\'")+'\')">'+label.replace(/'/g,"&#39;")+'</button>';
+    const label=_accountLabel(a,accts);
+    return '<button type="button" class="chip sage'+(on?' active':'')+'" onclick="toggleStoryAccount(\''+id.replace(/'/g,"\\'")+'\')">'+label.replace(/'/g,"&#39;")+'</button>';
   }).join('');
 }
 function toggleStoryAccount(id){
@@ -5035,8 +5035,8 @@ function renderReelAccountPicker(){
   host.innerHTML=accts.map(function(a){
     const id=String(a.id);
     const on=reelPickedAccountIds.includes(id);
-    const label=_accountLabel(a);
-    return '<button type="button" class="chip'+(on?' active':'')+'" onclick="toggleReelAccount(\''+id.replace(/'/g,"\\'")+'\')">'+label.replace(/'/g,"&#39;")+'</button>';
+    const label=_accountLabel(a,accts);
+    return '<button type="button" class="chip sage'+(on?' active':'')+'" onclick="toggleReelAccount(\''+id.replace(/'/g,"\\'")+'\')">'+label.replace(/'/g,"&#39;")+'</button>';
   }).join('');
 }
 function toggleReelAccount(id){
