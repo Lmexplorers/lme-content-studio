@@ -5392,17 +5392,26 @@ function _pickerAccounts(){
   if(cfg.blotatoAccount) return [{ id:String(cfg.blotatoAccount), platform:cfg.blotatoPlatform||'instagram', name:'' }];
   return [];
 }
+// Chip-tekst for kontovelgerne. Viser alltid plattformnavnet (Instagram, TikTok osv.), ikke
+// bare et lite emoji, sa det er tydelig HVOR knappen poster til, i tillegg til kontonavnet.
+const PLATFORM_LABELS={instagram:'Instagram',tiktok:'TikTok',facebook:'Facebook',youtube:'YouTube',threads:'Threads',pinterest:'Pinterest',linkedin:'LinkedIn',bluesky:'Bluesky',twitter:'X (Twitter)'};
+const PLATFORM_EMOJI={instagram:'📷',tiktok:'🎵',facebook:'👍',youtube:'▶️',threads:'🧵',pinterest:'📌',linkedin:'💼',bluesky:'🦋',twitter:'✖️'};
+function _accountLabel(a){
+  const plat=PLATFORM_LABELS[a.platform]||a.platform||'';
+  const emoji=PLATFORM_EMOJI[a.platform]||'';
+  const namePart=(a.name&&a.name!==plat)?(': '+a.name):'';
+  return (emoji?emoji+' ':'')+plat+namePart;
+}
 function renderStoryAccountPicker(){
   const host=document.getElementById('story-account-picker'); if(!host) return;
   const accts=_pickerAccounts();
   if(storyPickedAccountIds===null) storyPickedAccountIds=accts.map(a=>String(a.id));
   storyPickedAccountIds=storyPickedAccountIds.filter(id=>accts.some(a=>String(a.id)===id));
   if(!accts.length){ host.innerHTML='<span style="font-size:11px;color:var(--text-s);">Ingen kontoer koblet til ennå. Legg til i ⚙️ Innstillinger.</span>'; return; }
-  const emoji={instagram:'📷',tiktok:'🎵',facebook:'👍',youtube:'▶️',threads:'🧵',pinterest:'📌',linkedin:'💼',bluesky:'🦋',twitter:'✖️'};
   host.innerHTML=accts.map(function(a){
     const id=String(a.id);
     const on=storyPickedAccountIds.includes(id);
-    const label=(emoji[a.platform]?emoji[a.platform]+' ':'')+(a.name||a.platform||id);
+    const label=_accountLabel(a);
     return '<button type="button" class="chip'+(on?' active':'')+'" onclick="toggleStoryAccount(\''+id.replace(/'/g,"\\'")+'\')">'+label.replace(/'/g,"&#39;")+'</button>';
   }).join('');
 }
@@ -5422,11 +5431,10 @@ function renderReelAccountPicker(){
   // Fjern valg av kontoer som ikke lenger finnes (f.eks. fjernet i Innstillinger).
   reelPickedAccountIds=reelPickedAccountIds.filter(id=>accts.some(a=>String(a.id)===id));
   if(!accts.length){ host.innerHTML='<span style="font-size:11px;color:var(--text-s);">Ingen kontoer koblet til ennå. Legg til i ⚙️ Innstillinger.</span>'; return; }
-  const emoji={instagram:'📷',tiktok:'🎵',facebook:'👍',youtube:'▶️',threads:'🧵',pinterest:'📌',linkedin:'💼',bluesky:'🦋',twitter:'✖️'};
   host.innerHTML=accts.map(function(a){
     const id=String(a.id);
     const on=reelPickedAccountIds.includes(id);
-    const label=(emoji[a.platform]?emoji[a.platform]+' ':'')+(a.name||a.platform||id);
+    const label=_accountLabel(a);
     return '<button type="button" class="chip'+(on?' active':'')+'" onclick="toggleReelAccount(\''+id.replace(/'/g,"\\'")+'\')">'+label.replace(/'/g,"&#39;")+'</button>';
   }).join('');
 }
