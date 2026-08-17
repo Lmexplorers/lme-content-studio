@@ -2621,7 +2621,7 @@ const MIA_TEO_DESC = 'Mia og Teo, LMEs egne figurer: to nysgjerrige og varme Mon
 const TONES       = ['Varm og personlig','Pedagogisk','Inspirerende','Leken og morsom','Direkte og tydelig'];
 const PLATFORMS   = ['Instagram','TikTok','Facebook','Threads','YouTube','Pinterest','LinkedIn','Bluesky','X (Twitter)'];
 const WEEKDAYS    = ['Man','Tir','Ons','Tor','Fre','Lør','Søn'];
-const HASHTAGS    = '#montessori #montessorinorge #montessoripedagogikk #dinmerkevare #merkevarefamilien #barneaktiviteter #pedagogikk #barneoppdragelse #naturbasertlæring #frileik #sensitiveperioder #forberedtmiljø #montessorihjemme #læringgjennomlek #bærekraftigbarndom';
+const MONTESSORI_HASHTAGS = '#montessori #montessorinorge #montessoripedagogikk #dinmerkevare #merkevarefamilien #barneaktiviteter #pedagogikk #barneoppdragelse #naturbasertlæring #frileik #sensitiveperioder #forberedtmiljø #montessorihjemme #læringgjennomlek #bærekraftigbarndom';
 
 // ══ NISJEPAKKER + MÅL (strategi-først) ══
 // Felles markedsføringstemaer som gjelder for alle nisjer.
@@ -2637,7 +2637,7 @@ const GENERIC_TOPICS = [
 function nicheTopics(specific){ return specific.concat(GENERIC_TOPICS); }
 
 const NICHES = [
-  {id:'montessori', label:'Montessori / hjemmeskole', emoji:'🌿', topics: TOPICS, hashtags: HASHTAGS},
+  {id:'montessori', label:'Montessori / hjemmeskole', emoji:'🌿', topics: TOPICS, hashtags: MONTESSORI_HASHTAGS},
   {id:'affiliate', label:'Affiliate-markedsføring', emoji:'🔗', topics: nicheTopics([
     {label:'Produktanmeldelse', emoji:'📝'},{label:'Sammenlign 3 alternativer', emoji:'⚖️'},{label:'Mine favorittverktøy', emoji:'🧰'},{label:'Ærlig erfaring', emoji:'✅'}]),
     hashtags:'#affiliate #affiliatemarkedsføring #anbefaling #tjenpengerpånett #passivinntekt #nettbasert'},
@@ -2693,7 +2693,22 @@ const NICHES = [
 ];
 function currentNiche(){ return NICHES.find(n => n.id===state.niche) || null; }
 function currentTopics(){ const n=currentNiche(); return (n && n.topics && n.topics.length) ? n.topics : GENERIC_TOPICS; }
-function currentHashtags(){ const n=currentNiche(); return (n && n.hashtags) ? n.hashtags : ''; }
+// Emneknagger MA folge nisjen brukeren faktisk har, aldri et gammelt chip-valg.
+// Samme regel som _isMontessoriNiche(): den frie nisje-teksten i Innstillinger er
+// fasit nar den har verdi, chippen brukes bare nar feltet er helt tomt. Uten dette
+// fikk en kafe med gammel "montessori"-chip #montessori #barneaktiviteter i
+// caption-prompten. Kjenner vi ikke nisjen igjen, returnerer vi tom liste sa AI-en
+// lager knagger ut fra brukerens egen nisje i stedet for a lane en annen bransjes.
+function nicheByLabel(label){
+  const l=(label||'').trim().toLowerCase();
+  if(!l) return null;
+  return NICHES.find(n => (n.label||'').trim().toLowerCase()===l) || null;
+}
+function currentHashtags(){
+  const free=(typeof cfg!=='undefined' && cfg.niche || '').trim();
+  if(free){ const n=nicheByLabel(free); return (n && n.hashtags) ? n.hashtags : ''; }
+  const n=currentNiche(); return (n && n.hashtags) ? n.hashtags : '';
+}
 
 const GOALS = [
   {label:'Flere følgere',                emoji:'👥'},
@@ -3395,7 +3410,7 @@ NORSKE SKRIVEREGLER (følg alltid i norsk tekst): Bruk rette anførselstegn, ald
     return `${base}\n\nWrite a Reel/TikTok script for 9:16 video.\nHOOK (0-2 sek): Én fengende, scrollstoppende setning.\nHOVED (3-25 sek): 3-5 tips eller historiebeats, nummerert.\nCTA: ${state.cta||'Lagre dette og følg for mer!'}\n\nMerk hvert avsnitt tydelig (HOOK:, HOVED:, CTA:). Return plain text only.`;
   }
   if(state.format==='post'){
-    return `${base}\n\nWrite an Instagram/Facebook post caption: 2-3 paragraphs, warm opening, strong CTA. End with relevant hashtags${currentHashtags()?` similar in style to: ${currentHashtags()}`:' for the niche'}.\n\nReturn plain text only.`;
+    return `${base}\n\nWrite an Instagram/Facebook post caption: 2-3 paragraphs, warm opening, strong CTA. End with 8-12 hashtags that fit ${cfgGet().niche||'the brand\'s own niche'} specifically — never hashtags from an unrelated industry${currentHashtags()?`. Similar in style to: ${currentHashtags()}`:''}.\n\nReturn plain text only.`;
   }
   if(state.format==='caption'){
     return `${base}\n\nWrite a heartfelt Instagram caption (200-350 words). Personal hook, a key insight relevant to the niche, woven in naturally. ${ctaLine}\n\nReturn plain text only.`;
@@ -4990,9 +5005,6 @@ function settLenke(url){
 
 
 // ── Reel caption / SEO / hashtags / CTA ──
-const HASHTAGS_NO   = '#montessori #montessorinorge #montessoripedagogikk #dinmerkevare #merkevarefamilien #barneaktiviteter #naturbasertlæring #frileik #sensitiveperioder #forberedtmiljø #montessorihjemme #barneoppdragelse #pedagogikk #læringgjennomlek';
-const HASHTAGS_EN   = '#montessori #montessoriathome #montessorikids #dinmerkevare #miaandteo #childdevelopment #naturallearning #preparedenvironment #freeplay #montessoriparenting #earlychildhood #playbasedlearning';
-const HASHTAGS_BOTH = '#montessori #montessorinorge #montessoriathome #dinmerkevare #miaandteo #merkevarefamilien #barneledet #childdevelopment #naturallearning #frileik';
 
 function hentCaptionFraInnhold(){
   if(!state.result){ alert('Generer innhold først!'); return; }

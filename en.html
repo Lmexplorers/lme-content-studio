@@ -2330,7 +2330,7 @@ const MIA_TEO_DESC = 'Mia and Teo, LME\'s own characters: two curious and warm M
 const TONES       = ['Warm and personal','Educational','Inspiring','Playful and fun','Direct and clear'];
 const PLATFORMS   = ['Instagram','TikTok','Facebook','Threads','YouTube','Pinterest','LinkedIn','Bluesky','X (Twitter)'];
 const WEEKDAYS    = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-const HASHTAGS    = '#montessori #montessoriathome #montessorikids #dinmerkevare #miaandteo #childdevelopment #naturallearning #preparedenvironment #freeplay #montessoriparenting #earlychildhood #playbasedlearning #sensitiveperiods #childledlearning #sustainablechildhood';
+const MONTESSORI_HASHTAGS = '#montessori #montessoriathome #montessorikids #dinmerkevare #miaandteo #childdevelopment #naturallearning #preparedenvironment #freeplay #montessoriparenting #earlychildhood #playbasedlearning #sensitiveperiods #childledlearning #sustainablechildhood';
 
 // ══ NICHE PACKS + GOALS (strategy-first) ══
 const GENERIC_TOPICS = [
@@ -2345,7 +2345,7 @@ const GENERIC_TOPICS = [
 function nicheTopics(specific){ return specific.concat(GENERIC_TOPICS); }
 
 const NICHES = [
-  {id:'montessori', label:'Montessori / homeschool', emoji:'🌿', topics: TOPICS, hashtags: HASHTAGS},
+  {id:'montessori', label:'Montessori / homeschool', emoji:'🌿', topics: TOPICS, hashtags: MONTESSORI_HASHTAGS},
   {id:'affiliate', label:'Affiliate marketing', emoji:'🔗', topics: nicheTopics([
     {label:'Product review', emoji:'📝'},{label:'Compare 3 options', emoji:'⚖️'},{label:'My favorite tools', emoji:'🧰'},{label:'Honest experience', emoji:'✅'}]),
     hashtags:'#affiliate #affiliatemarketing #recommendation #makemoneyonline #passiveincome #onlinebusiness'},
@@ -2401,7 +2401,22 @@ const NICHES = [
 ];
 function currentNiche(){ return NICHES.find(n => n.id===state.niche) || null; }
 function currentTopics(){ const n=currentNiche(); return (n && n.topics && n.topics.length) ? n.topics : GENERIC_TOPICS; }
-function currentHashtags(){ const n=currentNiche(); return (n && n.hashtags) ? n.hashtags : ''; }
+// Hashtags MUST follow the niche the user actually has, never a stale chip.
+// Same rule as _isMontessoriNiche(): the free niche text in Settings wins whenever
+// it has a value, the chip is only a fallback for an empty field. Without this a
+// cafe with a leftover "montessori" chip got #montessori #childdevelopment in the
+// caption prompt. If we do not recognise the niche we return an empty list, so the
+// AI builds tags from the user's own niche instead of borrowing another industry's.
+function nicheByLabel(label){
+  const l=(label||'').trim().toLowerCase();
+  if(!l) return null;
+  return NICHES.find(n => (n.label||'').trim().toLowerCase()===l) || null;
+}
+function currentHashtags(){
+  const free=(typeof cfg!=='undefined' && cfg.niche || '').trim();
+  if(free){ const n=nicheByLabel(free); return (n && n.hashtags) ? n.hashtags : ''; }
+  const n=currentNiche(); return (n && n.hashtags) ? n.hashtags : '';
+}
 
 const GOALS = [
   {label:'More followers',         emoji:'👥'},
@@ -3098,7 +3113,7 @@ function buildPrompt(){
     return `${base}\n\nWrite a Reel/TikTok script for 9:16 video.\nHOOK (0-2 sec): One catchy, scroll-stopping sentence.\nMAIN (3-25 sec): 3-5 tips or story beats, numbered.\nCTA: ${state.cta||'Save this and follow for more!'}\n\nLabel each section clearly (HOOK:, MAIN:, CTA:). Return plain text only.`;
   }
   if(state.format==='post'){
-    return `${base}\n\nWrite an Instagram/Facebook post caption: 2-3 paragraphs, warm opening, strong CTA. End with relevant hashtags${currentHashtags()?` similar in style to: ${currentHashtags()}`:' for the niche'}.\n\nReturn plain text only.`;
+    return `${base}\n\nWrite an Instagram/Facebook post caption: 2-3 paragraphs, warm opening, strong CTA. End with 8-12 hashtags that fit ${cfg.niche||'the brand\'s own niche'} specifically — never hashtags from an unrelated industry${currentHashtags()?`. Similar in style to: ${currentHashtags()}`:''}.\n\nReturn plain text only.`;
   }
   if(state.format==='caption'){
     return `${base}\n\nWrite a heartfelt Instagram caption (200-350 words). Personal hook, a key insight relevant to the niche, woven in naturally. ${ctaLine}\n\nReturn plain text only.`;
@@ -4693,9 +4708,6 @@ function settLenke(url){
 
 
 // ── Reel caption / SEO / hashtags / CTA ──
-const HASHTAGS_NO   = '#montessori #montessorinorge #montessoripedagogikk #dinmerkevare #merkevarefamilien #barneaktiviteter #naturbasertlæring #frileik #sensitiveperioder #forberedtmiljø #montessorihjemme #barneoppdragelse #pedagogikk #læringgjennomlek';
-const HASHTAGS_EN   = '#montessori #montessoriathome #montessorikids #dinmerkevare #miaandteo #childdevelopment #naturallearning #preparedenvironment #freeplay #montessoriparenting #earlychildhood #playbasedlearning';
-const HASHTAGS_BOTH = '#montessori #montessorinorge #montessoriathome #dinmerkevare #miaandteo #merkevarefamilien #barneledet #childdevelopment #naturallearning #frileik';
 
 function loadCaptionFromContent(){
   if(!state.result){ alert('Generate content first!'); return; }
