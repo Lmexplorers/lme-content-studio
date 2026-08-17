@@ -336,7 +336,7 @@
     fab.className = 'lme-bot-fab';
     fab.setAttribute('aria-label', T.title);
     fab.setAttribute('title', T.fabLabel);
-    fab.innerHTML = '🩷<img class="lme-bot-fab-avatar" src="https://lmexplorers.com/images/nathalie-portrait.jpg?v=2" alt="" onerror="this.remove()">';
+    fab.innerHTML = '🩷<img class="lme-bot-fab-avatar" src="https://lmexplorers.com/images/nathalie-portrait.jpg?v=3" alt="" onerror="this.remove()">';
     document.body.appendChild(fab);
 
     fabLabel = document.createElement('div');
@@ -348,7 +348,7 @@
     panel.className = 'lme-bot-panel';
     panel.innerHTML = `
       <div class="lme-bot-header">
-        <img class="lme-bot-header-avatar" src="https://lmexplorers.com/images/nathalie-portrait.jpg?v=2" alt="" onerror="this.remove()">
+        <img class="lme-bot-header-avatar" src="https://lmexplorers.com/images/nathalie-portrait.jpg?v=3" alt="" onerror="this.remove()">
         <div class="lme-bot-header-text">
           <h3>${T.title}</h3>
           <p>${T.subtitle}</p>
