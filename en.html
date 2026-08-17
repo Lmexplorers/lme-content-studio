@@ -1759,7 +1759,6 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
         <button class="chip" onclick="addStoryEl('text')">✏️ Text</button>
         <button class="chip" onclick="addStoryEl('emoji')">😊 Emoji</button>
       </div>
-      <div style="font-size:10.5px;color:var(--text-s);margin-top:8px;line-height:1.5;">Poll, question, link and reactions have been removed from here: Instagram doesn't allow real, tappable stickers on auto-posted content (only the image/text itself gets posted), so they were visual decoration only. Add them manually in the Instagram app after uploading if you want real functionality.</div>
       <div style="font-size:11px;color:var(--text-s);margin-top:8px;line-height:1.5;">Drag the elements wherever you want on the story. Tap an element to change text, color and size.</div>
       <div id="story-el-editor" style="display:none;margin-top:12px;padding:12px;background:var(--rose-l);border-radius:12px;">
         <div id="see-textrow"><textarea id="see-text" class="text-overlay-input" rows="2" style="margin-bottom:4px;resize:vertical;" placeholder="Text (press Enter for a new line)" oninput="updateStoryEl('text',this.value)"></textarea><div style="font-size:10px;color:var(--text-s);margin-bottom:8px;">Press Enter for multiple rows. Size is adjusted below.</div></div>
