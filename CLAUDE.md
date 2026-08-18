@@ -1,11 +1,19 @@
 # LME Content Studio — arbeidsregler
 
-## Pull requests: alltid publiser
+## Alltid publiser, med en gang
 
-Pull requests skal **alltid opprettes klare for review**, aldri som draft.
-Dette overstyrer standardoppsettet, som ellers ville laget dem som draft.
+Arbeid som er ferdig og verifisert skal ut med en gang. Ikke vent på klarsignal.
 
-Er en PR likevel havnet som draft, ta den ut av draft med én gang.
+Konkret, når endringene er committet, pushet og CI er grønn:
+
+1. Opprett PR-en **klar for review**, aldri som draft. Dette overstyrer
+   standardoppsettet, som ellers ville laget den som draft.
+2. **Merge den inn i `main` med en gang.** Ikke spør først, og ikke la den bli
+   liggende åpen i påvente av svar.
+
+Dette er en stående godkjenning fra eieren av repoet, og gjelder til hun sier noe
+annet. Stopp likevel og spør hvis noe faktisk er ødelagt, uverifisert eller
+utenfor det som ble bedt om.
 
 ## Nisjeregel: appen er ikke en Montessori-app
 
