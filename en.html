@@ -1496,6 +1496,13 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
       <div><div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Your niche</div><input type="text" id="s-niche" placeholder="e.g. AI content tools, coffee shop, yoga…" oninput="saveSettings();try{updateCharAvailability();}catch(e){}"/></div>
       <div><div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Brand voice</div><textarea id="s-voice" rows="2" placeholder="Warm, educational, nature-based." oninput="saveSettings()"></textarea></div>
       <div><div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Target audience</div><input type="text" id="s-audience" placeholder="Parents and educators with children 3-16 years" oninput="saveSettings()"/></div>
+      <div><div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Who is behind the brand?</div>
+        <select id="s-team-mode" onchange="saveSettings()" style="width:100%;">
+          <option value="solo">I work alone</option>
+          <option value="team">We are a team</option>
+        </select>
+        <div style="font-size:11px;color:var(--text-s);margin-top:4px;line-height:1.5;">Controls whether content is written as "I" or "we". Alone is the default.</div>
+      </div>
     </div>
   </div>
 
@@ -2510,6 +2517,7 @@ const DEFAULTS = {
   niche:'',
   voice:'',
   audience:'',
+  teamMode:'solo',
   website:'',
   offers:'',
   greeting:'Hi!',
@@ -3117,7 +3125,7 @@ function buildPrompt(){
   else if(preset==='none'){ characters='no specific characters'; }
   else if(preset==='custom'&&cfg.charNames){ characters=`${cfg.charNames}${cfg.charDesc?', '+cfg.charDesc:''}`; }
   else{ characters='no specific characters'; }
-  const base=`You write social media content. THE TOPIC (what the content MUST be about): "${topic}". Niche: "${cfg.niche||'your niche'}". Write strictly about this topic within this niche. Do NOT introduce unrelated themes, audiences or angles that the topic does not imply, even if the brand normally covers other subjects. You post as the brand "${cfg.brand||'Your brand'}", so use its voice and identity, but never force the brand's usual subject matter onto an off-topic post. ${characters!=='no specific characters'?`Characters: ${characters}.`:''} Brand voice: ${cfg.voice||'Warm, clear and professional'}. Audience: ${cfg.audience||state.ageGroup} (adapt to the topic if this audience does not fit). Tone: ${state.tone}. Language: English.${goalLine} ${state.extra?'Context: '+state.extra:''}`;
+  const base=`You write social media content. THE TOPIC (what the content MUST be about): "${topic}". Niche: "${cfg.niche||'your niche'}". Write strictly about this topic within this niche. Do NOT introduce unrelated themes, audiences or angles that the topic does not imply, even if the brand normally covers other subjects. You post as the brand "${cfg.brand||'Your brand'}", so use its voice and identity, but never force the brand's usual subject matter onto an off-topic post. ${characters!=='no specific characters'?`Characters: ${characters}.`:''} Brand voice: ${cfg.voice||'Warm, clear and professional'}. Audience: ${cfg.audience||state.ageGroup} (adapt to the topic if this audience does not fit). Tone: ${state.tone}. Language: English. ${personRule()}${goalLine} ${state.extra?'Context: '+state.extra:''}`;
 
   if(state.format==='carousel'||state.format==='story'){
     const type=state.format==='story'?'Story set (9:16 vertical, short punchy headline + 1-2 lines per frame)':'Instagram carousel';
@@ -4155,6 +4163,7 @@ function applySettingsToUI(){
   const s=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
   s('s-brand',cfg.brand); s('s-niche',cfg.niche); s('s-voice',cfg.voice); s('s-audience',cfg.audience);
   s('s-website',cfg.website); s('s-offers',cfg.offers);
+  { const el=document.getElementById('s-team-mode'); if(el) el.value=cfg.teamMode||'solo'; }
   s('s-email',cfg.email);
   s('s-greeting',cfg.greeting); s('s-signature',cfg.signature);
   visProfiler();
@@ -4174,6 +4183,7 @@ function saveSettings(){
   const g=id=>{const el=document.getElementById(id);return el?el.value:'';};
   cfg.brand=g('s-brand'); cfg.niche=g('s-niche'); cfg.voice=g('s-voice'); cfg.audience=g('s-audience');
   cfg.website=g('s-website'); cfg.offers=g('s-offers');
+  cfg.teamMode=g('s-team-mode')||'solo';
   cfg.email=g('s-email');
   cfg.greeting=g('s-greeting'); cfg.signature=g('s-signature');
   // Keys: never overwrite a stored key with an empty field (prevents accidental wipe).
@@ -4236,7 +4246,18 @@ async function fetchOffersFromWebsite(btn){
     if(btn){ btn.disabled=false; btn.textContent=prev; }
   }
 }
-var PROFILE_FIELDS=['brand','niche','voice','audience','website','offers','greeting','signature','charPreset','charNames','charDesc','logoImage'];
+// == ALONE OR TEAM ==
+// Many Autopilot users run the business entirely on their own. "We" is then
+// simply wrong, and makes the copy sound like a bigger company than it is. The
+// rule is sent with EVERY prompt that writes text, not just one of them.
+function isSoloBrand(){ return ((typeof cfg!=='undefined' && cfg.teamMode) || 'solo') !== 'team'; }
+function personRule(){
+  return isSoloBrand()
+    ? 'The brand is run by ONE person, entirely alone. Write in the first person singular — "I", "me", "my". Never use "we", "us" or "our", and never imply a team, staff, colleagues or departments.'
+    : 'The brand has several people behind it, so "we" and "us" are correct.';
+}
+function personRuleEn(){ return personRule(); }
+var PROFILE_FIELDS=['brand','niche','voice','audience','teamMode','website','offers','greeting','signature','charPreset','charNames','charDesc','logoImage'];
 function loadProfiles(){ try{ return JSON.parse(localStorage.getItem('lme_profiles')||'null'); }catch(e){ return null; } }
 function saveProfiles(p){ try{ localStorage.setItem('lme_profiles', JSON.stringify(p)); }catch(e){} try{ pushProfilesToServer(); }catch(e){} }
 function ensureProfiles(){
@@ -4780,7 +4801,7 @@ async function generateCaptionDirect(btn){
   const ta=document.getElementById('reel-caption');
   const prev=btn?btn.textContent:''; if(btn){ btn.disabled=true; btn.textContent='Working…'; }
   try{
-    const p=`Write an engaging Instagram caption in English for a reel about: "${seed}". Write strictly about this topic, and do not introduce unrelated themes (for example not Montessori or children) unless the topic calls for it, even if the brand usually covers other subjects. Brand: "${cfg.brand||''}". Niche: "${cfg.niche||''}". Tone: ${cfg.voice||'warm and clear'}. Start with a scroll-stopping opening, give value, and end with a clear call to action. Max four short paragraphs. No hashtags, no quotation marks, no dashes.`;
+    const p=`Write an engaging Instagram caption in English for a reel about: "${seed}". Write strictly about this topic, and do not introduce unrelated themes (for example not Montessori or children) unless the topic calls for it, even if the brand usually covers other subjects. Brand: "${cfg.brand||''}". Niche: "${cfg.niche||''}". Tone: ${cfg.voice||'warm and clear'}. ${personRule()} Start with a scroll-stopping opening, give value, and end with a clear call to action. Max four short paragraphs. No hashtags, no quotation marks, no dashes.`;
     const out=await callClaude(p,key,600);
     if(ta&&out){ ta.value=out.trim(); saveReelCaption(); }
   }catch(e){ alert('Could not generate caption: '+((e&&e.message)||e)); }

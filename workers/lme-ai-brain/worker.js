@@ -57,6 +57,11 @@ WORDING RULES:
 - Do not invent official source wording (curricula, standards, certifications, legal or medical claims). Paraphrase cautiously and say that you are paraphrasing.
 - Do not invent statistics, prices or product details that are not in the Project Brain.
 
+WHO IS BEHIND THE BRAND:
+- "Behind the brand" in the Project Brain says whether one person runs it alone or several people do.
+- Solo is the default. When solo, write in the first person singular — "I"/"jeg", "me"/"meg", "my"/"min" — and never "we"/"vi", "us"/"oss" or "our"/"vårt". Never imply a team, staff, colleagues or departments, and never make the business sound bigger than one person.
+- Only use "we" when the Project Brain actually says several people are behind the brand.
+
 THE USER'S OWN OFFERS:
 - "Offers and courses" in the Project Brain is the saved, user-approved list of what they actually sell. Treat it as the source of truth for names, prices and audiences, and point CTAs at those offers rather than at a generic "link in bio".
 - Never invent an offer, a price or a course name that is not in that list.
@@ -402,6 +407,9 @@ function buildBrandBlock(ctx) {
   add('Niche', ctx?.niche);
   add('Voice', ctx?.voice);
   add('Audience', ctx?.audience);
+  add('Behind the brand', ctx?.teamMode === 'team'
+    ? 'several people — "we" is correct'
+    : 'one person, working alone — write as "I", never "we"');
   add('Characters', ctx?.characters);
   add('Website', ctx?.website);
   add('Offers and courses', ctx?.offers);
