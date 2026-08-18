@@ -34,6 +34,7 @@
       send: 'Send',
       clear: 'Clear chat',
       useBrain: 'Use Project Brain as context',
+      webSearch: 'Search the web (costs per search)',
       provider: 'Provider',
       task: 'Task',
       copy: 'Copy',
@@ -53,6 +54,7 @@
       send: 'Send',
       clear: 'Tøm chat',
       useBrain: 'Bruk Project Brain som kontekst',
+      webSearch: 'Søk på nett (koster per søk)',
       provider: 'Leverandør',
       task: 'Oppgave',
       copy: 'Kopier',
@@ -223,7 +225,7 @@
 
   // DOM refs (created once on init)
   let fab, fabLabel, panel, $messages, $suggestions, $textarea, $sendBtn, $clearBtn,
-      $taskSelect, $provSelect, $brainToggle;
+      $taskSelect, $provSelect, $brainToggle, $searchToggle;
 
   function lsKey(name) { return `lme_bot_${cfg.appId}_${name}_v1`; }
   function loadJSON(key, fallback) {
@@ -252,6 +254,7 @@
         model: '',
         taskType: cfg.defaultTask,
         useBrain: true,
+        webSearch: false,   // av som standard - hvert sok koster
       });
       // If saved task is no longer offered by this app, fall back
       if (!cfg.tasks.includes(settings.taskType)) settings.taskType = cfg.defaultTask;
@@ -391,6 +394,10 @@
           <input type="checkbox" class="brain-toggle" ${settings.useBrain?'checked':''}>
           <span>${T.useBrain}</span>
         </label>
+        <label class="toggle">
+          <input type="checkbox" class="search-toggle" ${settings.webSearch?'checked':''}>
+          <span>${T.webSearch}</span>
+        </label>
       </div>
       <div class="lme-bot-messages"></div>
       <div class="lme-bot-suggestions"></div>
@@ -411,6 +418,7 @@
     $taskSelect  = panel.querySelector('.task-select');
     $provSelect  = panel.querySelector('.provider-select');
     $brainToggle = panel.querySelector('.brain-toggle');
+    $searchToggle = panel.querySelector('.search-toggle');
   }
 
   function escapeHtml(s) {
@@ -502,6 +510,7 @@
         provider: settings.provider,
         model: settings.model || '',
         taskType: settings.taskType,
+        webSearch: !!settings.webSearch,
         projectContext: brain || {},
         messages: history
           .filter(m => !m.thinking)
@@ -572,6 +581,10 @@
     });
     $brainToggle.addEventListener('change', () => {
       settings.useBrain = $brainToggle.checked;
+      saveJSON(lsKey('settings'), settings);
+    });
+    $searchToggle.addEventListener('change', () => {
+      settings.webSearch = $searchToggle.checked;
       saveJSON(lsKey('settings'), settings);
     });
   }

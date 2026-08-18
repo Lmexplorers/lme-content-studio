@@ -1499,6 +1499,19 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
     </div>
   </div>
 
+  <div class="card">
+    <div class="card-title">My offers and courses</div>
+    <div style="font-size:11px;color:var(--text-s);margin-bottom:10px;line-height:1.6;">What you sell: courses, workshops, your signature course, bundles. Nathalie AI uses this to write copy and CTAs that point at the right offers. Write freely, or let her pull it from your website.</div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div><div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Your website</div><input type="text" id="s-website" placeholder="https://lmexplorers.com" oninput="saveSettings()"/></div>
+      <div><div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Your offers</div><textarea id="s-offers" rows="6" placeholder="e.g.
+Signature course "…" – 3 weeks, $249 – for …
+Workshop "…" – half day – for …" oninput="saveSettings()"></textarea></div>
+      <div><button class="act-btn sage-btn" id="fetch-offers-btn" onclick="fetchOffersFromWebsite(this)">Pull from my website</button></div>
+      <div style="font-size:11px;color:var(--text-s);line-height:1.6;">Pulling uses web search and costs a little. The result is filled in here and saved right away, so Nathalie can use it without searching again. Edit freely — changes save as you type.</div>
+    </div>
+  </div>
+
   <div class="card" style="border-color:var(--gold);">
     <div class="card-title" style="color:var(--gold);">Characters</div>
     <div style="font-size:11px;color:var(--text-s);margin-bottom:10px;line-height:1.6;">Choose which characters to use in your content</div>
@@ -2330,7 +2343,7 @@ const MIA_TEO_DESC = 'Mia and Teo, LME\'s own characters: two curious and warm M
 const TONES       = ['Warm and personal','Educational','Inspiring','Playful and fun','Direct and clear'];
 const PLATFORMS   = ['Instagram','TikTok','Facebook','Threads','YouTube','Pinterest','LinkedIn','Bluesky','X (Twitter)'];
 const WEEKDAYS    = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-const HASHTAGS    = '#montessori #montessoriathome #montessorikids #dinmerkevare #miaandteo #childdevelopment #naturallearning #preparedenvironment #freeplay #montessoriparenting #earlychildhood #playbasedlearning #sensitiveperiods #childledlearning #sustainablechildhood';
+const MONTESSORI_HASHTAGS = '#montessori #montessoriathome #montessorikids #dinmerkevare #miaandteo #childdevelopment #naturallearning #preparedenvironment #freeplay #montessoriparenting #earlychildhood #playbasedlearning #sensitiveperiods #childledlearning #sustainablechildhood';
 
 // ══ NICHE PACKS + GOALS (strategy-first) ══
 const GENERIC_TOPICS = [
@@ -2345,7 +2358,7 @@ const GENERIC_TOPICS = [
 function nicheTopics(specific){ return specific.concat(GENERIC_TOPICS); }
 
 const NICHES = [
-  {id:'montessori', label:'Montessori / homeschool', emoji:'🌿', topics: TOPICS, hashtags: HASHTAGS},
+  {id:'montessori', label:'Montessori / homeschool', emoji:'🌿', topics: TOPICS, hashtags: MONTESSORI_HASHTAGS},
   {id:'affiliate', label:'Affiliate marketing', emoji:'🔗', topics: nicheTopics([
     {label:'Product review', emoji:'📝'},{label:'Compare 3 options', emoji:'⚖️'},{label:'My favorite tools', emoji:'🧰'},{label:'Honest experience', emoji:'✅'}]),
     hashtags:'#affiliate #affiliatemarketing #recommendation #makemoneyonline #passiveincome #onlinebusiness'},
@@ -2401,7 +2414,22 @@ const NICHES = [
 ];
 function currentNiche(){ return NICHES.find(n => n.id===state.niche) || null; }
 function currentTopics(){ const n=currentNiche(); return (n && n.topics && n.topics.length) ? n.topics : GENERIC_TOPICS; }
-function currentHashtags(){ const n=currentNiche(); return (n && n.hashtags) ? n.hashtags : ''; }
+// Hashtags MUST follow the niche the user actually has, never a stale chip.
+// Same rule as _isMontessoriNiche(): the free niche text in Settings wins whenever
+// it has a value, the chip is only a fallback for an empty field. Without this a
+// cafe with a leftover "montessori" chip got #montessori #childdevelopment in the
+// caption prompt. If we do not recognise the niche we return an empty list, so the
+// AI builds tags from the user's own niche instead of borrowing another industry's.
+function nicheByLabel(label){
+  const l=(label||'').trim().toLowerCase();
+  if(!l) return null;
+  return NICHES.find(n => (n.label||'').trim().toLowerCase()===l) || null;
+}
+function currentHashtags(){
+  const free=(typeof cfg!=='undefined' && cfg.niche || '').trim();
+  if(free){ const n=nicheByLabel(free); return (n && n.hashtags) ? n.hashtags : ''; }
+  const n=currentNiche(); return (n && n.hashtags) ? n.hashtags : '';
+}
 
 const GOALS = [
   {label:'More followers',         emoji:'👥'},
@@ -2482,6 +2510,8 @@ const DEFAULTS = {
   niche:'',
   voice:'',
   audience:'',
+  website:'',
+  offers:'',
   greeting:'Hi!',
   signature:'',
   email:'',
@@ -3098,7 +3128,7 @@ function buildPrompt(){
     return `${base}\n\nWrite a Reel/TikTok script for 9:16 video.\nHOOK (0-2 sec): One catchy, scroll-stopping sentence.\nMAIN (3-25 sec): 3-5 tips or story beats, numbered.\nCTA: ${state.cta||'Save this and follow for more!'}\n\nLabel each section clearly (HOOK:, MAIN:, CTA:). Return plain text only.`;
   }
   if(state.format==='post'){
-    return `${base}\n\nWrite an Instagram/Facebook post caption: 2-3 paragraphs, warm opening, strong CTA. End with relevant hashtags${currentHashtags()?` similar in style to: ${currentHashtags()}`:' for the niche'}.\n\nReturn plain text only.`;
+    return `${base}\n\nWrite an Instagram/Facebook post caption: 2-3 paragraphs, warm opening, strong CTA. End with 8-12 hashtags that fit ${cfg.niche||'the brand\'s own niche'} specifically — never hashtags from an unrelated industry${currentHashtags()?`. Similar in style to: ${currentHashtags()}`:''}.\n\nReturn plain text only.`;
   }
   if(state.format==='caption'){
     return `${base}\n\nWrite a heartfelt Instagram caption (200-350 words). Personal hook, a key insight relevant to the niche, woven in naturally. ${ctaLine}\n\nReturn plain text only.`;
@@ -4124,6 +4154,7 @@ function loadSettings(){
 function applySettingsToUI(){
   const s=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
   s('s-brand',cfg.brand); s('s-niche',cfg.niche); s('s-voice',cfg.voice); s('s-audience',cfg.audience);
+  s('s-website',cfg.website); s('s-offers',cfg.offers);
   s('s-email',cfg.email);
   s('s-greeting',cfg.greeting); s('s-signature',cfg.signature);
   visProfiler();
@@ -4142,6 +4173,7 @@ function applySettingsToUI(){
 function saveSettings(){
   const g=id=>{const el=document.getElementById(id);return el?el.value:'';};
   cfg.brand=g('s-brand'); cfg.niche=g('s-niche'); cfg.voice=g('s-voice'); cfg.audience=g('s-audience');
+  cfg.website=g('s-website'); cfg.offers=g('s-offers');
   cfg.email=g('s-email');
   cfg.greeting=g('s-greeting'); cfg.signature=g('s-signature');
   // Keys: never overwrite a stored key with an empty field (prevents accidental wipe).
@@ -4168,7 +4200,43 @@ function saveSettings(){
 function persistCfg(){ try{ localStorage.setItem('lme_en_v2',JSON.stringify(cfg)); localStorage.setItem('lme_innstillinger_no',JSON.stringify(cfg)); }catch(e){} try{ _cfgBackupIdb(); }catch(e){} try{ pushSettingsToServer(); }catch(e){} }
 
 /* ───────── Brand profiles (switch between several brands) ───────── */
-var PROFILE_FIELDS=['brand','niche','voice','audience','greeting','signature','charPreset','charNames','charDesc','logoImage'];
+// ══ MY OFFERS ══
+// Pulls your offers from your own website via Nathalie AI so they can be SAVED
+// once instead of being searched for again on every single request. Web search
+// costs per search and is off by default in the bot panel, so the saved field
+// is what Nathalie normally reads from.
+const LME_BRAIN_ENDPOINT='https://lme-ai-brain.renateshobby.workers.dev/api/ai';
+async function fetchOffersFromWebsite(btn){
+  const site=((document.getElementById('s-website')||{}).value||'').trim();
+  if(!site){ alert('Enter your website in the field above first.'); return; }
+  const box=document.getElementById('s-offers');
+  if(!box) return;
+  const prev=btn?btn.textContent:'';
+  if(btn){ btn.disabled=true; btn.textContent='Pulling…'; }
+  try{
+    const res=await fetch(LME_BRAIN_ENDPOINT,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-LME-App':'content-studio'},
+      body:JSON.stringify({
+        appId:'content-studio', lang:'en', provider:'anthropic',
+        taskType:'general', webSearch:true,
+        projectContext:{brand:cfg.brand,niche:cfg.niche,website:site},
+        messages:[{role:'user',content:'Search the website '+site+' and find what is actually sold there. List each offer on its own line: name, type (course, workshop, bundle, ebook), price if stated, and who it is for. Include only what you actually find on the site — do not guess, and do not invent prices. Keep it short and clean, with no preamble.'}],
+      }),
+    });
+    const data=await res.json();
+    if(data.error) throw new Error(data.error);
+    const txt=(data.reply||'').trim();
+    if(!txt) throw new Error('Found no offers on the website.');
+    box.value=txt;
+    saveSettings();
+  }catch(e){
+    alert('Could not pull from the website: '+((e&&e.message)||e));
+  }finally{
+    if(btn){ btn.disabled=false; btn.textContent=prev; }
+  }
+}
+var PROFILE_FIELDS=['brand','niche','voice','audience','website','offers','greeting','signature','charPreset','charNames','charDesc','logoImage'];
 function loadProfiles(){ try{ return JSON.parse(localStorage.getItem('lme_profiles')||'null'); }catch(e){ return null; } }
 function saveProfiles(p){ try{ localStorage.setItem('lme_profiles', JSON.stringify(p)); }catch(e){} try{ pushProfilesToServer(); }catch(e){} }
 function ensureProfiles(){
@@ -4693,9 +4761,6 @@ function settLenke(url){
 
 
 // ── Reel caption / SEO / hashtags / CTA ──
-const HASHTAGS_NO   = '#montessori #montessorinorge #montessoripedagogikk #dinmerkevare #merkevarefamilien #barneaktiviteter #naturbasertlæring #frileik #sensitiveperioder #forberedtmiljø #montessorihjemme #barneoppdragelse #pedagogikk #læringgjennomlek';
-const HASHTAGS_EN   = '#montessori #montessoriathome #montessorikids #dinmerkevare #miaandteo #childdevelopment #naturallearning #preparedenvironment #freeplay #montessoriparenting #earlychildhood #playbasedlearning';
-const HASHTAGS_BOTH = '#montessori #montessorinorge #montessoriathome #dinmerkevare #miaandteo #merkevarefamilien #barneledet #childdevelopment #naturallearning #frileik';
 
 function loadCaptionFromContent(){
   if(!state.result){ alert('Generate content first!'); return; }
