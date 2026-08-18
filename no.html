@@ -1297,7 +1297,7 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
     var chars = (preset==='custom'&&c.charNames) ? c.charNames+(c.charDesc?', '+c.charDesc:'') : '';
     return 'Du er ekspert på sosiale medier for "'+(c.brand||'merkevaren')+'", nisje: "'+(c.niche||'din nisje')+'". '+
            'Merkestemme: '+(c.voice||'vennlig, tydelig og profesjonell')+'. '+(chars?('Karakterer: '+chars+'. '):'')+
-           'Språk: norsk bokmål. Tema: "'+topic+'".';
+           'Språk: norsk bokmål. '+personRule()+' Tema: "'+topic+'".';
   }
   function styleText(key,custom){
     switch(key){
@@ -1782,6 +1782,13 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
       <div><div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Your niche</div><input type="text" id="s-niche" placeholder="F.eks. AI-innholdsverktøy, kaffebar, yoga…" oninput="saveSettings();try{updateCharAvailability();}catch(e){}"/></div>
       <div><div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Brand voice</div><textarea id="s-voice" rows="2" placeholder="Varm, pedagogisk, naturbasert." oninput="saveSettings()"></textarea></div>
       <div><div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Target audience</div><input type="text" id="s-audience" placeholder="Foreldre og pedagoger med barn 3-16 år" oninput="saveSettings()"/></div>
+      <div><div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Hvem står bak merkevaren?</div>
+        <select id="s-team-mode" onchange="saveSettings()" style="width:100%;">
+          <option value="solo">Jeg driver alene</option>
+          <option value="team">Vi er flere / et team</option>
+        </select>
+        <div style="font-size:11px;color:var(--text-s);margin-top:4px;line-height:1.5;">Styrer om innholdet skrives i jeg-form eller vi-form. Alene er standard.</div>
+      </div>
     </div>
   </div>
 
@@ -2802,6 +2809,7 @@ const DEFAULTS = {
   niche:'',
   voice:'',
   audience:'',
+  teamMode:'solo',
   website:'',
   offers:'',
   greeting:'Hei!',
@@ -3412,7 +3420,7 @@ function buildPrompt(){
   else if(preset==='none'){ characters='ingen spesifikke karakterer'; }
   else if(preset==='custom'&&cfg.charNames){ characters=`${cfg.charNames}${cfg.charDesc?', '+cfg.charDesc:''}`; }
   else{ characters='ingen spesifikke karakterer'; }
-  const base=`You write social media content. THE TOPIC (what the content MUST be about): "${topic}". Niche: "${cfg.niche||'din nisje'}". Write strictly about this topic within this niche. Do NOT introduce unrelated themes, audiences or angles that the topic does not imply, even if the brand normally covers other subjects. You post as the brand "${cfg.brand||'merkevaren din'}", so use its voice and identity, but never force the brand's usual subject matter onto an off-topic post. ${characters!=='no specific characters'&&characters!=='ingen spesifikke karakterer'?`Characters: ${characters}.`:''} Brand voice: ${cfg.voice||'vennlig, tydelig og profesjonell'}. Audience: ${cfg.audience||state.ageGroup} (tilpass til temaet hvis denne målgruppen ikke passer). Tone: ${state.tone}. Language: Norwegian bokmål.${goalLine} ${state.extra?'Context: '+state.extra:''}
+  const base=`You write social media content. THE TOPIC (what the content MUST be about): "${topic}". Niche: "${cfg.niche||'din nisje'}". Write strictly about this topic within this niche. Do NOT introduce unrelated themes, audiences or angles that the topic does not imply, even if the brand normally covers other subjects. You post as the brand "${cfg.brand||'merkevaren din'}", so use its voice and identity, but never force the brand's usual subject matter onto an off-topic post. ${characters!=='no specific characters'&&characters!=='ingen spesifikke karakterer'?`Characters: ${characters}.`:''} Brand voice: ${cfg.voice||'vennlig, tydelig og profesjonell'}. Audience: ${cfg.audience||state.ageGroup} (tilpass til temaet hvis denne målgruppen ikke passer). Tone: ${state.tone}. Language: Norwegian bokmål. ${personRuleEn()}${goalLine} ${state.extra?'Context: '+state.extra:''}
 
 NORSKE SKRIVEREGLER (følg alltid i norsk tekst): Bruk rette anførselstegn, aldri « ». Bruk ALDRI lange bindestreker (— eller –), bruk heller komma, kolon, punktum eller "og". VIKTIG kolonregel (gjøres ofte feil): stor forbokstav etter kolon KUN når en hel setning følger (eksempel: "Husk: Du trenger ikke være ekspert."), ellers liten forbokstav ved oppramsinger, undertitler og fragmenter (eksempel: "Faste holdepunkter: måltider, hvile og leggetid."). Liten forbokstav etter semikolon. Komma foran "men", "for" og "så" når de binder to helsetninger, komma etter en innledende leddsetning, komma rundt innskutte setninger, og ikke komma foran siste "og" i en oppramsing.`;
 
@@ -4455,6 +4463,7 @@ function applySettingsToUI(){
   const s=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
   s('s-brand',cfg.brand); s('s-niche',cfg.niche); s('s-voice',cfg.voice); s('s-audience',cfg.audience);
   s('s-website',cfg.website); s('s-offers',cfg.offers);
+  { const el=document.getElementById('s-team-mode'); if(el) el.value=cfg.teamMode||'solo'; }
   s('s-email',cfg.email);
   s('s-greeting',cfg.greeting); s('s-signature',cfg.signature);
   visProfiler();
@@ -4474,6 +4483,7 @@ function saveSettings(){
   const g=id=>{const el=document.getElementById(id);return el?el.value:'';};
   cfg.brand=g('s-brand'); cfg.niche=g('s-niche'); cfg.voice=g('s-voice'); cfg.audience=g('s-audience');
   cfg.website=g('s-website'); cfg.offers=g('s-offers');
+  cfg.teamMode=g('s-team-mode')||'solo';
   cfg.email=g('s-email');
   cfg.greeting=g('s-greeting'); cfg.signature=g('s-signature');
   // Nøkler: overskriv aldri en lagret nøkkel med tomt felt (hindrer utilsiktet sletting).
@@ -4537,7 +4547,22 @@ async function fetchOffersFromWebsite(btn){
     if(btn){ btn.disabled=false; btn.textContent=prev; }
   }
 }
-var PROFILE_FIELDS=['brand','niche','voice','audience','website','offers','greeting','signature','charPreset','charNames','charDesc','logoImage'];
+// ══ ALENE ELLER TEAM ══
+// Mange som bruker Autopilot driver firmaet helt alene. Da blir "vi" og "oss"
+// direkte feil, og teksten hores ut som et storre selskap enn den er. Regelen
+// sendes med i ALLE prompter som lager tekst, ikke bare en av dem.
+function isSoloBrand(){ return ((typeof cfg!=='undefined' && cfg.teamMode) || 'solo') !== 'team'; }
+function personRule(){
+  return isSoloBrand()
+    ? 'Merkevaren drives av EN person helt alene. Skriv i jeg-form: "jeg", "meg", "min", "mitt". Bruk aldri "vi", "oss", "vart" eller "vare", og antyd aldri team, ansatte, kolleger eller avdelinger.'
+    : 'Merkevaren har flere personer bak seg, sa "vi" og "oss" er riktig.';
+}
+function personRuleEn(){
+  return isSoloBrand()
+    ? 'The brand is run by ONE person, entirely alone. Write in the first person singular — "jeg", "meg", "min", "mitt". Never use "vi", "oss", "vart" or "vare", and never imply a team, staff, colleagues or departments.'
+    : 'The brand has several people behind it, so "vi" and "oss" are correct.';
+}
+var PROFILE_FIELDS=['brand','niche','voice','audience','teamMode','website','offers','greeting','signature','charPreset','charNames','charDesc','logoImage'];
 function loadProfiles(){ try{ return JSON.parse(localStorage.getItem('lme_profiles')||'null'); }catch(e){ return null; } }
 function saveProfiles(p){ try{ localStorage.setItem('lme_profiles', JSON.stringify(p)); }catch(e){} try{ pushProfilesToServer(); }catch(e){} }
 function ensureProfiles(){
@@ -5077,7 +5102,7 @@ async function generateCaptionDirect(btn){
   const ta=document.getElementById('reel-caption');
   const prev=btn?btn.textContent:''; if(btn){ btn.disabled=true; btn.textContent='Lager…'; }
   try{
-    const p=`Skriv en engasjerende Instagram-bildetekst (caption) på norsk bokmål for en reel om: "${seed}". Skriv strengt om dette emnet, og ikke dra inn urelaterte temaer (for eksempel ikke Montessori eller barn) hvis emnet ikke tilsier det, selv om merkevaren vanligvis dekker noe annet. Merkevare: "${cfg.brand||''}". Nisje: "${cfg.niche||''}". Tone: ${cfg.voice||'varm og tydelig'}. Start med en fengende åpning, gi verdi, og avslutt med en tydelig oppfordring til handling. Maks fire korte avsnitt. Ikke bruk hashtags, ikke anførselstegn, ikke tankestreker.`;
+    const p=`Skriv en engasjerende Instagram-bildetekst (caption) på norsk bokmål for en reel om: "${seed}". Skriv strengt om dette emnet, og ikke dra inn urelaterte temaer (for eksempel ikke Montessori eller barn) hvis emnet ikke tilsier det, selv om merkevaren vanligvis dekker noe annet. Merkevare: "${cfg.brand||''}". Nisje: "${cfg.niche||''}". Tone: ${cfg.voice||'varm og tydelig'}. ${personRule()} Start med en fengende åpning, gi verdi, og avslutt med en tydelig oppfordring til handling. Maks fire korte avsnitt. Ikke bruk hashtags, ikke anførselstegn, ikke tankestreker.`;
     const out=await callClaude(p,key,600);
     if(ta&&out){ ta.value=out.trim(); saveReelCaption(); }
   }catch(e){ alert('Kunne ikke generere caption: '+((e&&e.message)||e)); }

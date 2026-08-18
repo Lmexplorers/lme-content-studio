@@ -183,6 +183,7 @@
         // ---- Brand voice (from cfg, no secrets) ----
         brand: c.brand,
         niche: c.niche,
+        teamMode: c.teamMode,  // 'solo' | 'team' — drives I-voice vs we-voice
         website: c.website,   // used to ground web search on the user's own site
         offers: c.offers,     // saved courses / workshops / bundles from Settings
         voice: c.voice,
