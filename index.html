@@ -73,6 +73,35 @@
     color: #6B6470;
   }
   .footer a { color: #F02478; text-decoration: none; font-weight: 700; }
+
+  /* Priser rett på forsiden. Uten dette måtte folk klikke seg inn i plattforma
+     for å finne ut hva den koster, og de fleste velger å lukke fanen i stedet. */
+  .plans { margin-top: 40px; text-align: left; }
+  .plans-h {
+    font-size: 13px; color: #6B6470; text-transform: uppercase;
+    letter-spacing: 2px; text-align: center; margin-bottom: 16px;
+  }
+  .plan {
+    display: flex; align-items: baseline; gap: 10px;
+    background: rgba(255,255,255,.72);
+    border: 1.5px solid #F7CAD8; border-radius: 13px;
+    padding: 12px 14px; margin-bottom: 9px;
+  }
+  .plan.pop { border-color: #F02478; background: #fff; }
+  .plan-main { flex: 1; min-width: 0; }
+  .plan-n { font-size: 15px; font-weight: 700; color: #4A1A23; }
+  .plan-d { font-size: 12px; color: #6B6470; margin-top: 2px; }
+  .plan-p { font-size: 15px; font-weight: 700; color: #C81860; white-space: nowrap; }
+  .plan-p span { display: block; font-size: 11px; font-weight: 400; color: #6B6470; }
+  .plan-tag {
+    display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 9px;
+    background: #F02478; color: #fff; font-size: 9px; font-weight: 700;
+    letter-spacing: .5px; vertical-align: middle;
+  }
+  .plans-note {
+    font-size: 12px; color: #6B6470; text-align: center;
+    margin-top: 12px; line-height: 1.6;
+  }
 </style>
 </head>
 <body>
@@ -91,6 +120,48 @@
       <span class="flag">🇳🇴</span> Norsk
     </a>
     
+    <div class="plans">
+      <p class="plans-h">Priser · Pricing</p>
+
+      <div class="plan">
+        <div class="plan-main">
+          <div class="plan-n">Start · Starter</div>
+          <div class="plan-d">Det grunnleggende · Essentials</div>
+        </div>
+        <div class="plan-p">299 kr<span>$29 / mnd · mo</span></div>
+      </div>
+
+      <div class="plan pop">
+        <div class="plan-main">
+          <div class="plan-n">Proff · Pro<span class="plan-tag">POPULÆR</span></div>
+          <div class="plan-d">Alle funksjoner · Full features</div>
+        </div>
+        <div class="plan-p">499 kr<span>$49 / mnd · mo</span></div>
+      </div>
+
+      <div class="plan">
+        <div class="plan-main">
+          <div class="plan-n">Proff + Fellesskap · Pro + Community</div>
+          <div class="plan-d">Proff + privat gruppe · Pro + private group</div>
+        </div>
+        <div class="plan-p">699 kr<span>$69 / mnd · mo</span></div>
+      </div>
+
+      <div class="plan">
+        <div class="plan-main">
+          <div class="plan-n">Årlig · Annual</div>
+          <div class="plan-d">Betal 10 mnd, få 12 · Pay 10 months, get 12</div>
+        </div>
+        <div class="plan-p">6 990 kr<span>$690 / år · yr</span></div>
+      </div>
+
+      <p class="plans-note">
+        Avslutt når som helst · Cancel anytime<br/>
+        Velg språk over for å se full oversikt og melde deg på<br/>
+        Choose a language above for full details and sign-up
+      </p>
+    </div>
+
     <p class="footer">
       Visit <a href="https://lmexplorers.com">lmexplorers.com</a>
     </p>
