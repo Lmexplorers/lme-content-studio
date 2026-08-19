@@ -11,15 +11,42 @@
  *     Hendelser: checkout.session.completed, invoice.paid
  *  2. Kopier "Signing secret" (whsec_...) og legg inn som STRIPE_WEBHOOK_SECRET i Cloudflare.
  *
- * Planer kjennes igjen pa belopet (i ore). Endre tallene her for a justere kreditter.
+ * Planen kjennes igjen pa `tier` i Stripe-metadata, med belopet bare som reserve
+ * for gamle abonnementer som ble opprettet for tier ble satt.
+ *
+ * VIKTIG: kredittene defineres IKKE her. De er de samme som PLAN_CAPS i
+ * functions/api/generate.js, og det er den ene kilden. For hadde begge filene
+ * egne tall: generate.js sa 100 bilder og 5 video, webhooken sa 200 bilder og 12
+ * video. Webhooken kjorte sist ved kjop, sa den skrev over de riktige tallene.
+ * Skal en kvote endres, endre PLAN_CAPS, ikke denne filen.
  */
 
-const PLAN_BY_AMOUNT = {
-  29900:  { plan: "start",     image: 0,   video: 0 },   // Start 299 kr
-  49900:  { plan: "proff",     image: 100, video: 6 },   // Proff 499 kr
-  69900:  { plan: "proffplus", image: 200, video: 12 },  // Proff + Fellesskap 699 kr
-  699000: { plan: "arlig",     image: 250, video: 15 },  // Arlig 6 990 kr
+// Samme tall som PLAN_CAPS i generate.js. Video er 0 fordi den aldri folger med i
+// en plan, kunden bruker egen nokkel eller kjoper kreditt.
+const PLAN_CREDITS = {
+  start:     { image: 100, video: 0 },
+  proff:     { image: 100, video: 0 },
+  proffplus: { image: 100, video: 0 },
+  arlig:     { image: 100, video: 0 },
+  app:       { image: 100, video: 0 },
 };
+
+// Reserve for abonnementer uten `tier`: bare planNAVN, aldri egne kredittall.
+const PLAN_BY_AMOUNT = {
+  29900:  "start",
+  49900:  "proff",
+  69900:  "proffplus",
+  699000: "arlig",
+};
+
+/** Finn planen: tier forst, belop som reserve. */
+function resolvePlan(obj, amount) {
+  const meta = (obj && obj.metadata) || {};
+  const sub = (obj && obj.subscription_details && obj.subscription_details.metadata) || {};
+  const tier = String(meta.tier || meta.plan || sub.tier || sub.plan || "").toLowerCase();
+  if (tier && PLAN_CREDITS[tier]) return tier;
+  return PLAN_BY_AMOUNT[amount] || null;
+}
 
 const enc = new TextEncoder();
 
@@ -46,15 +73,17 @@ async function verifyStripe(secret, payload, sigHeader) {
   return timingSafeEqual(expected, parts.v1);
 }
 
-async function grantCredits(env, email, planInfo, source) {
+async function grantCredits(env, email, plan, source) {
+  const credits = PLAN_CREDITS[plan];
+  if (!credits) return;
   email = String(email || "").trim().toLowerCase();
   if (!email) return;
   const raw = await env.ACCOUNTS_KV.get("user:" + email);
   let user = null;
   if (raw) { try { user = JSON.parse(raw); } catch (e) {} }
   if (!user) user = { email, createdAt: Date.now() };
-  user.plan = planInfo.plan;
-  user.credits = { image: planInfo.image, video: planInfo.video };
+  user.plan = plan;
+  user.credits = { image: credits.image, video: credits.video };
   user.lastPayment = { at: Date.now(), source };
   await env.ACCOUNTS_KV.put("user:" + email, JSON.stringify(user));
 }
@@ -87,9 +116,16 @@ export async function onRequestPost(context) {
     return new Response("ignored", { status: 200 }); // andre hendelser bryr vi oss ikke om
   }
 
-  const planInfo = PLAN_BY_AMOUNT[amount];
-  if (email && planInfo) {
-    await grantCredits(env, email, planInfo, event.type);
+  const plan = resolvePlan(obj, amount);
+  if (email && plan) {
+    await grantCredits(env, email, plan, event.type);
+  } else {
+    // Gikk en betaling gjennom uten at vi fant planen, star kunden uten
+    // kreditter. For svarte vi bare "ok" og ingen fikk vite det.
+    console.error("stripe-webhook: fant ingen plan", {
+      event: event.type, amount, harEpost: !!email,
+      tier: (obj && obj.metadata && obj.metadata.tier) || null,
+    });
   }
   return new Response("ok", { status: 200 });
 }
