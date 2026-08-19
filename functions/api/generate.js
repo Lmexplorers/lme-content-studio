@@ -39,15 +39,24 @@ function bufToB64(buf) {
 
 // Inkluderte mengder per plan (dekket av abonnementet, på LMEs egen nøkkel).
 // Over taket bruker appen kundens egen nøkkel, så det koster ikke LME noe.
-// App-planen (699 kr/mnd, 6 990 kr/år): 500 tekster, 100 bilder, 5 videoklipp.
+// Inkludert i en betalt plan: 500 tekster og 100 bilder.
+//
+// Video er 0 med vilje, og det er den samme regelen hele plattformen folger
+// (`INNER_CIRCLE_LIMITS` i lme-platform, og `dop-turbo` i AI Core-registeret som
+// star oppfort uten pris fordi den selges som forhandskjopt kreditt). Renate skal
+// ikke sta for andres genereringskostnad pa video. Kunden bruker egen video-nokkel
+// eller kjoper kreditt; se quotaMsg() for beskjeden de faktisk far.
+//
+// Bilder er billige nok a inkludere: standardmodellen dall-e-3 koster $0,04 per
+// bilde, sa 100 bilder er rundt $4 i maneden.
 const PLAN_CAPS = {
   free:      { text: 0,   image: 0,   video: 0 },
-  app:       { text: 500, image: 100, video: 5 },
+  app:       { text: 500, image: 100, video: 0 },
   // Bakoverkompatible aliaser, alle betalte planer = app-planen:
-  start:     { text: 500, image: 100, video: 5 },
-  proff:     { text: 500, image: 100, video: 5 },
-  proffplus: { text: 500, image: 100, video: 5 },
-  arlig:     { text: 500, image: 100, video: 5 },
+  start:     { text: 500, image: 100, video: 0 },
+  proff:     { text: 500, image: 100, video: 0 },
+  proffplus: { text: 500, image: 100, video: 0 },
+  arlig:     { text: 500, image: 100, video: 0 },
 };
 function planCaps(plan) { return PLAN_CAPS[plan] || PLAN_CAPS.free; }
 // Beholdt for bakoverkompatibilitet i eksisterende kode.
@@ -159,7 +168,12 @@ async function consumeCredit(env, user, kind) {
 // Fast melding når inkludert mengde er brukt opp eller innlogging mangler.
 function quotaMsg(kind, code) {
   const own = { text: "din egen Claude-nøkkel", image: "din egen OpenAI- eller Gemini-nøkkel", video: "din egen video-nøkkel" }[kind] || "din egen nøkkel";
-  if (code === "no_" + kind + "_credits") return "Du har brukt opp det inkluderte. Legg inn " + own + " i Innstillinger for å fortsette.";
+  if (code === "no_" + kind + "_credits") {
+    // Har planen aldri hatt en kvote for dette, er "brukt opp" feil. Video
+    // folger aldri med i en plan, den betales av kunden selv.
+    if (kind === "video") return "Video følger ikke med i planen. Legg inn " + own + " i Innstillinger, så kan du lage så mange du vil.";
+    return "Du har brukt opp det inkluderte. Legg inn " + own + " i Innstillinger for å fortsette.";
+  }
   return "Logg inn for å bruke det inkluderte, eller legg inn " + own + " i Innstillinger.";
 }
 
