@@ -76,11 +76,37 @@ function planCaps(plan) { return PLAN_CAPS[plan] || PLAN_CAPS.free; }
    Video tvinges alltid til 0, uansett hva som ligger lagret. Video folger
    ikke med i en plan, og en gammel lagret grense skal ikke kunne apne for
    generering Renate ikke har tenkt a betale for. */
-function capsForUser(user) {
-  const sub = user && user.subscription;
+/* Hvor abonnementet ligger, og hvorfor det er to steder.
+
+   Webhooken i lme-platform (grantAutopilot i _lib/purchase-links.js) skriver
+   ALLTID `member:<e-post>`, men legger bare abonnementet paa `user:<e-post>`
+   hvis den posten allerede finnes. Kjoeper noen FOER de har logget inn i
+   appen foerste gang, finnes den ikke, og da staar abonnementet bare i
+   member-posten. Leser vi bare user.subscription, faar en fersk kunde null
+   av alt, og det er den vanligste rekkefoelgen: hun kjoeper, saa logger hun
+   inn.
+
+   Derfor: user.subscription foerst, member-posten som reserve.
+
+   Merk at resultatet med vilje IKKE lagres tilbake paa user-posten. Sies
+   abonnementet opp, oppdaterer webhooken member-posten, og en lagret kopi
+   ville latt kunden beholde tilgangen. */
+async function abonnementFor(env, email, user) {
+  if (user && user.subscription) return user.subscription;
+  try {
+    const raw = await env.ACCOUNTS_KV.get("member:" + email);
+    if (raw) {
+      const rec = JSON.parse(raw);
+      if (rec && rec.plan) return { status: rec.status, plan: rec.plan, limits: rec.limits };
+    }
+  } catch (e) { /* ingen member-post, eller ulesbar. Faller til planCaps under. */ }
+  return null;
+}
+
+function capsForSub(sub, user) {
   const aktiv = sub && (sub.status === "active" || sub.status === undefined);
   if (aktiv && sub.limits && typeof sub.limits === "object") {
-    const base = planCaps(sub.plan || user.plan || "free");
+    const base = planCaps(sub.plan || (user && user.plan) || "free");
     return {
       text:  base.text,
       image: Number(sub.limits.image || 0),
@@ -157,7 +183,7 @@ async function checkImageQuota(env, token) {
   const user = await getUser(env, email);
   if (!user) return { error: "Logg inn for å generere bilder.", code: "login_required" };
   const plan = user.plan || "free";
-  if (!user.credits) user.credits = { video: 0, image: capsForUser(user).image };
+  if (!user.credits) user.credits = { video: 0, image: capsForSub(await abonnementFor(env, email, user), user).image };
   const remaining = Number(user.credits.image || 0);
   if (remaining <= 0) {
     return {
@@ -184,7 +210,7 @@ async function checkQuota(env, token, kind) {
   if (isOwner(env, email)) return { user: (await getUser(env, email)) || { email, plan: "owner" }, owner: true };
   const user = await getUser(env, email);
   if (!user) return { error: "login", code: "login_required" };
-  const caps = capsForUser(user);
+  const caps = capsForSub(await abonnementFor(env, email, user), user);
   if (!user.credits) user.credits = { text: caps.text, image: caps.image, video: caps.video };
   if (user.credits[kind] == null) user.credits[kind] = caps[kind] || 0;
   if (Number(user.credits[kind] || 0) <= 0) return { error: "empty", code: "no_" + kind + "_credits" };
