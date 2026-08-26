@@ -56,8 +56,16 @@
       },
       nok: 199, usd: 19, interval: "month",
       lenke: {
-        no: "https://buy.stripe.com/bJeeVedkpfzN8e9btt9R61Z",
-        en: "https://buy.stripe.com/14A9AUa8d0ET3XT1ST9R620"
+        no: "https://buy.stripe.com/dRmcN62FL3R53XT1ST9R70P",
+        en: "https://buy.stripe.com/fZu00k949bjxdyteFF9R70Q"
+      },
+      arlig: {
+        nok: 1990, usd: 190,
+        lenke: {
+          no: "https://buy.stripe.com/9B6eVe1BHevJ1PL8hh9R70L",
+          en: "https://buy.stripe.com/7sY6oIdkpcnB1PL5559R70M"
+        },
+        notat: { no: "spar to måneder", en: "save two months" }
       },
       punkter: {
         no: ["30 AI-bilder i måneden", "Video med egen nøkkel eller kjøpt kreditt", "30-dagers innholdsplan",
@@ -76,8 +84,16 @@
       },
       nok: 549, usd: 54, interval: "month",
       lenke: {
-        no: "https://buy.stripe.com/9B64gAfsx1IXamhbtt9R61l",
-        en: "https://buy.stripe.com/bJe4gAfsx73hamhapp9R61m"
+        no: "https://buy.stripe.com/eVq00k8055Zd51XgNN9R70R",
+        en: "https://buy.stripe.com/14A3cwcgl5ZdfGBfJJ9R70S"
+      },
+      arlig: {
+        nok: 5490, usd: 540,
+        lenke: {
+          no: "https://buy.stripe.com/3cI9AUeot5Zd8e96999R70N",
+          en: "https://buy.stripe.com/00w9AUfsxfzNcupfJJ9R70O"
+        },
+        notat: { no: "spar to måneder", en: "save two months" }
       },
       punkter: {
         no: ["Alt i Start, pluss:", "100 AI-bilder i måneden", "Video med egen nøkkel eller kjøpt kreditt",
@@ -98,15 +114,14 @@
       },
       nok: 999, usd: 99, interval: "month",
       lenke: {
-        no: "https://buy.stripe.com/eVq8wQ1BHevJ51XdBB9R61n",
-        en: "https://buy.stripe.com/8x228s8059bpdyt1ST9R61o"
+        no: "https://buy.stripe.com/4gM9AUa8d87l1PLbtt9R70T",
+        en: "https://buy.stripe.com/cNiaEY5RX1IX0LH6999R70U"
       },
-      /* Årlig finnes bare for VIP, samme som på /oppgrader. */
       arlig: {
         nok: 9990, usd: 990,
         lenke: {
-          no: "https://buy.stripe.com/9B628s0xDgDR1PL5559R61p",
-          en: "https://buy.stripe.com/4gMfZicglcnB1PL9ll9R61q"
+          no: "https://buy.stripe.com/3cI7sM2FL2N1eCx2WX9R70V",
+          en: "https://buy.stripe.com/eVqeVe1BH73h661btt9R70W"
         },
         notat: { no: "spar to måneder", en: "save two months" }
       },
@@ -127,7 +142,7 @@
       mnd: "mnd",
       ar: "år",
       velg: "Velg ",
-      arligKnapp: "Velg VIP årlig",
+      arligKnapp: "årlig",
       ingenBinding: "Ingen binding, avbryt når som helst.",
       sjekket: "Priser sist sjekket ",
       icTittel: "Mer enn verktøyene",
@@ -141,7 +156,7 @@
       mnd: "mo",
       ar: "yr",
       velg: "Choose ",
-      arligKnapp: "Choose VIP yearly",
+      arligKnapp: "yearly",
       ingenBinding: "No lock-in, cancel anytime.",
       sjekket: "Prices last checked ",
       icTittel: "More than the tools",
@@ -220,7 +235,7 @@
         + '<div style="font-weight:700;color:#C81860;font-size:15px;white-space:nowrap;">' + pris(p, lang) + "/" + t.mnd + "</div></a>";
     });
 
-    var vip = PLANER[2];
+    var vip = PLANER.filter(function (x) { return x.id === "vip"; })[0];
     h += '<a href="' + vip.arlig.lenke[lang] + '" target="_top" rel="noopener" style="display:flex;justify-content:space-between;align-items:center;background:linear-gradient(120deg,#F02478 0%,#C81860 100%);color:#fff;border-radius:12px;padding:14px;text-decoration:none;margin-bottom:16px;">'
       + '<div style="text-align:left;"><div style="font-weight:700;font-size:14px;">' + esc(vip.navn[lang]) + " " + (lang === "en" ? "yearly" : "årlig") + "</div>"
       + '<div style="font-size:11px;opacity:.9;">' + esc(vip.arlig.notat[lang]) + "</div></div>"
@@ -267,7 +282,7 @@
 
       if (p.arlig) {
         h += '<a href="' + p.arlig.lenke[lang] + '" target="_top" rel="noopener" style="display:block;width:100%;margin-top:8px;padding:11px;border-radius:13px;text-align:center;background:linear-gradient(110deg,var(--gold),#D9A500);color:white;font-family:\'Sasson Montessori\';font-size:13px;font-weight:700;text-decoration:none;">'
-          + esc(t.arligKnapp) + ", " + arligPris(p, lang) + " " + t.perAr + " →</a>";
+          + esc(t.velg + p.navn[lang] + " " + t.arligKnapp) + ", " + arligPris(p, lang) + " " + t.perAr + " →</a>";
       }
       h += "</div>";
     });
