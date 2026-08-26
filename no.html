@@ -334,7 +334,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 <body>
 
 <style id="lme-ob-style">
-#lme-ob{position:fixed;inset:0;z-index:100001;display:none;font-family:'Sasson Montessori',sans-serif;color:#1A1A1A;}
+#lme-ob{position:fixed;inset:0;z-index:99998;display:none;font-family:'Sasson Montessori',sans-serif;color:#1A1A1A;}
 #lme-ob.show{display:block;}
 #lme-ob .obapp{position:relative;width:100%;height:100dvh;max-width:480px;margin:0 auto;display:flex;flex-direction:column;
   background:radial-gradient(120% 60% at 50% -8%,#FCE4EE 0%,rgba(252,228,238,0) 60%),radial-gradient(90% 50% at 100% 100%,#FFF3CC 0%,rgba(255,243,204,0) 55%),#FFFAFA;overflow:hidden;}
@@ -456,6 +456,10 @@ input[type=range]{width:100%;accent-color:var(--rose);}
  var root=document.getElementById('lme-ob');
  var seen; try{seen=localStorage.getItem('lme_ob_v1')}catch(e){}
  if(seen && location.hash.indexOf('intro')<0) return;
+ // Introen laa over laaseskjermen og dekket "Logg inn", saa en ny bruker
+ // ikke kom seg inn i det hele tatt. Den venter naa til brukeren har en
+ // konto, og vises foerste gang de kommer tilbake etter innlogging.
+ try{ if(!localStorage.getItem('lme_cs_token') && location.hash.indexOf('intro')<0) return; }catch(e){}
  root.classList.add('show');
  var slides=[].slice.call(root.querySelectorAll('.obslide'));
  var total=slides.length, prog=document.getElementById('ob-prog');
@@ -516,10 +520,8 @@ input[type=range]{width:100%;accent-color:var(--rose);}
       <div data-lme-priser="liste" data-lme-sprak="no" data-lme-kjop></div>
 
       <div style="border-top:1px solid #E8E0E5;padding-top:16px;">
-        <div style="font-size:12px;color:#6B6470;margin-bottom:10px;">Allerede abonnent? Skriv inn tilgangsnøkkelen din:</div>
-        <input type="text" id="lme-access-input" placeholder="Skriv inn nøkkel / Enter access key" style="width:100%;padding:12px 14px;border:2px solid #E8E0E5;border-radius:10px;font-family:'Sasson Montessori';font-size:14px;color:#1A1A1A;outline:none;margin-bottom:10px;text-align:center;" onkeypress="if(event.key==='Enter')lmeCheckAccess()"/>
-        <button onclick="lmeCheckAccess()" style="width:100%;padding:12px;background:#B4D870;color:#fff;border:none;border-radius:10px;font-family:'Sasson Montessori';font-size:14px;font-weight:700;cursor:pointer;">Lås opp Studio</button>
-        <div id="lme-access-error" style="display:none;color:#C81860;font-size:12px;margin-top:10px;">Ugyldig nøkkel. Sjekk velkomst-e-posten fra Din merkevare.</div>
+        <div style="font-size:12px;color:#6B6470;margin-bottom:10px;">Har du allerede en konto?</div>
+        <button onclick="openAuthModal()" style="width:100%;padding:12px;background:#B4D870;color:#fff;border:none;border-radius:10px;font-family:'Sasson Montessori';font-size:14px;font-weight:700;cursor:pointer;">Logg inn</button>
       </div>
 
       <div style="margin-top:20px;font-size:10px;color:#6B6470;opacity:.7;line-height:1.5;">
@@ -553,63 +555,37 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 <script>
 // ════ TILGANGSKONTROLL, kjøres umiddelbart ════
 (function(){
-  // Liste over gyldige tilgangsnøkler. Legg til/fjern her etter behov.
-  // Enkleste oppsett: én felles nøkkel for alle betalende kunder.
-  // Send denne nøkkelen i FEA Create velkomst-e-post.
-  const VALID_KEYS = [
-    'LME2026',           // Hovednøkkel, del i FEA velkomst-e-post
-    'LME-PRO-2026',      // Valgfri alternativ nøkkel
-    'LME-FAMILY-2026'      // Valgfri alternativ nøkkel
-  ];
+  /* Porten inn i appen er innloggingen, ikke en noekkel.
 
-  // Sjekk URL for ?key=xxx parameter (fra e-postlenke)
-  const urlParams = new URLSearchParams(window.location.search);
-  const urlKey = urlParams.get('key');
-  if(urlKey && VALID_KEYS.includes(urlKey.toUpperCase())){
-    try{ localStorage.setItem('lme_access_granted','yes'); }catch(e){}
-    // Rens URL slik at nøkkelen ikke vises i adressefeltet
-    if(window.history && window.history.replaceState){
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-  }
+     Fram til 26. august 2026 laa det tre tilgangsnoekler rett i denne
+     JavaScripten ('LME2026' og to til), og ?key=LME2026 laaste opp appen
+     for alltid paa enheten. Den noekkelen laa offentlig i HTML-en paa
+     lmexplorers.com, saa hvem som helst kunne laase opp. Den ga riktignok
+     aldri gratis generering, for bilder og video sjekkes mot planen paa
+     serveren (checkQuota i functions/api/generate.js), men den var et
+     utstillingsvindu som saa ut som en laas. Naa er den borte.
 
-  // Sjekk om tilgang allerede er gitt på denne enheten
-  let hasAccess = false;
-  try{ hasAccess = localStorage.getItem('lme_access_granted') === 'yes'; }catch(e){}
+     lmeApplyLock kalles av renderAuth lenger nede, baade ved oppstart og
+     ved inn- og utlogging. */
+  document.documentElement.style.overflow = 'hidden';
 
-  if(!hasAccess){
-    // Skjul appen og vis låseskjermen
-    document.documentElement.style.overflow = 'hidden';
-    window.addEventListener('DOMContentLoaded', function(){
-      const lock = document.getElementById('lme-lock-screen');
-      if(lock) lock.style.display = 'block';
-      document.body.style.overflow = 'hidden';
-    });
-  }
+  // Siste svar fra /api/auth. Starter laast, saa appen ikke blinker fram.
+  window._lmeInnlogget = false;
 
-  // Gjør funksjon globalt tilgjengelig for opplåsings-knappen
-  window.lmeCheckAccess = function(){
-    const input = document.getElementById('lme-access-input');
-    const err = document.getElementById('lme-access-error');
-    const key = (input.value || '').trim().toUpperCase();
-    if(VALID_KEYS.includes(key)){
-      try{ localStorage.setItem('lme_access_granted','yes'); }catch(e){}
-      const lock = document.getElementById('lme-lock-screen');
-      if(lock) lock.style.display = 'none';
-      document.documentElement.style.overflow = '';
-      document.body.style.overflow = '';
-    } else {
-      if(err) err.style.display = 'block';
-      input.style.borderColor = '#C81860';
-    }
+  window.lmeApplyLock = function(innlogget){
+    window._lmeInnlogget = !!innlogget;
+    var lock = document.getElementById('lme-lock-screen');
+    if(lock) lock.style.display = innlogget ? 'none' : 'block';
+    document.documentElement.style.overflow = innlogget ? '' : 'hidden';
+    if(document.body) document.body.style.overflow = innlogget ? '' : 'hidden';
   };
 
-  // For ditt eget bruk: knapp for å logge ut (sletter tilgang)
-  // Du kan kalle lmeLogout() fra nettleser-konsollen for å teste
-  window.lmeLogout = function(){
-    try{ localStorage.removeItem('lme_access_granted'); }catch(e){}
-    location.reload();
-  };
+  // Laaseskjermen finnes foerst naar dokumentet er ferdig lest. Bruk siste
+  // kjente svar, ikke en fast verdi: svarer /api/auth foer dette skjer, ville
+  // en fast false ha laast ute en som faktisk er innlogget.
+  window.addEventListener('DOMContentLoaded', function(){
+    window.lmeApplyLock(window._lmeInnlogget);
+  });
 
   // "Se alle abonnementer", åpner modalen med alle planer
   window.lmeShowPricing = function(event){
@@ -665,7 +641,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 .auth-user .auth-credits{font-weight:700;color:var(--rose-d);white-space:nowrap;}
 .auth-user .auth-email{color:var(--text-s);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .auth-user .auth-logout{background:var(--rose-l);border:none;color:var(--rose-d);border-radius:999px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;}
-.auth-modal{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9998;display:none;align-items:center;justify-content:center;padding:18px;}
+.auth-modal{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100001;display:none;align-items:center;justify-content:center;padding:18px;}
 .auth-card{background:#fff;border-radius:20px;padding:24px;max-width:360px;width:100%;}
 .auth-card h3{font-family:'Playpen Sans';font-weight:900;font-size:20px;color:var(--rose-d);margin-bottom:6px;}
 .auth-card p{font-size:13px;color:var(--text-s);line-height:1.5;margin-bottom:14px;}
@@ -702,10 +678,21 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 const LME_TOKEN_KEY='lme_cs_token';
 function lmeToken(){ return localStorage.getItem(LME_TOKEN_KEY)||''; }
 async function lmeAuthApi(payload){ const r=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}); return r.json(); }
-async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d=await lmeAuthApi({action:'me',token:t}); return d.account||null; }catch(e){ return null; } }
+async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d=await lmeAuthApi({action:'me',token:t}); window._lmeAuthFeil=false; return d.account||null; }catch(e){ window._lmeAuthFeil=true; return null; } }
 function renderAuth(acc){
   const lb=document.getElementById('auth-login-btn'), us=document.getElementById('auth-user');
   window.lmeAccount=acc||null;
+  try{
+    if(typeof window.lmeApplyLock==='function'){
+      /* Sikkerhetsventil: svarte ikke /api/auth i det hele tatt, men brukeren
+         har et token, da er det serveren som er nede, ikke abonnementet som
+         mangler. Da laaser jeg ikke ute. Genereringen er uansett beskyttet
+         paa serveren (checkQuota i functions/api/generate.js).
+         Ventilen maa ligge her, ikke i oppstarten, fordi lmeServerSync kaller
+         renderAuth en gang til og ellers ville laast igjen. */
+      window.lmeApplyLock(!!acc || (window._lmeAuthFeil && !!lmeToken()));
+    }
+  }catch(e){}
   if(acc){ lb.style.display='none'; us.style.display='flex'; document.getElementById('auth-email').textContent=acc.email; document.getElementById('auth-credits').textContent='🎬 '+(acc.credits.video||0)+' · 🖼 '+(acc.credits.image||0); }
   else { lb.style.display='inline-block'; us.style.display='none'; }
   // Nar vi vet hvem som er innlogget: vis Mia & Teo-valget for eieren.
@@ -732,7 +719,11 @@ async function lmeVerifyCode(){
   try{ if(typeof lmeServerSync==='function') lmeServerSync(); }catch(e){}  // hent arbeidet ditt fra kontoen med en gang
 }
 function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(null); }
-(async function(){ try{ renderAuth(await lmeAuthMe()); }catch(e){} })();
+(async function(){
+  var acc=null;
+  try{ acc=await lmeAuthMe(); }catch(e){}
+  renderAuth(acc);   // renderAuth styrer laasen, sikkerhetsventilen ligger der
+})();
 </script>
 
 <div class="app-body">
