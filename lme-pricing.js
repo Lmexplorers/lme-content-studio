@@ -35,6 +35,11 @@
 (function () {
   "use strict";
 
+  /* Video følger IKKE med i noen plan. Bestemt av Renate 26. august 2026:
+     hun kan ikke kjøpe videogenerering for en hel kundemasse. Kunden
+     bruker egen video-nøkkel, eller kjøper videokreditt. Appen håndhever
+     det samme i PLAN_CAPS i functions/api/generate.js, så ikke lov video
+     som inkludert her uten å endre begge steder. */
   var PRISER_SJEKKET = "2026-08-26";
 
   /* Planene. `nok` og `usd` er hele kroner og dollar. `lenke` er den levende
@@ -55,9 +60,9 @@
         en: "https://buy.stripe.com/14A9AUa8d0ET3XT1ST9R620"
       },
       punkter: {
-        no: ["30 AI-bilder i måneden", "1 AI-video i måneden", "30-dagers innholdsplan",
+        no: ["30 AI-bilder i måneden", "Video med egen nøkkel eller kjøpt kreditt", "30-dagers innholdsplan",
              "AI-tekst i alle formater", "Norsk og engelsk innhold"],
-        en: ["30 AI images a month", "1 AI video a month", "30-day content plan",
+        en: ["30 AI images a month", "Video with your own key or bought credit", "30-day content plan",
              "AI copy in every format", "Norwegian and English content"]
       }
     },
@@ -75,10 +80,10 @@
         en: "https://buy.stripe.com/bJe4gAfsx73hamhapp9R61m"
       },
       punkter: {
-        no: ["Alt i Start, pluss:", "100 AI-bilder i måneden", "6 AI-videoer i måneden",
+        no: ["Alt i Start, pluss:", "100 AI-bilder i måneden", "Video med egen nøkkel eller kjøpt kreditt",
              "90-dagers innholdsplan", "Reel-editor og autopublisering",
              "Karakterkonsistens for dine egne figurer"],
-        en: ["Everything in Start, plus:", "100 AI images a month", "6 AI videos a month",
+        en: ["Everything in Start, plus:", "100 AI images a month", "Video with your own key or bought credit",
              "90-day content plan", "Reel editor and auto-publishing",
              "Character consistency for your own characters"]
       }
@@ -106,9 +111,9 @@
         notat: { no: "spar to måneder", en: "save two months" }
       },
       punkter: {
-        no: ["Alt i Proff, pluss:", "250 AI-bilder i måneden", "15 AI-videoer i måneden",
+        no: ["Alt i Proff, pluss:", "250 AI-bilder i måneden", "Video med egen nøkkel eller kjøpt kreditt",
              "Høyest kvote og prioritert generering"],
-        en: ["Everything in Pro, plus:", "250 AI images a month", "15 AI videos a month",
+        en: ["Everything in Pro, plus:", "250 AI images a month", "Video with your own key or bought credit",
              "Highest quota and priority generation"]
       }
     }

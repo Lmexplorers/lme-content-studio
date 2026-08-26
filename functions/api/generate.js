@@ -52,13 +52,43 @@ function bufToB64(buf) {
 const PLAN_CAPS = {
   free:      { text: 0,   image: 0,   video: 0 },
   app:       { text: 500, image: 100, video: 0 },
-  // Bakoverkompatible aliaser, alle betalte planer = app-planen:
+  // Planene som faktisk selges. Navnene her MA vaere de samme som
+  // AUTOPILOT_PAYMENT_LINKS skriver i lme-platform sin purchase-links.js,
+  // ellers faller kunden ned pa `free` og far null av alt. Det var akkurat
+  // den feilen som gjorde at en betalende Proff-kunde ikke fikk generere:
+  // webhooken skrev "cs-proff", og den fantes ikke i denne tabellen.
+  "cs-start": { text: 500, image: 30,  video: 0 },
+  "cs-proff": { text: 500, image: 100, video: 0 },
+  "cs-pluss": { text: 500, image: 250, video: 0 },
+  // Bakoverkompatible aliaser fra tiden for cs-navnene:
   start:     { text: 500, image: 100, video: 0 },
   proff:     { text: 500, image: 100, video: 0 },
   proffplus: { text: 500, image: 100, video: 0 },
   arlig:     { text: 500, image: 100, video: 0 },
 };
 function planCaps(plan) { return PLAN_CAPS[plan] || PLAN_CAPS.free; }
+
+/* Hvilken plan gjelder for denne kontoen, og hvilke tak har den.
+   Webhooken i lme-platform lagrer abonnementet som user.subscription
+   ({plan, limits}), mens appen tradisjonelt leste user.plan. Leser vi bare
+   user.plan, ser vi aldri et kjop gjort pa /oppgrader. Derfor: subscription
+   forst, user.plan som reserve.
+   Video tvinges alltid til 0, uansett hva som ligger lagret. Video folger
+   ikke med i en plan, og en gammel lagret grense skal ikke kunne apne for
+   generering Renate ikke har tenkt a betale for. */
+function capsForUser(user) {
+  const sub = user && user.subscription;
+  const aktiv = sub && (sub.status === "active" || sub.status === undefined);
+  if (aktiv && sub.limits && typeof sub.limits === "object") {
+    const base = planCaps(sub.plan || user.plan || "free");
+    return {
+      text:  base.text,
+      image: Number(sub.limits.image || 0),
+      video: 0,
+    };
+  }
+  return planCaps((sub && aktiv && sub.plan) || (user && user.plan) || "free");
+}
 // Beholdt for bakoverkompatibilitet i eksisterende kode.
 const PLAN_IMAGE_CAP = { free: 0, start: 100, proff: 100, proffplus: 100, arlig: 100, app: 100 };
 
@@ -127,7 +157,7 @@ async function checkImageQuota(env, token) {
   const user = await getUser(env, email);
   if (!user) return { error: "Logg inn for å generere bilder.", code: "login_required" };
   const plan = user.plan || "free";
-  if (!user.credits) user.credits = { video: 0, image: PLAN_IMAGE_CAP[plan] != null ? PLAN_IMAGE_CAP[plan] : 0 };
+  if (!user.credits) user.credits = { video: 0, image: capsForUser(user).image };
   const remaining = Number(user.credits.image || 0);
   if (remaining <= 0) {
     return {
@@ -154,7 +184,7 @@ async function checkQuota(env, token, kind) {
   if (isOwner(env, email)) return { user: (await getUser(env, email)) || { email, plan: "owner" }, owner: true };
   const user = await getUser(env, email);
   if (!user) return { error: "login", code: "login_required" };
-  const caps = planCaps(user.plan || "free");
+  const caps = capsForUser(user);
   if (!user.credits) user.credits = { text: caps.text, image: caps.image, video: caps.video };
   if (user.credits[kind] == null) user.credits[kind] = caps[kind] || 0;
   if (Number(user.credits[kind] || 0) <= 0) return { error: "empty", code: "no_" + kind + "_credits" };
