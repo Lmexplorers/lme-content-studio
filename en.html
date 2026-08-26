@@ -329,6 +329,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 .export-btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(156,192,0,.45);}
 .export-btn.purple{background:linear-gradient(110deg,#0084E4,#339BEA);box-shadow:0 4px 20px rgba(0,132,228,.35);}
 </style>
+<script src="/lme-pricing.js" defer></script>
 </head>
 <body>
 
@@ -512,29 +513,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
         <span style="color:#6B6470;">Built-in your brand characters and ready-made content packs, or use your own brand voice.</span>
       </div>
 
-      <div style="font-size:13px;font-weight:700;color:#C81860;margin-bottom:10px;text-align:center;">Subscription Plans</div>
-
-      <a href="https://link.feacreate.com/payment-link/69dff9b780425dc02fbc87b0" style="display:flex;justify-content:space-between;align-items:center;background:#fff;border:2px solid #E8E0E5;border-radius:12px;padding:12px 14px;text-decoration:none;margin-bottom:8px;">
-        <div style="text-align:left;"><div style="font-weight:700;color:#1A1A1A;font-size:14px;">Starter</div><div style="font-size:11px;color:#6B6470;">Essentials</div></div>
-        <div style="font-weight:700;color:#C81860;font-size:15px;">$29/mo</div>
-      </a>
-
-      <a href="https://link.feacreate.com/payment-link/69dff9d180425dc02fbc87b2" style="display:flex;justify-content:space-between;align-items:center;background:linear-gradient(120deg,#FCE4EE 0%,#FFFBEF 100%);border:2px solid #F02478;border-radius:12px;padding:12px 14px;text-decoration:none;margin-bottom:8px;position:relative;">
-        <div style="position:absolute;top:-8px;right:12px;background:#C81860;color:#fff;font-size:9px;font-weight:700;padding:2px 8px;border-radius:8px;">POPULAR</div>
-        <div style="text-align:left;"><div style="font-weight:700;color:#1A1A1A;font-size:14px;">Pro</div><div style="font-size:11px;color:#6B6470;">Full features</div></div>
-        <div style="font-weight:700;color:#C81860;font-size:15px;">$49/mo</div>
-      </a>
-
-      <a href="https://link.feacreate.com/payment-link/69df72c280425dc02fbc85d8" style="display:flex;justify-content:space-between;align-items:center;background:#fff;border:2px solid #E8E0E5;border-radius:12px;padding:12px 14px;text-decoration:none;margin-bottom:8px;">
-        <div style="text-align:left;"><div style="font-weight:700;color:#1A1A1A;font-size:14px;">Pro + Community</div><div style="font-size:11px;color:#6B6470;">Pro + private group</div></div>
-        <div style="font-weight:700;color:#C81860;font-size:15px;">$69/mo</div>
-      </a>
-
-      <a href="https://link.feacreate.com/payment-link/69df761d80425dc02fbc85e0" style="display:flex;justify-content:space-between;align-items:center;background:linear-gradient(120deg,#F02478 0%,#C81860 100%);color:#fff;border-radius:12px;padding:14px;text-decoration:none;margin-bottom:20px;position:relative;">
-        <div style="position:absolute;top:-8px;right:12px;background:#fff;color:#C81860;font-size:9px;font-weight:700;padding:2px 8px;border-radius:8px;">SAVE $138</div>
-        <div style="text-align:left;"><div style="font-weight:700;font-size:14px;">Annual Pro + Community</div><div style="font-size:11px;opacity:.9;">Pay 10 months, get 12</div></div>
-        <div style="font-weight:700;font-size:15px;">$690/yr</div>
-      </a>
+      <div data-lme-priser="liste" data-lme-sprak="en" data-lme-kjop></div>
 
       <div style="border-top:1px solid #E8E0E5;padding-top:16px;">
         <div style="font-size:12px;color:#6B6470;margin-bottom:10px;">Already subscribed? Enter your access key:</div>
@@ -552,7 +531,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 </div>
 
 <!-- ════ PRICING MODAL, shown when user clicks "See subscription plans" ════ -->
-<div id="lme-pricing-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:100000;background:rgba(0,0,0,0.6);overflow-y:auto;padding:20px;font-family:'Sasson Montessori';">
+<div id="lme-pricing-modal" data-lme-kjop style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:100000;background:rgba(0,0,0,0.6);overflow-y:auto;padding:20px;font-family:'Sasson Montessori';">
   <div style="max-width:520px;margin:20px auto;background:#FFFAFA;border-radius:24px;padding:24px;position:relative;">
     <button onclick="lmeClosePricing()" style="position:absolute;top:14px;right:14px;background:#fff;border:1.5px solid #E8E0E5;color:#C81860;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;font-weight:700;"></button>
 
@@ -562,85 +541,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
       <div style="font-size:12px;color:#6B6470;font-style:italic;">Velg din plan</div>
     </div>
 
-    <!-- Starter -->
-    <div style="background:#fff;border:2px solid #E8E0E5;border-radius:16px;padding:18px;margin-bottom:14px;">
-      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
-        <div style="font-family:'Playpen Sans';font-size:18px;font-weight:700;color:#1A1A1A;">Starter</div>
-        <div style="font-size:18px;font-weight:900;color:#C81860;">$29<span style="font-size:11px;color:#6B6470;font-weight:400;">/mo</span></div>
-      </div>
-      <ul style="list-style:none;padding:0;margin:0 0 14px 0;font-size:12px;color:#1A1A1A;line-height:1.8;">
-        <li>AI content generation, all formats</li>
-        <li>Norwegian and English</li>
-        <li>Content calendar &amp; 30-day plan</li>
-        <li>✅ <strong>3 platforms</strong></li>
-        <li style="color:#999;">- DALL-E 3 image generation</li>
-        <li style="color:#999;">- Auto-publishing</li>
-      </ul>
-      <a href="https://link.feacreate.com/payment-link/69dff9b780425dc02fbc87b0" target="_top" style="display:block;width:100%;padding:12px;border-radius:10px;text-align:center;background:#fff;border:2px solid #F02478;color:#C81860;font-size:13px;font-weight:700;text-decoration:none;">Get Starter →</a>
-    </div>
-
-    <!-- Pro (most popular) -->
-    <div style="background:linear-gradient(135deg,#fff 0%,#FCE4EE 100%);border:2px solid #F02478;border-radius:16px;padding:18px;margin-bottom:14px;position:relative;box-shadow:0 8px 24px rgba(240,36,120,.15);">
-      <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#F02478;color:#fff;padding:4px 14px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;">MOST POPULAR</div>
-      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;margin-top:6px;">
-        <div style="font-family:'Playpen Sans';font-size:20px;font-weight:900;color:#C81860;">Pro</div>
-        <div style="font-size:20px;font-weight:900;color:#C81860;">$49<span style="font-size:11px;color:#6B6470;font-weight:400;">/mo</span></div>
-      </div>
-      <ul style="list-style:none;padding:0;margin:0 0 14px 0;font-size:12px;color:#1A1A1A;line-height:1.8;">
-        <li>Everything in Starter</li>
-        <li>✅ <strong>6 platforms</strong></li>
-        <li>DALL-E 3 AI image generation</li>
-        <li>your brand character-consistent images</li>
-        <li>✅ <strong>Auto-publishing</strong>, scheduled, hands-free</li>
-        <li>Reel editor with music baked in</li>
-        <li>Story editor with Canva import</li>
-        <li>Priority support</li>
-      </ul>
-      <a href="https://link.feacreate.com/payment-link/69dff9d180425dc02fbc87b2" target="_top" style="display:block;width:100%;padding:14px;border-radius:10px;text-align:center;background:linear-gradient(120deg,#F02478 0%,#C81860 100%);color:#fff;font-size:14px;font-weight:700;text-decoration:none;box-shadow:0 4px 14px rgba(240,36,120,.25);">Get Pro, $49/mo →</a>
-    </div>
-
-    <!-- Pro + Community -->
-    <div style="background:#fff;border:2px solid #0084E4;border-radius:16px;padding:18px;margin-bottom:14px;">
-      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
-        <div>
-          <div style="font-family:'Playpen Sans';font-size:18px;font-weight:700;color:#005C9E;">Pro + Community</div>
-        </div>
-        <div style="font-size:18px;font-weight:900;color:#005C9E;">$69<span style="font-size:11px;color:#6B6470;font-weight:400;">/mo</span></div>
-      </div>
-      <ul style="list-style:none;padding:0;margin:0 0 14px 0;font-size:12px;color:#1A1A1A;line-height:1.8;">
-        <li>Everything in Pro</li>
-        <li>✅ <strong>All 8 platforms</strong></li>
-        <li>Bilingual community 🇳🇴🇺🇸</li>
-        <li>Monthly live Q&amp;A with Renate</li>
-        <li>Resource library with Canva templates</li>
-        <li>Monthly content challenge</li>
-      </ul>
-      <a href="https://link.feacreate.com/payment-link/69df72c280425dc02fbc85d8" target="_top" style="display:block;width:100%;padding:12px;border-radius:10px;text-align:center;background:linear-gradient(110deg,#0084E4,#339BEA);color:#fff;font-size:13px;font-weight:700;text-decoration:none;">Join Pro + Community →</a>
-    </div>
-
-    <!-- Annual Pro + Community (best value) -->
-    <div style="background:linear-gradient(135deg,#FFF9E5 0%,#FCE4EE 100%);border:2px solid #FCC000;border-radius:16px;padding:18px;margin-bottom:14px;position:relative;box-shadow:0 8px 24px rgba(212,149,106,.2);">
-      <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:linear-gradient(110deg,#FCC000,#D9A500);color:#fff;padding:4px 14px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;">BEST VALUE</div>
-      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;margin-top:6px;">
-        <div>
-          <div style="font-family:'Playpen Sans';font-size:18px;font-weight:900;color:#D9A500;">Annual Pro + Community</div>
-          <div style="font-size:10px;color:#FCC000;font-weight:700;letter-spacing:0.5px;">SAVE $138</div>
-        </div>
-        <div style="text-align:right;">
-          <div style="font-size:18px;font-weight:900;color:#D9A500;">$690<span style="font-size:11px;color:#6B6470;font-weight:400;">/year</span></div>
-          <div style="font-size:10px;color:#6B6470;">pay for 10 months, get 12</div>
-        </div>
-      </div>
-      <ul style="list-style:none;padding:0;margin:0 0 14px 0;font-size:12px;color:#1A1A1A;line-height:1.8;">
-        <li>Everything in Pro + Community</li>
-        <li>Founding Member badge</li>
-        <li>Welcome call with Renate (20 min)</li>
-        <li>your brand Canva starter pack</li>
-        <li>Pay for 10 months, get 12</li>
-        <li>Locked price for 12 months</li>
-      </ul>
-      <a href="https://link.feacreate.com/payment-link/69df761d80425dc02fbc85e0" target="_top" style="display:block;width:100%;padding:13px;border-radius:10px;text-align:center;background:linear-gradient(110deg,#FCC000,#D9A500);color:#fff;font-size:13px;font-weight:700;text-decoration:none;box-shadow:0 4px 14px rgba(212,149,106,.25);">Get Annual →</a>
-    </div>
+    <div data-lme-priser="kort" data-lme-sprak="en"></div>
 
     <div style="text-align:center;font-size:11px;color:#6B6470;margin-top:10px;line-height:1.5;">
       Cancel anytime<br/>
@@ -751,7 +652,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
         <button class="nav-dropdown-item" onclick="showTab('plan',this);closeNavMenu()">90-day plan</button>
         <button class="nav-dropdown-item" onclick="showTab('canva',this);closeNavMenu()">Canva</button>
         <button class="nav-dropdown-item" onclick="showTab('editor',this);closeNavMenu()">Editor</button>
-        <button class="nav-dropdown-item" onclick="showTab('pricing',this);closeNavMenu()">Pricing</button>
+        <button class="nav-dropdown-item" data-lme-kjop onclick="showTab('pricing',this);closeNavMenu()">Pricing</button>
         <button class="nav-dropdown-item" onclick="showTab('settings',this);closeNavMenu()">Settings</button>
       </div>
     </div>
@@ -1280,13 +1181,13 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
 </div>
 
 <!-- ════ PRICING ════ -->
-<div id="tab-pricing" style="display:none;">
+<div id="tab-pricing" data-lme-kjop style="display:none;">
 
   <div style="background:linear-gradient(135deg,var(--rose) 0%,var(--rose-d) 100%);border-radius:20px;padding:28px 20px;text-align:center;margin-bottom:16px;color:white;">
     <div style="font-size:36px;margin-bottom:8px;">🌿</div>
     <div style="font-family:'Playpen Sans';font-size:22px;font-weight:900;margin-bottom:8px;">LME Autopilot</div>
     <div style="font-size:13px;opacity:.92;line-height:1.6;">AI-powered content marketing for any niche<br/>build a 90-day plan and ready-to-post content in minutes</div>
-    <div style="margin-top:14px;background:rgba(255,255,255,.2);border-radius:12px;padding:10px 16px;font-size:13px;font-weight:700;">Try Pro free for 7 days, card details required, cancel anytime</div>
+    <div style="margin-top:14px;background:rgba(255,255,255,.2);border-radius:12px;padding:10px 16px;font-size:13px;font-weight:700;">No lock-in, cancel anytime</div>
   </div>
 
   <!-- ════ HOW IT WORKS ════ -->
@@ -1403,77 +1304,7 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
     </div>
   </div>
 
-  <!-- STARTER $29 -->
-  <div class="card" style="border:2px solid var(--border);margin-bottom:14px;">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">
-      <div><div style="font-family:'Playpen Sans';font-size:18px;font-weight:900;">Starter</div><div style="font-size:11px;color:var(--text-s);margin-top:2px;">Perfect to get started</div></div>
-      <div style="text-align:right;"><div style="font-family:'Playpen Sans';font-size:28px;font-weight:900;color:var(--rose-d);">$29</div><div style="font-size:10px;color:var(--text-s);">per month</div></div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:16px;font-size:12px;">
-      <div><span style="color:var(--sage-d);">✅</span> AI content generation, all formats</div>
-      <div><span style="color:var(--sage-d);">✅</span> Norwegian and English</div>
-      <div><span style="color:var(--sage-d);">✅</span> Content calendar and 30-day plan</div>
-      <div><span style="color:var(--sage-d);">✅</span> <strong>3 platforms</strong></div>
-      <div style="color:var(--text-s);"><span style="color:#ccc;">-</span> DALL-E 3 image generation</div>
-      <div style="color:var(--text-s);"><span style="color:#ccc;">-</span> Automatic publishing</div>
-    </div>
-    <a href="https://link.feacreate.com/payment-link/69dff9b780425dc02fbc87b0" target="_top" style="display:block;width:100%;padding:13px;border-radius:13px;text-align:center;background:white;border:2px solid var(--rose);color:var(--rose-d);font-family:'Sasson Montessori';font-size:13px;font-weight:700;text-decoration:none;">Get started →</a>
-  </div>
-
-  <!-- PRO $49 -->
-  <div class="card" style="border:2.5px solid var(--rose);background:linear-gradient(160deg,var(--rose-l) 0%,white 100%);margin-bottom:14px;position:relative;">
-    <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,var(--rose),var(--rose-d));color:white;border-radius:20px;padding:4px 16px;font-size:11px;font-weight:700;white-space:nowrap;">MOST POPULAR</div>
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;margin-top:8px;">
-      <div><div style="font-family:'Playpen Sans';font-size:18px;font-weight:900;color:var(--rose-d);">Pro</div><div style="font-size:11px;color:var(--text-s);margin-top:2px;">The complete content system</div></div>
-      <div style="text-align:right;"><div style="font-family:'Playpen Sans';font-size:28px;font-weight:900;color:var(--rose-d);">$49</div><div style="font-size:10px;color:var(--text-s);">per month</div></div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:16px;font-size:12px;">
-      <div><span style="color:var(--sage-d);">✅</span> Everything in Starter</div>
-      <div><span style="color:var(--sage-d);">✅</span> <strong>6 platforms</strong></div>
-      <div><span style="color:var(--sage-d);">✅</span> DALL-E 3 AI image generation</div>
-      <div><span style="color:var(--sage-d);">✅</span> your brand character-consistent images</div>
-      <div><span style="color:var(--sage-d);">✅</span> <strong>Auto-publishing</strong>, scheduled, hands-free</div>
-      <div><span style="color:var(--sage-d);">✅</span> Reel editor with music baked in</div>
-      <div><span style="color:var(--sage-d);">✅</span> Story editor with Canva import</div>
-      <div><span style="color:var(--sage-d);">✅</span> Priority support</div>
-    </div>
-    <a href="https://link.feacreate.com/payment-link/69dff9d180425dc02fbc87b2" target="_top" style="display:block;width:100%;padding:14px;border-radius:13px;text-align:center;background:linear-gradient(110deg,var(--rose),var(--rose-d));color:white;font-family:'Sasson Montessori';font-size:15px;font-weight:900;text-decoration:none;box-shadow:0 6px 20px rgba(240,36,120,.4);">Get Pro, $49/mo →</a>
-  </div>
-
-  <!-- PRO + COMMUNITY $69 -->
-  <div class="card" style="border:2px solid #0084E4;background:linear-gradient(160deg,#E6F3FC 0%,white 100%);margin-bottom:14px;position:relative;">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;margin-top:8px;">
-      <div><div style="font-family:'Playpen Sans';font-size:18px;font-weight:900;color:#005C9E;">Pro + Community</div><div style="font-size:11px;color:var(--text-s);margin-top:2px;">Studio + bilingual community with Renate</div></div>
-      <div style="text-align:right;"><div style="font-family:'Playpen Sans';font-size:28px;font-weight:900;color:#005C9E;">$69</div><div style="font-size:10px;color:var(--text-s);">per month</div></div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:14px;font-size:12px;">
-      <div><span style="color:#0084E4;">✅</span> Everything in Pro</div>
-      <div><span style="color:#0084E4;">✅</span> <strong>All 8 platforms</strong></div>
-      <div><span style="color:#0084E4;">✅</span> Bilingual community 🇳🇴🇺🇸</div>
-      <div><span style="color:#0084E4;">✅</span> Monthly live Q&amp;A with Renate</div>
-      <div><span style="color:#0084E4;">✅</span> Resource library with Canva templates</div>
-      <div><span style="color:#0084E4;">✅</span> Monthly content challenge</div>
-    </div>
-    <a href="https://link.feacreate.com/payment-link/69df72c280425dc02fbc85d8" target="_top" style="display:block;width:100%;padding:13px;border-radius:13px;text-align:center;background:linear-gradient(110deg,#0084E4,#339BEA);color:white;font-family:'Sasson Montessori';font-size:13px;font-weight:700;text-decoration:none;">Join Pro + Community →</a>
-  </div>
-
-  <!-- ANNUAL $690 -->
-  <div class="card" style="border:2.5px solid var(--gold);background:linear-gradient(160deg,#FFFCF5 0%,#E6F3FC 100%);margin-bottom:14px;position:relative;">
-    <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,var(--gold),#D9A500);color:white;border-radius:20px;padding:4px 16px;font-size:11px;font-weight:700;white-space:nowrap;">BEST VALUE</div>
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;margin-top:8px;">
-      <div><div style="font-family:'Playpen Sans';font-size:18px;font-weight:900;color:var(--gold);">Annual Pro + Community</div><div style="font-size:11px;color:var(--text-s);margin-top:2px;">Everything included, save $138!</div></div>
-      <div style="text-align:right;"><div style="font-family:'Playpen Sans';font-size:28px;font-weight:900;color:var(--gold);">$690</div><div style="font-size:10px;color:var(--text-s);">per year</div><div style="font-size:10px;color:var(--sage-d);font-weight:700;">pay for 10, get 12</div></div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:14px;font-size:12px;">
-      <div><span style="color:var(--gold);">✅</span> Everything in Pro + Community</div>
-      <div><span style="color:var(--gold);">✅</span> 🌟 Founding Member badge</div>
-      <div><span style="color:var(--gold);">✅</span> 📞 Welcome call with Renate (20 min)</div>
-      <div><span style="color:var(--gold);">✅</span> 🎨 your brand Canva starter pack</div>
-      <div><span style="color:var(--gold);">✅</span> 💰 Pay for 10 months, get 12</div>
-      <div><span style="color:var(--gold);">✅</span> Locked price for 12 months</div>
-    </div>
-    <a href="https://link.feacreate.com/payment-link/69df761d80425dc02fbc85e0" target="_top" style="display:block;width:100%;padding:14px;border-radius:13px;text-align:center;background:linear-gradient(110deg,var(--gold),#D9A500);color:white;font-family:'Sasson Montessori';font-size:15px;font-weight:900;text-decoration:none;box-shadow:0 6px 20px rgba(212,149,106,.5);">Get Annual →</a>
-  </div>
+  <div data-lme-priser="kort" data-lme-sprak="en"></div>
 
 </div>
 
@@ -1636,6 +1467,14 @@ Workshop "…" – half day – for …" oninput="saveSettings()"></textarea></d
     Export your settings as a file, import them again if you switch device or browser
   </div>
   <div id="settings-ok" style="display:none;background:var(--sage-l);border-radius:10px;padding:10px 14px;color:var(--sage-d);font-size:13px;text-align:center;">Settings saved!</div>
+  <div class="card" style="border:1px solid var(--border);margin-top:14px;">
+    <div class="card-title">Account and privacy</div>
+    <div style="font-size:11px;color:var(--text-s);line-height:1.6;margin-bottom:10px;">If you want to stop, you delete your account and everything the app has stored. It cannot be undone, and an active subscription has to be cancelled separately.</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <a class="chip" href="/slett-konto" target="_blank" rel="noopener" style="text-decoration:none;color:#C0392B;">Delete account</a>
+      <a class="chip" href="/personvern" target="_blank" rel="noopener" style="text-decoration:none;">Privacy</a>
+    </div>
+  </div>
 </div>
 
 
