@@ -15,6 +15,11 @@
  *
  * Aapne https://lme-contentstudio.pages.dev/api/kv-sjekk
  *
+ * Merk de to navnene: prosjektet heter lme-autopilot i Cloudflare-dashbordet,
+ * men adressen er lme-contentstudio.pages.dev. Underdomenet paa pages.dev
+ * foelger ikke med naar prosjektet doepes om, det staar fast fra prosjektet
+ * ble opprettet.
+ *
  * PERSONVERN: svaret inneholder aldri en hel noekkel. Noekler ser ut som
  * `user:navn@eksempel.no`, altsaa e-postadresser. Bare prefikset foer kolon
  * og et antall gaar ut.
@@ -69,7 +74,7 @@ export async function onRequestGet(context) {
     return side(
       "ACCOUNTS_KV er ikke bundet",
       "#C0392B",
-      "<p>Appen har ingen KV-binding i det hele tatt. Da virker verken innlogging, lagring eller abonnement. Dette maa fikses i Cloudflare, under Pages, lme-contentstudio, Settings, Bindings.</p>",
+      "<p>Appen har ingen KV-binding i det hele tatt. Da virker verken innlogging, lagring eller abonnement. Dette maa fikses i Cloudflare, under Pages, lme-autopilot, Settings, Bindings.</p>",
       []
     );
   }
@@ -127,7 +132,7 @@ export async function onRequestGet(context) {
     "#C0392B",
     `<p>Appen leser et <strong>annet lager</strong> enn betalingswebhooken skriver til. Da ser appen aldri abonnementet, og en kunde som betaler faar null bilder.</p>
      <p>Jeg finner ${totalt} noekler, og bare appens egne typer${app.length ? " (" + app.map((p) => p + ":").join(", ") + ")" : ""}. Ingen av noeklene plattformen lager er her.</p>
-     <p><strong>Fiksen:</strong> i Cloudflare, under Pages, lme-contentstudio, Settings, Bindings, settes ACCOUNTS_KV til lageret <strong>lme-builder</strong>. Send meg beskjed naar det er gjort, saa sjekker vi paa nytt.</p>`,
+     <p><strong>Fiksen:</strong> i Cloudflare, under Pages, lme-autopilot, Settings, Bindings, settes ACCOUNTS_KV til lageret <strong>lme-builder</strong>. Send meg beskjed naar det er gjort, saa sjekker vi paa nytt.</p>`,
     tabell
   );
 }
