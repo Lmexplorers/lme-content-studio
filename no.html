@@ -329,6 +329,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 .export-btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(156,192,0,.45);}
 .export-btn.purple{background:linear-gradient(110deg,#0084E4,#339BEA);box-shadow:0 4px 20px rgba(0,132,228,.35);}
 </style>
+<script src="/lme-pricing.js" defer></script>
 </head>
 <body>
 
@@ -512,29 +513,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
         <span style="color:#6B6470;">Sett din egen merkevarestemme, dine farger og din stil.</span>
       </div>
 
-      <div style="font-size:13px;font-weight:700;color:#C81860;margin-bottom:10px;text-align:center;">Abonnementer</div>
-
-      <a href="https://link.feacreate.com/payment-link/69f08b50c970abb4095afe01" style="display:flex;justify-content:space-between;align-items:center;background:#fff;border:2px solid #E8E0E5;border-radius:12px;padding:12px 14px;text-decoration:none;margin-bottom:8px;">
-        <div style="text-align:left;"><div style="font-weight:700;color:#1A1A1A;font-size:14px;">Start</div><div style="font-size:11px;color:#6B6470;">Det grunnleggende</div></div>
-        <div style="font-weight:700;color:#C81860;font-size:15px;">299 kr/mnd</div>
-      </a>
-
-      <a href="https://link.feacreate.com/payment-link/69f08b988e7406bd4d4a3416" style="display:flex;justify-content:space-between;align-items:center;background:linear-gradient(120deg,#FCE4EE 0%,#FFFBEF 100%);border:2px solid #F02478;border-radius:12px;padding:12px 14px;text-decoration:none;margin-bottom:8px;position:relative;">
-        <div style="position:absolute;top:-8px;right:12px;background:#C81860;color:#fff;font-size:9px;font-weight:700;padding:2px 8px;border-radius:8px;">POPULÆR</div>
-        <div style="text-align:left;"><div style="font-weight:700;color:#1A1A1A;font-size:14px;">Proff</div><div style="font-size:11px;color:#6B6470;">Alle funksjoner</div></div>
-        <div style="font-weight:700;color:#C81860;font-size:15px;">499 kr/mnd</div>
-      </a>
-
-      <a href="https://link.feacreate.com/payment-link/69f08c488e7406bd4d4a3417" style="display:flex;justify-content:space-between;align-items:center;background:#fff;border:2px solid #E8E0E5;border-radius:12px;padding:12px 14px;text-decoration:none;margin-bottom:8px;">
-        <div style="text-align:left;"><div style="font-weight:700;color:#1A1A1A;font-size:14px;">Proff + Fellesskap</div><div style="font-size:11px;color:#6B6470;">Proff + privat gruppe</div></div>
-        <div style="font-weight:700;color:#C81860;font-size:15px;">699 kr/mnd</div>
-      </a>
-
-      <a href="https://link.feacreate.com/payment-link/69f3b03bcdfae4ecc1a198c4" style="display:flex;justify-content:space-between;align-items:center;background:linear-gradient(120deg,#F02478 0%,#C81860 100%);color:#fff;border-radius:12px;padding:14px;text-decoration:none;margin-bottom:20px;position:relative;">
-        <div style="position:absolute;top:-8px;right:12px;background:#fff;color:#C81860;font-size:9px;font-weight:700;padding:2px 8px;border-radius:8px;">SPAR 1 398 kr</div>
-        <div style="text-align:left;"><div style="font-weight:700;font-size:14px;">Årlig Proff + Fellesskap</div><div style="font-size:11px;opacity:.9;">Betal 10 mnd, få 12</div></div>
-        <div style="font-weight:700;font-size:15px;">6 990 kr/år</div>
-      </a>
+      <div data-lme-priser="liste" data-lme-sprak="no" data-lme-kjop></div>
 
       <div style="border-top:1px solid #E8E0E5;padding-top:16px;">
         <div style="font-size:12px;color:#6B6470;margin-bottom:10px;">Allerede abonnent? Skriv inn tilgangsnøkkelen din:</div>
@@ -552,7 +531,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 </div>
 
 <!-- ════ PRISMODAL, vises n\u00e5r brukeren trykker "Se alle abonnementer" ════ -->
-<div id="lme-pricing-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:100000;background:rgba(0,0,0,0.6);overflow-y:auto;padding:20px;font-family:'Sasson Montessori';">
+<div id="lme-pricing-modal" data-lme-kjop style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:100000;background:rgba(0,0,0,0.6);overflow-y:auto;padding:20px;font-family:'Sasson Montessori';">
   <div style="max-width:520px;margin:20px auto;background:#FFFAFA;border-radius:24px;padding:24px;position:relative;">
     <button onclick="lmeClosePricing()" style="position:absolute;top:14px;right:14px;background:#fff;border:1.5px solid #E8E0E5;color:#C81860;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;font-weight:700;"></button>
 
@@ -562,85 +541,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
       <div style="font-size:12px;color:#6B6470;font-style:italic;">Choose your plan</div>
     </div>
 
-    <!-- Start -->
-    <div style="background:#fff;border:2px solid #E8E0E5;border-radius:16px;padding:18px;margin-bottom:14px;">
-      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
-        <div style="font-family:'Playpen Sans';font-size:18px;font-weight:700;color:#1A1A1A;">Start</div>
-        <div style="font-size:18px;font-weight:900;color:#C81860;">299 kr<span style="font-size:11px;color:#6B6470;font-weight:400;">/mnd</span></div>
-      </div>
-      <ul style="list-style:none;padding:0;margin:0 0 14px 0;font-size:12px;color:#1A1A1A;line-height:1.8;">
-        <li>AI-innholdsgenerering, alle formater</li>
-        <li>Norsk og engelsk</li>
-        <li>Innholdskalender og 30-dagers plan</li>
-        <li>✅ <strong>3 plattformer</strong></li>
-        <li style="color:#999;">- DALL-E 3 bildegenerering</li>
-        <li style="color:#999;">- Automatisk publisering</li>
-      </ul>
-      <a href="https://link.feacreate.com/payment-link/69f08b50c970abb4095afe01" target="_top" style="display:block;width:100%;padding:12px;border-radius:10px;text-align:center;background:#fff;border:2px solid #F02478;color:#C81860;font-size:13px;font-weight:700;text-decoration:none;">Kom i gang →</a>
-    </div>
-
-    <!-- Proff (mest populær) -->
-    <div style="background:linear-gradient(135deg,#fff 0%,#FCE4EE 100%);border:2px solid #F02478;border-radius:16px;padding:18px;margin-bottom:14px;position:relative;box-shadow:0 8px 24px rgba(240,36,120,.15);">
-      <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#F02478;color:#fff;padding:4px 14px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;">MEST POPULÆR</div>
-      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;margin-top:6px;">
-        <div style="font-family:'Playpen Sans';font-size:20px;font-weight:900;color:#C81860;">Proff</div>
-        <div style="font-size:20px;font-weight:900;color:#C81860;">499 kr<span style="font-size:11px;color:#6B6470;font-weight:400;">/mnd</span></div>
-      </div>
-      <ul style="list-style:none;padding:0;margin:0 0 14px 0;font-size:12px;color:#1A1A1A;line-height:1.8;">
-        <li>Alt i Start</li>
-        <li>✅ <strong>6 plattformer</strong></li>
-        <li>DALL-E 3 AI-bildegenerering</li>
-        <li>Karakterkonsistente bilder</li>
-        <li>✅ <strong>Autopublisering</strong>, planlagt, hands-free</li>
-        <li>Reel-editor med musikk bakt inn</li>
-        <li>Story-editor med Canva-import</li>
-        <li>Prioritert støtte</li>
-      </ul>
-      <a href="https://link.feacreate.com/payment-link/69f08b988e7406bd4d4a3416" target="_top" style="display:block;width:100%;padding:14px;border-radius:10px;text-align:center;background:linear-gradient(120deg,#F02478 0%,#C81860 100%);color:#fff;font-size:14px;font-weight:700;text-decoration:none;box-shadow:0 4px 14px rgba(240,36,120,.25);">Få Proff, 499 kr/mnd →</a>
-    </div>
-
-    <!-- Proff + Fellesskap -->
-    <div style="background:#fff;border:2px solid #0084E4;border-radius:16px;padding:18px;margin-bottom:14px;">
-      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
-        <div>
-          <div style="font-family:'Playpen Sans';font-size:18px;font-weight:700;color:#005C9E;">Proff + Fellesskap</div>
-        </div>
-        <div style="font-size:18px;font-weight:900;color:#005C9E;">699 kr<span style="font-size:11px;color:#6B6470;font-weight:400;">/mnd</span></div>
-      </div>
-      <ul style="list-style:none;padding:0;margin:0 0 14px 0;font-size:12px;color:#1A1A1A;line-height:1.8;">
-        <li>Alt i Proff</li>
-        <li>✅ <strong>Alle 8 plattformer</strong></li>
-        <li>Tospråklig fellesskap 🇳🇴🇺🇸</li>
-        <li>Månedlig live Q&amp;A med Renate</li>
-        <li>Ressursbibliotek med Canva-maler</li>
-        <li>Månedlig innholdsutfordring</li>
-      </ul>
-      <a href="https://link.feacreate.com/payment-link/69f08c488e7406bd4d4a3417" target="_top" style="display:block;width:100%;padding:12px;border-radius:10px;text-align:center;background:linear-gradient(110deg,#0084E4,#339BEA);color:#fff;font-size:13px;font-weight:700;text-decoration:none;">Bli med i Proff + Fellesskap →</a>
-    </div>
-
-    <!-- Årlig Proff + Fellesskap (beste verdi) -->
-    <div style="background:linear-gradient(135deg,#FFF9E5 0%,#FCE4EE 100%);border:2px solid #FCC000;border-radius:16px;padding:18px;margin-bottom:14px;position:relative;box-shadow:0 8px 24px rgba(212,149,106,.2);">
-      <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:linear-gradient(110deg,#FCC000,#D9A500);color:#fff;padding:4px 14px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;">BESTE VERDI</div>
-      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;margin-top:6px;">
-        <div>
-          <div style="font-family:'Playpen Sans';font-size:18px;font-weight:900;color:#D9A500;">Årlig Proff + Fellesskap</div>
-          <div style="font-size:10px;color:#FCC000;font-weight:700;letter-spacing:0.5px;">SPAR 1 398 KR</div>
-        </div>
-        <div style="text-align:right;">
-          <div style="font-size:18px;font-weight:900;color:#D9A500;">6 990 kr<span style="font-size:11px;color:#6B6470;font-weight:400;">/år</span></div>
-          <div style="font-size:10px;color:#6B6470;">betal for 10 mnd, få 12</div>
-        </div>
-      </div>
-      <ul style="list-style:none;padding:0;margin:0 0 14px 0;font-size:12px;color:#1A1A1A;line-height:1.8;">
-        <li>Alt i Proff + Fellesskap</li>
-        <li>Grunnlegger-medlem-merke</li>
-        <li>Velkomst-call med Renate (20 min)</li>
-        <li>Canva-startpakke</li>
-        <li>Betal for 10 måneder, få 12</li>
-        <li>Låst pris i 12 måneder</li>
-      </ul>
-      <a href="https://link.feacreate.com/payment-link/69f3b03bcdfae4ecc1a198c4" target="_top" style="display:block;width:100%;padding:13px;border-radius:10px;text-align:center;background:linear-gradient(110deg,#FCC000,#D9A500);color:#fff;font-size:13px;font-weight:700;text-decoration:none;box-shadow:0 4px 14px rgba(212,149,106,.25);">Velg Årlig →</a>
-    </div>
+    <div data-lme-priser="kort" data-lme-sprak="no"></div>
 
     <div style="text-align:center;font-size:11px;color:#6B6470;margin-top:10px;line-height:1.5;">
       Avslutt når som helst<br/>
@@ -750,7 +651,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
         <button class="nav-dropdown-item" onclick="showTab('plan',this);closeNavMenu()">90-dagers plan</button>
         <button class="nav-dropdown-item" onclick="showTab('canva',this);closeNavMenu()">Canva</button>
         <button class="nav-dropdown-item" onclick="showTab('editor',this);closeNavMenu()">Editor</button>
-        <button class="nav-dropdown-item" onclick="showTab('pricing',this);closeNavMenu()">Priser</button>
+        <button class="nav-dropdown-item" data-lme-kjop onclick="showTab('pricing',this);closeNavMenu()">Priser</button>
         <button class="nav-dropdown-item" onclick="showTab('settings',this);closeNavMenu()">Innstillinger</button>
       </div>
     </div>
@@ -1565,13 +1466,13 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
 </div>
 
 <!-- ════ PRICING ════ -->
-<div id="tab-pricing" style="display:none;">
+<div id="tab-pricing" data-lme-kjop style="display:none;">
 
   <div style="background:linear-gradient(135deg,var(--rose) 0%,var(--rose-d) 100%);border-radius:20px;padding:28px 20px;text-align:center;margin-bottom:16px;color:white;">
     <div style="font-size:36px;margin-bottom:8px;">🌿</div>
     <div style="font-family:'Playpen Sans';font-size:22px;font-weight:900;margin-bottom:8px;">LME Autopilot</div>
     <div style="font-size:13px;opacity:.92;line-height:1.6;">AI-drevet innholdsmarkedsføring for enhver nisje<br/>lag en 90-dagers plan og ferdige innlegg på minutter</div>
-    <div style="margin-top:14px;background:rgba(255,255,255,.2);border-radius:12px;padding:10px 16px;font-size:13px;font-weight:700;">Prøv Proff gratis i 7 dager, kortopplysninger kreves, avslutt når som helst</div>
+    <div style="margin-top:14px;background:rgba(255,255,255,.2);border-radius:12px;padding:10px 16px;font-size:13px;font-weight:700;">Ingen binding, avbryt når som helst</div>
   </div>
 
   <!-- ════ SLIK FUNGERER DET ════ -->
@@ -1689,77 +1590,7 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
     </div>
   </div>
 
-  <!-- START 299 kr -->
-  <div class="card" style="border:2px solid var(--border);margin-bottom:14px;">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">
-      <div><div style="font-family:'Playpen Sans';font-size:18px;font-weight:900;">Start</div><div style="font-size:11px;color:var(--text-s);margin-top:2px;">Perfekt for å komme i gang</div></div>
-      <div style="text-align:right;"><div style="font-family:'Playpen Sans';font-size:28px;font-weight:900;color:var(--rose-d);">299 kr</div><div style="font-size:10px;color:var(--text-s);">per måned</div></div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:16px;font-size:12px;">
-      <div><span style="color:var(--sage-d);">✅</span> AI-innholdsgenerering, alle formater</div>
-      <div><span style="color:var(--sage-d);">✅</span> Norsk og engelsk</div>
-      <div><span style="color:var(--sage-d);">✅</span> Innholdskalender og 30-dagers plan</div>
-      <div><span style="color:var(--sage-d);">✅</span> <strong>3 plattformer</strong></div>
-      <div style="color:var(--text-s);"><span style="color:#ccc;">-</span> DALL-E 3 bildegenerering</div>
-      <div style="color:var(--text-s);"><span style="color:#ccc;">-</span> Automatisk publisering</div>
-    </div>
-    <a href="https://link.feacreate.com/payment-link/69f08b50c970abb4095afe01" target="_top" style="display:block;width:100%;padding:13px;border-radius:13px;text-align:center;background:white;border:2px solid var(--rose);color:var(--rose-d);font-family:'Sasson Montessori';font-size:13px;font-weight:700;text-decoration:none;">Kom i gang →</a>
-  </div>
-
-  <!-- PROFF 499 kr -->
-  <div class="card" style="border:2.5px solid var(--rose);background:linear-gradient(160deg,var(--rose-l) 0%,white 100%);margin-bottom:14px;position:relative;">
-    <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,var(--rose),var(--rose-d));color:white;border-radius:20px;padding:4px 16px;font-size:11px;font-weight:700;white-space:nowrap;">MEST POPULÆR</div>
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;margin-top:8px;">
-      <div><div style="font-family:'Playpen Sans';font-size:18px;font-weight:900;color:var(--rose-d);">Proff</div><div style="font-size:11px;color:var(--text-s);margin-top:2px;">Det komplette innholdssystemet</div></div>
-      <div style="text-align:right;"><div style="font-family:'Playpen Sans';font-size:28px;font-weight:900;color:var(--rose-d);">499 kr</div><div style="font-size:10px;color:var(--text-s);">per måned</div></div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:16px;font-size:12px;">
-      <div><span style="color:var(--sage-d);">✅</span> Alt i Start</div>
-      <div><span style="color:var(--sage-d);">✅</span> <strong>6 plattformer</strong></div>
-      <div><span style="color:var(--sage-d);">✅</span> DALL-E 3 AI-bildegenerering</div>
-      <div><span style="color:var(--sage-d);">✅</span> Karakterkonsistente bilder</div>
-      <div><span style="color:var(--sage-d);">✅</span> <strong>Autopublisering</strong>, planlagt, hands-free</div>
-      <div><span style="color:var(--sage-d);">✅</span> Reel-editor med musikk bakt inn</div>
-      <div><span style="color:var(--sage-d);">✅</span> Story-editor med Canva-import</div>
-      <div><span style="color:var(--sage-d);">✅</span> Prioritert støtte</div>
-    </div>
-    <a href="https://link.feacreate.com/payment-link/69f08b988e7406bd4d4a3416" target="_top" style="display:block;width:100%;padding:14px;border-radius:13px;text-align:center;background:linear-gradient(110deg,var(--rose),var(--rose-d));color:white;font-family:'Sasson Montessori';font-size:15px;font-weight:900;text-decoration:none;box-shadow:0 6px 20px rgba(240,36,120,.4);">Få Proff, 499 kr/mnd →</a>
-  </div>
-
-  <!-- PROFF + MEDLEMSKAP 699 kr -->
-  <div class="card" style="border:2px solid #0084E4;background:linear-gradient(160deg,#E6F3FC 0%,white 100%);margin-bottom:14px;position:relative;">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;margin-top:8px;">
-      <div><div style="font-family:'Playpen Sans';font-size:18px;font-weight:900;color:#005C9E;">Proff + Fellesskap</div><div style="font-size:11px;color:var(--text-s);margin-top:2px;">Studio + tospråklig fellesskap med Renate</div></div>
-      <div style="text-align:right;"><div style="font-family:'Playpen Sans';font-size:28px;font-weight:900;color:#005C9E;">699 kr</div><div style="font-size:10px;color:var(--text-s);">per måned</div></div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:14px;font-size:12px;">
-      <div><span style="color:#0084E4;">✅</span> Alt i Proff</div>
-      <div><span style="color:#0084E4;">✅</span> <strong>Alle 8 plattformer</strong></div>
-      <div><span style="color:#0084E4;">✅</span> Tospråklig fellesskap 🇳🇴🇺🇸</div>
-      <div><span style="color:#0084E4;">✅</span> Månedlig live Q&amp;A med Renate</div>
-      <div><span style="color:#0084E4;">✅</span> Ressursbibliotek med Canva-maler</div>
-      <div><span style="color:#0084E4;">✅</span> Månedlig innholdsutfordring</div>
-    </div>
-    <a href="https://link.feacreate.com/payment-link/69f08c488e7406bd4d4a3417" target="_top" style="display:block;width:100%;padding:13px;border-radius:13px;text-align:center;background:linear-gradient(110deg,#0084E4,#339BEA);color:white;font-family:'Sasson Montessori';font-size:13px;font-weight:700;text-decoration:none;">Bli med i Proff + Fellesskap →</a>
-  </div>
-
-  <!-- ÅRLIG 6 990 kr -->
-  <div class="card" style="border:2.5px solid var(--gold);background:linear-gradient(160deg,#FFFCF5 0%,#E6F3FC 100%);margin-bottom:14px;position:relative;">
-    <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,var(--gold),#D9A500);color:white;border-radius:20px;padding:4px 16px;font-size:11px;font-weight:700;white-space:nowrap;">BESTE VERDI</div>
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;margin-top:8px;">
-      <div><div style="font-family:'Playpen Sans';font-size:18px;font-weight:900;color:var(--gold);">Årlig Proff + Fellesskap</div><div style="font-size:11px;color:var(--text-s);margin-top:2px;">Alt inkludert, spar 1 398 kr!</div></div>
-      <div style="text-align:right;"><div style="font-family:'Playpen Sans';font-size:28px;font-weight:900;color:var(--gold);">6 990 kr</div><div style="font-size:10px;color:var(--text-s);">per år</div><div style="font-size:10px;color:var(--sage-d);font-weight:700;">betal for 10 mnd, få 12</div></div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:14px;font-size:12px;">
-      <div><span style="color:var(--gold);">✅</span> Alt i Proff + Fellesskap</div>
-      <div><span style="color:var(--gold);">✅</span> 🌟 Grunnlegger-medlem-merke</div>
-      <div><span style="color:var(--gold);">✅</span> 📞 Velkomst-call med Renate (20 min)</div>
-      <div><span style="color:var(--gold);">✅</span> 🎨 Canva-startpakke</div>
-      <div><span style="color:var(--gold);">✅</span> 💰 Betal for 10 måneder, få 12</div>
-      <div><span style="color:var(--gold);">✅</span> Låst pris i 12 måneder</div>
-    </div>
-    <a href="https://link.feacreate.com/payment-link/69f3b03bcdfae4ecc1a198c4" target="_top" style="display:block;width:100%;padding:14px;border-radius:13px;text-align:center;background:linear-gradient(110deg,var(--gold),#D9A500);color:white;font-family:'Sasson Montessori';font-size:15px;font-weight:900;text-decoration:none;box-shadow:0 6px 20px rgba(212,149,106,.5);">Velg Årlig →</a>
-  </div>
+  <div data-lme-priser="kort" data-lme-sprak="no"></div>
 
 </div>
 
@@ -1922,6 +1753,14 @@ Workshop «…» – halvdag – for …" oninput="saveSettings()"></textarea></
     Eksporter innstillingene dine som fil, importer dem igjen hvis du bytter enhet eller nettleser
   </div>
   <div id="settings-ok" style="display:none;background:var(--sage-l);border-radius:10px;padding:10px 14px;color:var(--sage-d);font-size:13px;text-align:center;">Settings saved!</div>
+  <div class="card" style="border:1px solid var(--border);margin-top:14px;">
+    <div class="card-title">Konto og personvern</div>
+    <div style="font-size:11px;color:var(--text-s);line-height:1.6;margin-bottom:10px;">Vil du slutte, sletter du kontoen din og alt appen har lagret. Det kan ikke angres, og et løpende abonnement må sies opp for seg.</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <a class="chip" href="/slett-konto" target="_blank" rel="noopener" style="text-decoration:none;color:#C0392B;">Slett konto</a>
+      <a class="chip" href="/personvern" target="_blank" rel="noopener" style="text-decoration:none;">Personvern</a>
+    </div>
+  </div>
 </div>
 
 

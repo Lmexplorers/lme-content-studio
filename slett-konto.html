@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Slett konto · LME Autopilot</title>
+<meta name="description" content="Slett LME Autopilot-kontoen din og alt appen har lagret."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/><link href="https://fonts.googleapis.com/css2?family=Playpen+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+@font-face{font-family:'Sasson Montessori';src:url('/SassoonMontessori.woff2') format('woff2'),url('/SassoonMontessori.ttf') format('truetype');font-weight:normal;font-style:normal;font-display:swap;}
+:root{--rose:#F02478;--rose-d:#C81860;--ink:#3A3340;--soft:#6B6470;--line:#F0D9E4;--sage:#9CC000;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Sasson Montessori',system-ui,sans-serif;color:var(--ink);background:linear-gradient(135deg,#FCE4EE 0%,#FFFBEF 100%);line-height:1.7;padding:28px 18px 60px;}
+.wrap{max-width:640px;margin:0 auto;background:#fff;border-radius:18px;padding:34px 30px;box-shadow:0 10px 40px rgba(200,24,96,.10);}
+h1,h2{font-family:'Playpen Sans',system-ui,sans-serif;color:var(--rose);}
+h1{font-size:28px;margin-bottom:6px;}
+h2{font-size:19px;margin:26px 0 8px;color:var(--rose-d);}
+p,li,label{font-size:15px;color:var(--ink);}
+ul{margin:6px 0 6px 22px;}
+li{margin-bottom:5px;}
+a{color:var(--rose);font-weight:700;text-decoration:none;}
+.meta{font-size:13px;color:var(--soft);margin-bottom:18px;}
+.lang{display:flex;gap:8px;justify-content:flex-end;margin-bottom:14px;}
+.lang button{font-family:'Sasson Montessori',system-ui,sans-serif;font-size:13px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--soft);padding:7px 14px;border-radius:999px;cursor:pointer;}
+.lang button.on{background:var(--rose);color:#fff;border-color:var(--rose);}
+.boks{border:1px solid var(--line);border-radius:14px;padding:20px;margin-top:22px;background:#FFFBFD;}
+input{font-family:'Sasson Montessori',system-ui,sans-serif;font-size:16px;width:100%;padding:12px 14px;border:2px solid var(--line);border-radius:10px;color:var(--ink);outline:none;margin-top:6px;}
+input:focus{border-color:var(--rose);}
+button.knapp{font-family:'Sasson Montessori',system-ui,sans-serif;font-size:15px;font-weight:700;width:100%;margin-top:12px;padding:13px;border:none;border-radius:10px;background:var(--rose);color:#fff;cursor:pointer;}
+button.knapp[disabled]{opacity:.55;cursor:default;}
+button.fare{background:#C0392B;}
+.varsel{background:#FFF4F4;border:1px solid #F3C9C4;border-radius:12px;padding:14px 16px;margin-top:16px;font-size:14px;}
+.svar{margin-top:14px;font-size:14px;font-weight:700;min-height:22px;}
+.svar.ok{color:#2E7D32;}
+.svar.feil{color:#C0392B;}
+.skjult{display:none;}
+.back{display:inline-block;margin-top:24px;font-size:14px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="lang">
+    <button id="b-no" class="on" onclick="setLang('no')">Norsk</button>
+    <button id="b-en" onclick="setLang('en')">English</button>
+  </div>
+
+  <h1 data-no="Slett kontoen din" data-en="Delete your account">Slett kontoen din</h1>
+  <p class="meta" data-no="LME Autopilot, Little Montessori Explorers" data-en="LME Autopilot, Little Montessori Explorers">LME Autopilot, Little Montessori Explorers</p>
+
+  <p data-no="Her sletter du LME Autopilot-kontoen din og alt appen har lagret om deg. Du bekrefter med en engangskode på e-post, slik at ingen andre kan slette kontoen din."
+     data-en="Here you delete your LME Autopilot account and everything the app has stored about you. You confirm with a one-time code by email, so no one else can delete your account.">Her sletter du LME Autopilot-kontoen din og alt appen har lagret om deg. Du bekrefter med en engangskode på e-post, slik at ingen andre kan slette kontoen din.</p>
+
+  <h2 data-no="Dette slettes" data-en="What gets deleted">Dette slettes</h2>
+  <ul>
+    <li data-no="Kontoen din: e-postadressen, planen og kredittene." data-en="Your account: email address, plan and credits.">Kontoen din: e-postadressen, planen og kredittene.</li>
+    <li data-no="Alt lagret arbeid: innstillinger, merkevareprofiler, innholdsplaner og historikk." data-en="All saved work: settings, brand profiles, content plans and history.">Alt lagret arbeid: innstillinger, merkevareprofiler, innholdsplaner og historikk.</li>
+    <li data-no="Innloggingskoder som ikke er brukt." data-en="Any unused login codes.">Innloggingskoder som ikke er brukt.</li>
+  </ul>
+
+  <h2 data-no="Dette slettes ikke" data-en="What is not deleted">Dette slettes ikke</h2>
+  <ul>
+    <li data-no="Abonnementet ditt. Sletter du kontoen, stopper ikke betalingen av seg selv, så si opp abonnementet først." data-en="Your subscription. Deleting the account does not stop the payment by itself, so cancel the subscription first.">Abonnementet ditt. Sletter du kontoen, stopper ikke betalingen av seg selv, så si opp abonnementet først.</li>
+    <li data-no="Kvitteringer og regnskapsdata hos Stripe, som må oppbevares etter bokføringsloven." data-en="Receipts and accounting records at Stripe, which have to be kept under bookkeeping law.">Kvitteringer og regnskapsdata hos Stripe, som må oppbevares etter bokføringsloven.</li>
+    <li data-no="Det som ligger lokalt i nettleseren din. Tøm nettleserdataene for appen om du vil bli kvitt det også." data-en="Whatever is stored locally in your browser. Clear the app's browser data if you want that gone too.">Det som ligger lokalt i nettleseren din. Tøm nettleserdataene for appen om du vil bli kvitt det også.</li>
+  </ul>
+
+  <div class="varsel" data-no="Sletting kan ikke angres. Arbeidet ditt er borte for godt." data-en="Deletion cannot be undone. Your work is gone for good.">Sletting kan ikke angres. Arbeidet ditt er borte for godt.</div>
+
+  <div class="boks">
+    <div id="steg1">
+      <label for="epost" data-no="E-postadressen du logger inn med" data-en="The email address you log in with">E-postadressen du logger inn med</label>
+      <input type="email" id="epost" autocomplete="email" placeholder="deg@eksempel.no"/>
+      <button class="knapp" id="knapp1" onclick="sendKode()" data-no="Send meg en kode" data-en="Send me a code">Send meg en kode</button>
+    </div>
+
+    <div id="steg2" class="skjult">
+      <label for="kode" data-no="Koden du fikk på e-post" data-en="The code you received by email">Koden du fikk på e-post</label>
+      <input type="text" id="kode" inputmode="numeric" autocomplete="one-time-code" placeholder="123456"/>
+      <button class="knapp fare" id="knapp2" onclick="slett()" data-no="Slett kontoen min for godt" data-en="Delete my account for good">Slett kontoen min for godt</button>
+    </div>
+
+    <div class="svar" id="svar"></div>
+  </div>
+
+  <h2 data-no="Trenger du hjelp?" data-en="Need help?">Trenger du hjelp?</h2>
+  <p><span data-no="Får du det ikke til, send en e-post til Renate på " data-en="If this does not work for you, email Renate at ">Får du det ikke til, send en e-post til Renate på </span><a href="mailto:renateshobby@hotmail.com">renateshobby@hotmail.com</a><span data-no=", så sletter hun kontoen manuelt." data-en=" and she will delete the account manually.">, så sletter hun kontoen manuelt.</span></p>
+
+  <a class="back" href="/" data-no="← Tilbake til appen" data-en="← Back to the app">← Tilbake til appen</a>
+</div>
+
+<script>
+var TEKST = {
+  no: {
+    sender: "Sender kode …",
+    sendt: "Koden er sendt. Sjekk e-posten din.",
+    ugyldigEpost: "Skriv inn en gyldig e-postadresse.",
+    manglerKode: "Skriv inn koden fra e-posten.",
+    sletter: "Sletter …",
+    slettet: "Kontoen din er slettet. Husk å si opp abonnementet om du har et løpende.",
+    feil: "Noe gikk galt. Prøv igjen, eller send en e-post til Renate."
+  },
+  en: {
+    sender: "Sending code …",
+    sendt: "The code has been sent. Check your email.",
+    ugyldigEpost: "Enter a valid email address.",
+    manglerKode: "Enter the code from the email.",
+    sletter: "Deleting …",
+    slettet: "Your account has been deleted. Remember to cancel your subscription if you have an active one.",
+    feil: "Something went wrong. Try again, or send Renate an email."
+  }
+};
+var lang = "no";
+
+function setLang(l){
+  lang = l;
+  document.documentElement.lang = l;
+  document.getElementById('b-no').classList.toggle('on', l==='no');
+  document.getElementById('b-en').classList.toggle('on', l==='en');
+  document.querySelectorAll('[data-no][data-en]').forEach(function(el){
+    var v = l==='en' ? el.getAttribute('data-en') : el.getAttribute('data-no');
+    if(el.children.length===0){ el.textContent = v; }
+  });
+}
+
+function si(melding, type){
+  var s = document.getElementById('svar');
+  s.textContent = melding;
+  s.className = 'svar' + (type ? ' ' + type : '');
+}
+
+function post(kropp){
+  return fetch('/api/auth', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(kropp)
+  }).then(function(r){ return r.json(); });
+}
+
+function sendKode(){
+  var t = TEKST[lang];
+  var e = document.getElementById('epost').value.trim().toLowerCase();
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){ si(t.ugyldigEpost, 'feil'); return; }
+  var k = document.getElementById('knapp1');
+  k.disabled = true; si(t.sender);
+  post({ action: 'request', email: e }).then(function(r){
+    k.disabled = false;
+    if(r && r.error){ si(r.error, 'feil'); return; }
+    document.getElementById('steg2').classList.remove('skjult');
+    document.getElementById('kode').focus();
+    si(t.sendt, 'ok');
+  }).catch(function(){ k.disabled = false; si(t.feil, 'feil'); });
+}
+
+function slett(){
+  var t = TEKST[lang];
+  var e = document.getElementById('epost').value.trim().toLowerCase();
+  var kode = document.getElementById('kode').value.trim();
+  if(!kode){ si(t.manglerKode, 'feil'); return; }
+  var k = document.getElementById('knapp2');
+  k.disabled = true; si(t.sletter);
+  post({ action: 'verify', email: e, code: kode }).then(function(r){
+    if(!r || !r.token){ k.disabled = false; si((r && r.error) || t.feil, 'feil'); return; }
+    return fetch('/api/delete-account', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: r.token })
+    }).then(function(x){ return x.json(); }).then(function(d){
+      k.disabled = false;
+      if(d && d.ok){
+        try { localStorage.clear(); } catch(err){}
+        document.getElementById('steg1').classList.add('skjult');
+        document.getElementById('steg2').classList.add('skjult');
+        si(t.slettet, 'ok');
+      } else {
+        si((d && d.error) || t.feil, 'feil');
+      }
+    });
+  }).catch(function(){ k.disabled = false; si(t.feil, 'feil'); });
+}
+</script>
+</body>
+</html>
