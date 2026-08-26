@@ -334,7 +334,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 <body>
 
 <style id="lme-ob-style">
-#lme-ob{position:fixed;inset:0;z-index:100001;display:none;font-family:'Sasson Montessori',sans-serif;color:#1A1A1A;}
+#lme-ob{position:fixed;inset:0;z-index:99998;display:none;font-family:'Sasson Montessori',sans-serif;color:#1A1A1A;}
 #lme-ob.show{display:block;}
 #lme-ob .obapp{position:relative;width:100%;height:100dvh;max-width:480px;margin:0 auto;display:flex;flex-direction:column;
   background:radial-gradient(120% 60% at 50% -8%,#FCE4EE 0%,rgba(252,228,238,0) 60%),radial-gradient(90% 50% at 100% 100%,#FFF3CC 0%,rgba(255,243,204,0) 55%),#FFFAFA;overflow:hidden;}
@@ -456,6 +456,10 @@ input[type=range]{width:100%;accent-color:var(--rose);}
  var root=document.getElementById('lme-ob');
  var seen; try{seen=localStorage.getItem('lme_ob_v1')}catch(e){}
  if(seen && location.hash.indexOf('intro')<0) return;
+ // The intro sat on top of the lock screen and covered "Log in", so a new
+ // user could not get in at all. It now waits until the user has an
+ // account, and shows the first time they come back after logging in.
+ try{ if(!localStorage.getItem('lme_cs_token') && location.hash.indexOf('intro')<0) return; }catch(e){}
  root.classList.add('show');
  var slides=[].slice.call(root.querySelectorAll('.obslide'));
  var total=slides.length, prog=document.getElementById('ob-prog');
@@ -516,10 +520,8 @@ input[type=range]{width:100%;accent-color:var(--rose);}
       <div data-lme-priser="liste" data-lme-sprak="en" data-lme-kjop></div>
 
       <div style="border-top:1px solid #E8E0E5;padding-top:16px;">
-        <div style="font-size:12px;color:#6B6470;margin-bottom:10px;">Already subscribed? Enter your access key:</div>
-        <input type="text" id="lme-access-input" placeholder="Enter access key / Skriv inn nøkkel" style="width:100%;padding:12px 14px;border:2px solid #E8E0E5;border-radius:10px;font-family:'Sasson Montessori';font-size:14px;color:#1A1A1A;outline:none;margin-bottom:10px;text-align:center;" onkeypress="if(event.key==='Enter')lmeCheckAccess()"/>
-        <button onclick="lmeCheckAccess()" style="width:100%;padding:12px;background:#B4D870;color:#fff;border:none;border-radius:10px;font-family:'Sasson Montessori';font-size:14px;font-weight:700;cursor:pointer;">Unlock Studio</button>
-        <div id="lme-access-error" style="display:none;color:#C81860;font-size:12px;margin-top:10px;">Invalid key. Check your welcome email from Your brand.</div>
+        <div style="font-size:12px;color:#6B6470;margin-bottom:10px;">Already have an account?</div>
+        <button onclick="openAuthModal()" style="width:100%;padding:12px;background:#B4D870;color:#fff;border:none;border-radius:10px;font-family:'Sasson Montessori';font-size:14px;font-weight:700;cursor:pointer;">Log in</button>
       </div>
 
       <div style="margin-top:20px;font-size:10px;color:#6B6470;opacity:.7;line-height:1.5;">
@@ -553,64 +555,37 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 <script>
 // ════ ACCESS CONTROL, runs immediately ════
 (function(){
-  // List of valid access keys. Add/remove keys here as needed.
-  // The simplest setup: one shared key for all paying customers.
-  // Send this key in the FEA Create welcome email.
-  const VALID_KEYS = [
-    'LME2026',           // Main access key, share this in FEA welcome email
-    'LME-PRO-2026',      // Optional alternative key
-    'LME-FAMILY-2026'      // Optional alternative key
-  ];
+  /* The gate into the app is the login, not a key.
 
-  // Check URL for ?key=xxx parameter (from email link)
-  const urlParams = new URLSearchParams(window.location.search);
-  const urlKey = urlParams.get('key');
-  if(urlKey && VALID_KEYS.includes(urlKey.toUpperCase())){
-    try{ localStorage.setItem('lme_access_granted','yes'); }catch(e){}
-    // Clean URL so the key isn't visible in address bar
-    if(window.history && window.history.replaceState){
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-  }
+     Until 26 August 2026 three access keys sat directly in this
+     JavaScript ('LME2026' and two more), and ?key=LME2026 unlocked the
+     app permanently on that device. That key was published in the HTML
+     on lmexplorers.com, so anyone could unlock it. It never granted free
+     generation, since images and video are checked against the plan on
+     the server (checkQuota in functions/api/generate.js), but it was a
+     shop window that looked like a lock. It is gone now.
 
-  // Check if access already granted on this device
-  let hasAccess = false;
-  try{ hasAccess = localStorage.getItem('lme_access_granted') === 'yes'; }catch(e){}
+     lmeApplyLock is called by renderAuth further down, both at startup
+     and on login and logout. */
+  document.documentElement.style.overflow = 'hidden';
 
-  if(!hasAccess){
-    // Hide the app and show lock screen
-    document.documentElement.style.overflow = 'hidden';
-    window.addEventListener('DOMContentLoaded', function(){
-      const lock = document.getElementById('lme-lock-screen');
-      if(lock) lock.style.display = 'block';
-      // Hide everything else
-      document.body.style.overflow = 'hidden';
-    });
-  }
+  // Last answer from /api/auth. Starts locked, so the app does not flash.
+  window._lmeInnlogget = false;
 
-  // Make function globally available for the unlock button
-  window.lmeCheckAccess = function(){
-    const input = document.getElementById('lme-access-input');
-    const err = document.getElementById('lme-access-error');
-    const key = (input.value || '').trim().toUpperCase();
-    if(VALID_KEYS.includes(key)){
-      try{ localStorage.setItem('lme_access_granted','yes'); }catch(e){}
-      const lock = document.getElementById('lme-lock-screen');
-      if(lock) lock.style.display = 'none';
-      document.documentElement.style.overflow = '';
-      document.body.style.overflow = '';
-    } else {
-      if(err) err.style.display = 'block';
-      input.style.borderColor = '#C81860';
-    }
+  window.lmeApplyLock = function(loggedIn){
+    window._lmeInnlogget = !!loggedIn;
+    var lock = document.getElementById('lme-lock-screen');
+    if(lock) lock.style.display = loggedIn ? 'none' : 'block';
+    document.documentElement.style.overflow = loggedIn ? '' : 'hidden';
+    if(document.body) document.body.style.overflow = loggedIn ? '' : 'hidden';
   };
 
-  // For your own use: a button to log out (clears access)
-  // You can call lmeLogout() from browser console to test
-  window.lmeLogout = function(){
-    try{ localStorage.removeItem('lme_access_granted'); }catch(e){}
-    location.reload();
-  };
+  // The lock screen only exists once the document has been parsed. Apply the
+  // last known answer, not a fixed value: if /api/auth answers before this
+  // fires, a fixed false would lock out a user who is actually logged in.
+  window.addEventListener('DOMContentLoaded', function(){
+    window.lmeApplyLock(window._lmeInnlogget);
+  });
 
   // "See subscription plans", opens a modal with all plans
   window.lmeShowPricing = function(event){
@@ -666,7 +641,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 .auth-user .auth-credits{font-weight:700;color:var(--rose-d);white-space:nowrap;}
 .auth-user .auth-email{color:var(--text-s);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .auth-user .auth-logout{background:var(--rose-l);border:none;color:var(--rose-d);border-radius:999px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;}
-.auth-modal{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9998;display:none;align-items:center;justify-content:center;padding:18px;}
+.auth-modal{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100001;display:none;align-items:center;justify-content:center;padding:18px;}
 .auth-card{background:#fff;border-radius:20px;padding:24px;max-width:360px;width:100%;}
 .auth-card h3{font-family:'Playpen Sans';font-weight:900;font-size:20px;color:var(--rose-d);margin-bottom:6px;}
 .auth-card p{font-size:13px;color:var(--text-s);line-height:1.5;margin-bottom:14px;}
@@ -703,10 +678,21 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 const LME_TOKEN_KEY='lme_cs_token';
 function lmeToken(){ return localStorage.getItem(LME_TOKEN_KEY)||''; }
 async function lmeAuthApi(payload){ const r=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}); return r.json(); }
-async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d=await lmeAuthApi({action:'me',token:t}); return d.account||null; }catch(e){ return null; } }
+async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d=await lmeAuthApi({action:'me',token:t}); window._lmeAuthFeil=false; return d.account||null; }catch(e){ window._lmeAuthFeil=true; return null; } }
 function renderAuth(acc){
   const lb=document.getElementById('auth-login-btn'), us=document.getElementById('auth-user');
   window.lmeAccount=acc||null;
+  try{
+    if(typeof window.lmeApplyLock==='function'){
+      /* Safety valve: if /api/auth did not answer at all but the user has a
+         token, the server is down, not the subscription missing. Do not lock
+         them out. Generation is protected on the server anyway (checkQuota in
+         functions/api/generate.js).
+         The valve has to live here, not in the startup block, because
+         lmeServerSync calls renderAuth a second time and would re-lock. */
+      window.lmeApplyLock(!!acc || (window._lmeAuthFeil && !!lmeToken()));
+    }
+  }catch(e){}
   if(acc){ lb.style.display='none'; us.style.display='flex'; document.getElementById('auth-email').textContent=acc.email; document.getElementById('auth-credits').textContent='🎬 '+(acc.credits.video||0)+' · 🖼 '+(acc.credits.image||0); }
   else { lb.style.display='inline-block'; us.style.display='none'; }
   // Once we know who is logged in: show the Mia & Teo option for the owner.
@@ -733,7 +719,11 @@ async function lmeVerifyCode(){
   try{ if(typeof lmeServerSync==='function') lmeServerSync(); }catch(e){}  // pull your work from the account right away
 }
 function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(null); }
-(async function(){ try{ renderAuth(await lmeAuthMe()); }catch(e){} })();
+(async function(){
+  var acc=null;
+  try{ acc=await lmeAuthMe(); }catch(e){}
+  renderAuth(acc);   // renderAuth styrer laasen, sikkerhetsventilen ligger der
+})();
 </script>
 
 <div class="app-body">
