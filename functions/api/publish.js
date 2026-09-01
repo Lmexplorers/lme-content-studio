@@ -58,10 +58,92 @@ async function blotato(path, key, body) {
   return { ok: r.ok, status: r.status, data };
 }
 
+/* ─────────────────── Hvem far lov til a autopublisere ───────────────────
+ *
+ * Autopublisering folger med engangskjopet av appen (1490 kr) og med
+ * abonnementet, ikke med en gratis konto. Sjekken ligger HER, pa serveren,
+ * og ikke bare i knappen: en las som bare finnes i nettleseren er ingen las.
+ *
+ * Kunden bruker sin EGEN Blotato-nokkel uansett, sa dette koster ikke LME
+ * noe. Det er nettopp derfor det kan folge med et engangskjop.
+ *
+ * Er ikke innloggingen satt opp i det hele tatt (ACCOUNTS_KV eller
+ * AUTH_SECRET mangler), slipper vi gjennom. Da er dette et oppsett uten
+ * kontoer, og a lase alle ute ville vaert verre enn a la alle publisere.
+ */
+const OWNER_EMAILS = ["renateshobby@hotmail.com"];
+
+async function harPubliseringstilgang(env, token) {
+  if (!env || !env.ACCOUNTS_KV || !env.AUTH_SECRET) return { ok: true };
+
+  const LOGG_INN = {
+    ok: false, code: "login_required",
+    error: "Logg inn for a publisere. Autopublisering folger med appen (engangskjop) eller et abonnement.",
+  };
+  if (!token) return LOGG_INN;
+
+  // Samme tokenformat som /api/auth lager: base64url(payload).hmac
+  let email = null;
+  try {
+    const [payload, sig] = String(token).split(".");
+    if (!payload || !sig) return LOGG_INN;
+    const enc = new TextEncoder();
+    const k = await crypto.subtle.importKey("raw", enc.encode(env.AUTH_SECRET), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+    const mac = await crypto.subtle.sign("HMAC", k, enc.encode(payload));
+    let bin = ""; const bytes = new Uint8Array(mac);
+    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    const ventet = btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    if (sig !== ventet) return LOGG_INN;
+    let s = payload.replace(/-/g, "+").replace(/_/g, "/");
+    while (s.length % 4) s += "=";
+    const o = JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(s), (c) => c.charCodeAt(0))));
+    if (o.exp && o.exp < Date.now()) return LOGG_INN;
+    email = String(o.email || "").trim().toLowerCase();
+  } catch (e) { return LOGG_INN; }
+  if (!email) return LOGG_INN;
+
+  // Eieren skal aldri stoppes av en las i sitt eget produkt.
+  if (OWNER_EMAILS.includes(email) || (env.OWNER_EMAIL && email === String(env.OWNER_EMAIL).toLowerCase())) {
+    return { ok: true };
+  }
+
+  // Kjopet star pa member:<e-post>, speilet til user:<e-post> nar kontoen
+  // fantes da kjopet skjedde. Kjoper hun for forste innlogging, finnes bare
+  // member-posten. Derfor leses begge.
+  let harApp = false;
+  try {
+    const raw = await env.ACCOUNTS_KV.get("member:" + email);
+    if (raw) {
+      const rec = JSON.parse(raw);
+      if (rec && (rec.appKjopt || (rec.plan && rec.status === "active"))) harApp = true;
+    }
+  } catch (e) {}
+  if (!harApp) {
+    try {
+      const raw = await env.ACCOUNTS_KV.get("user:" + email);
+      if (raw) {
+        const u = JSON.parse(raw);
+        if (u && (u.appKjopt || (u.subscription && u.subscription.status === "active"))) harApp = true;
+      }
+    } catch (e) {}
+  }
+  if (harApp) return { ok: true };
+
+  return {
+    ok: false, code: "app_required",
+    error: "Autopublisering folger med appen. Kjop den en gang for 1490 kr pa " +
+           "lmexplorers.com/autopilot-app, eller velg et abonnement. Du kan " +
+           "fortsatt lage innholdet og legge det ut selv.",
+  };
+}
+
 export async function onRequestPost(context) {
-  const { request } = context;
+  const { request, env } = context;
   let b = {};
   try { b = await request.json(); } catch (e) { return json({ error: "bad_json" }, 400); }
+
+  const tilgang = await harPubliseringstilgang(env, b.token);
+  if (!tilgang.ok) return json({ error: tilgang.error, code: tilgang.code }, 200);
 
   const key = b.blotatoKey;
   if (!key) return json({ error: "Mangler Blotato-nokkel. Legg den inn i Innstillinger." }, 200);

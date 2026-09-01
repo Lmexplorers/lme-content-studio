@@ -3518,6 +3518,9 @@ async function blotatoPublish({text, mediaUrls, scheduledTime, mediaName, target
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
+        /* Serveren sjekker at kontoen har appen (engangskjop, abonnement
+           eller eier) for den publiserer. Uten token blir det avvist. */
+        token: (typeof lmeToken==='function' ? lmeToken() : null),
         blotatoKey: cfg.blotatoKey,
         accounts: accounts,
         contentKind: contentKind||'post',
