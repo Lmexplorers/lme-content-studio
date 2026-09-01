@@ -14,6 +14,8 @@
  * Kreditter gjelder video + bilde. Tildeling skjer (senere) automatisk via abonnement-webhook.
  */
 
+import { erEierEpost } from "../_lib/eier.js";
+
 function json(o, s) {
   return new Response(JSON.stringify(o), {
     status: s || 200,
@@ -79,14 +81,9 @@ function publicAccount(u, ekstra) {
 }
 
 /* Eieren skal aldri stoppes av en lås i sitt eget produkt (CLAUDE.md i
-   lme-platform). Samme liste som generate.js bruker. */
-const OWNER_EMAILS = ["renateshobby@hotmail.com"];
+   lme-platform). Lista ligger i _lib/eier.js, felles for hele appen. */
 function erEier(env, email) {
-  if (!email) return false;
-  const e = String(email).toLowerCase();
-  if (OWNER_EMAILS.includes(e)) return true;
-  if (env.OWNER_EMAIL && e === String(env.OWNER_EMAIL).toLowerCase()) return true;
-  return false;
+  return erEierEpost(email, env);
 }
 
 /* Har denne kontoen full tilgang til appen?

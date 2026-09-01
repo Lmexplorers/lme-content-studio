@@ -36,6 +36,7 @@ function bufToB64(buf) {
 }
 
 import { loggForbruk } from "../_lib/forbrukslogg.js";
+import { erEierEpost } from "../_lib/eier.js";
 
 /* Hvilken modell-id vi faktisk kalte, slik den heter hos leverandøren.
    Appen bruker korte kallenavn ("dalle3", "nano"), mens forbruksloggen og
@@ -130,14 +131,9 @@ function capsForSub(sub, user) {
 // Beholdt for bakoverkompatibilitet i eksisterende kode.
 const PLAN_IMAGE_CAP = { free: 0, start: 100, proff: 100, proffplus: 100, arlig: 100, app: 100 };
 
-// Eieren skal aldri stoppes av bilde-taket. Kan utvides via env.OWNER_EMAIL.
-const OWNER_EMAILS = ["renateshobby@hotmail.com"];
+// Eieren skal aldri stoppes av bilde-taket. Lista ligger i _lib/eier.js.
 function isOwner(env, email) {
-  if (!email) return false;
-  const e = String(email).toLowerCase();
-  if (OWNER_EMAILS.includes(e)) return true;
-  if (env.OWNER_EMAIL && e === String(env.OWNER_EMAIL).toLowerCase()) return true;
-  return false;
+  return erEierEpost(email, env);
 }
 
 const _enc = new TextEncoder();
