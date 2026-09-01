@@ -18,6 +18,10 @@
  *  -> { ok, postId?, blotato? } eller { error, detail, status }
  */
 
+import {
+  lesKobling, finnKonto, offentligMedia, publiserTil, planleggTil,
+} from "../_lib/meta-publish.js";
+
 const BLOTATO = "https://backend.blotato.com/v2";
 
 function json(o, s) {
@@ -104,7 +108,7 @@ async function harPubliseringstilgang(env, token) {
 
   // Eieren skal aldri stoppes av en las i sitt eget produkt.
   if (OWNER_EMAILS.includes(email) || (env.OWNER_EMAIL && email === String(env.OWNER_EMAIL).toLowerCase())) {
-    return { ok: true };
+    return { ok: true, email: email };
   }
 
   // Kjopet star pa member:<e-post>, speilet til user:<e-post> nar kontoen
@@ -127,13 +131,12 @@ async function harPubliseringstilgang(env, token) {
       }
     } catch (e) {}
   }
-  if (harApp) return { ok: true };
+  if (harApp) return { ok: true, email: email };
 
   return {
     ok: false, code: "app_required",
     error: "Autopublisering folger med appen. Kjop den en gang for 1490 kr pa " +
-           "lmexplorers.com/autopilot-app, eller velg et abonnement. Du kan " +
-           "fortsatt lage innholdet og legge det ut selv.",
+           "lmexplorers.com/autopilot-app, eller velg et abonnement.",
   };
 }
 
@@ -146,17 +149,36 @@ export async function onRequestPost(context) {
   if (!tilgang.ok) return json({ error: tilgang.error, code: tilgang.code }, 200);
 
   const key = b.blotatoKey;
-  if (!key) return json({ error: "Mangler Blotato-nokkel. Legg den inn i Innstillinger." }, 200);
 
   // Bygg konto-liste. Ny vei: b.accounts = [{id, platform}] (flervalg).
   // Bakoverkomp.: enkelt b.accountId + b.targetType.
   let accounts = Array.isArray(b.accounts)
-    ? b.accounts.filter((a) => a && a.id).map((a) => ({ id: String(a.id), platform: a.platform || a.targetType || b.targetType || "instagram", pageId: a.pageId, boardId: a.boardId }))
+    ? b.accounts.filter((a) => a && a.id).map((a) => ({ id: String(a.id), platform: a.platform || a.targetType || b.targetType || "instagram", pageId: a.pageId, boardId: a.boardId, src: a.src }))
     : [];
   if (!accounts.length && b.accountId) accounts = [{ id: String(b.accountId), platform: b.targetType || "instagram" }];
   if (!accounts.length) return json({ error: "Mangler konto. Velg minst en profil du vil poste til." }, 200);
 
   const contentKind = b.contentKind || ""; // 'story' | 'reel' | 'post'
+
+  /* To veier ut.
+   *
+   * LME-kontoer gaar gjennom plattformens egen Metakobling (Instagram og
+   * Facebook), den samme kunden koblet til paa lmexplorers.com/planlegger.
+   * Da trenger hun ingen Blotato-konto for at Autopilot skal gaa paa auto.
+   *
+   * Blotato-kontoer gaar som for, og er veien til TikTok og resten. */
+  const lmeKontoer = accounts.filter((a) => a.src === "lme");
+  const blKontoer = accounts.filter((a) => a.src !== "lme");
+
+  let lmeResultater = [];
+  if (lmeKontoer.length) {
+    lmeResultater = await publiserViaLME(env, tilgang.email, lmeKontoer, b, contentKind);
+  }
+  if (!blKontoer.length) return oppsummer(lmeResultater);
+
+  if (!key) {
+    return json({ error: "Mangler Blotato-nokkel. Legg den inn i Innstillinger, eller velg kontoene du har koblet til via LME." }, 200);
+  }
 
   try {
     // 1) Last opp hver media-kilde til Blotato EN gang (gjenbrukes for alle kontoer).
@@ -234,15 +256,92 @@ export async function onRequestPost(context) {
       });
     }
 
-    const okCount = results.filter((r) => r.ok).length;
-    if (okCount === results.length) return json({ ok: true, results });
-    // Delvis eller full feil: gi tydelig, menneskelig oppsummering.
-    const failed = results.filter((r) => !r.ok).map((r) => (r.platform || r.accountId) + (r.error ? " (" + r.error + ")" : "")).join(", ");
-    const msg = okCount > 0
-      ? "Sendt til " + okCount + " av " + results.length + ". Feilet: " + failed
-      : "Publisering feilet for alle. " + failed;
-    return json({ ok: false, error: msg, okCount, total: results.length, results }, 200);
+    return oppsummer(lmeResultater.concat(results));
   } catch (e) {
     return json({ error: String((e && e.message) || e) }, 200);
   }
+}
+
+/* ─────────────────────── Publisering via LMEs Metakobling ───────────────
+ *
+ * Kunden kobler til Instagram og Facebook en gang paa
+ * lmexplorers.com/planlegger. Tilgangsnoklene ligger i det delte KV-et
+ * under social:<e-post>, og brukes her. Ingen Blotato, ingen ekstra
+ * regning for kunden, og appen gjor det den heter.
+ */
+async function publiserViaLME(env, email, kontoer, b, contentKind) {
+  const IKKE_KOBLET =
+    "Du har ikke koblet til Instagram eller Facebook enda. Gjor det en gang " +
+    "paa lmexplorers.com/planlegger, sa legger appen ut for deg.";
+
+  if (!email || !env.ACCOUNTS_KV) {
+    return kontoer.map((a) => ({ accountId: a.id, platform: a.platform, ok: false, error: IKKE_KOBLET }));
+  }
+  const kobling = await lesKobling(env, email);
+  if (!kobling) {
+    return kontoer.map((a) => ({ accountId: a.id, platform: a.platform, ok: false, error: IKKE_KOBLET }));
+  }
+
+  /* Meta tar ett medium per innlegg. Appen sender som regel ett, og et
+     eventuelt nummer to hoppes over i stedet for aa feile hele innlegget. */
+  const kilde = (b.mediaUrls || []).filter(Boolean)[0] || "";
+  const erVideo = /^data:video\//i.test(kilde) || /\.(mp4|mov)(\?|$)/i.test(kilde) || contentKind === "reel";
+
+  let mediaUrl = "";
+  if (kilde) {
+    const m = await offentligMedia(env, kilde);
+    if (!m.ok) {
+      return kontoer.map((a) => ({ accountId: a.id, platform: a.platform, ok: false, error: m.error }));
+    }
+    mediaUrl = m.url;
+  }
+
+  /* Planlagt innlegg legges i plattformens egen ko, og publiseres av
+     bakgrunnsjobben som allerede gaar hvert kvarter. */
+  if (b.scheduledTime) {
+    const mal = [];
+    const ukjente = [];
+    for (const a of kontoer) {
+      if (finnKonto(kobling, a.id)) mal.push(String(a.id));
+      else ukjente.push(a);
+    }
+    const ut = ukjente.map((a) => ({ accountId: a.id, platform: a.platform, ok: false, error: "Kontoen er ikke koblet til lenger." }));
+    if (mal.length) {
+      try {
+        await planleggTil(env, email, {
+          nar: b.scheduledTime, mal: mal, tekst: b.text || "",
+          mediaUrl: mediaUrl, erVideo: erVideo, kind: contentKind || "post",
+        });
+        mal.forEach((id) => ut.push({ accountId: id, platform: (kontoer.find((k) => String(k.id) === id) || {}).platform, ok: true, planlagt: true }));
+      } catch (e) {
+        mal.forEach((id) => ut.push({ accountId: id, ok: false, error: "Klarte ikke aa legge innlegget i koen." }));
+      }
+    }
+    return ut;
+  }
+
+  const ut = [];
+  for (const a of kontoer) {
+    const konto = finnKonto(kobling, a.id);
+    if (!konto) {
+      ut.push({ accountId: a.id, platform: a.platform, ok: false, error: "Kontoen er ikke koblet til lenger." });
+      continue;
+    }
+    const r = await publiserTil(env, konto, {
+      text: b.text || "", mediaUrl: mediaUrl, erVideo: erVideo, kind: contentKind || "post",
+    });
+    ut.push({ accountId: a.id, platform: konto.platform, ok: r.ok, id: r.id || "", error: r.error || undefined });
+  }
+  return ut;
+}
+
+/* Samme oppsummering uansett hvilken vei innlegget gikk. */
+function oppsummer(alle) {
+  const okCount = alle.filter((r) => r.ok).length;
+  if (okCount === alle.length && okCount > 0) return json({ ok: true, results: alle });
+  const failed = alle.filter((r) => !r.ok).map((r) => (r.platform || r.accountId) + (r.error ? " (" + r.error + ")" : "")).join(", ");
+  const msg = okCount > 0
+    ? "Sendt til " + okCount + " av " + alle.length + ". Feilet: " + failed
+    : "Publisering feilet for alle. " + failed;
+  return json({ ok: false, error: msg, okCount: okCount, total: alle.length, results: alle }, 200);
 }
