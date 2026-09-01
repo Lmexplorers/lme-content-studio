@@ -71,8 +71,52 @@ async function putUser(env, user) {
   await env.ACCOUNTS_KV.put("user:" + user.email, JSON.stringify(user));
   return user;
 }
-function publicAccount(u) {
-  return { email: u.email, plan: u.plan || "free", credits: u.credits || { video: 0, image: 0 } };
+function publicAccount(u, ekstra) {
+  return Object.assign(
+    { email: u.email, plan: u.plan || "free", credits: u.credits || { video: 0, image: 0 } },
+    ekstra || {}
+  );
+}
+
+/* Eieren skal aldri stoppes av en lås i sitt eget produkt (CLAUDE.md i
+   lme-platform). Samme liste som generate.js bruker. */
+const OWNER_EMAILS = ["renateshobby@hotmail.com"];
+function erEier(env, email) {
+  if (!email) return false;
+  const e = String(email).toLowerCase();
+  if (OWNER_EMAILS.includes(e)) return true;
+  if (env.OWNER_EMAIL && e === String(env.OWNER_EMAIL).toLowerCase()) return true;
+  return false;
+}
+
+/* Har denne kontoen full tilgang til appen?
+ *
+ * Tre veier inn, og de er likeverdige:
+ *   1. Eier.
+ *   2. Engangskjøp av appen (appKjopt), satt av grantAutopilotApp i
+ *      lme-platform sin purchase-links.js når kunden har betalt.
+ *   3. Et aktivt abonnement, som før.
+ *
+ * Kjøpet står på member:<e-post>, samme post som abonnementet, og speiles
+ * til user:<e-post> hvis kontoen fantes da kjøpet skjedde. Kjøper hun FØR
+ * hun har logget inn i appen første gang, finnes ikke user-posten, og da
+ * er member-posten det eneste stedet. Derfor leses begge. Det er den
+ * vanligste rekkefølgen: hun kjøper, så logger hun inn. */
+async function tilgangFor(env, email, user) {
+  if (erEier(env, email)) return { harApp: true, appKjopt: false, eier: true };
+  let appKjopt = !!(user && user.appKjopt);
+  let abonnement = !!(user && user.subscription && user.subscription.status === "active");
+  if (!appKjopt || !abonnement) {
+    try {
+      const raw = await env.ACCOUNTS_KV.get("member:" + String(email).trim().toLowerCase());
+      if (raw) {
+        const rec = JSON.parse(raw);
+        if (rec && rec.appKjopt) appKjopt = true;
+        if (rec && rec.plan && rec.status === "active") abonnement = true;
+      }
+    } catch (e) { /* ingen member-post, eller ulesbar. Da står det vi alt vet. */ }
+  }
+  return { harApp: appKjopt || abonnement, appKjopt: appKjopt, eier: false };
 }
 
 async function sendCodeEmail(env, email, code) {
@@ -130,7 +174,11 @@ export async function onRequestPost(context) {
       await putUser(env, user);
     }
     const token = await makeToken(env, email);
-    return json({ token, account: publicAccount(user) });
+    /* Samme tilgangsinfo som "me". Uten den ville appen staatt laast helt
+       til neste gang den spurte, altsaa rett etter at kunden nettopp har
+       logget inn for aa bruke det hun har kjoept. */
+    const tilgang = await tilgangFor(env, email, user);
+    return json({ token, account: publicAccount(user, tilgang) });
   }
 
   if (action === "me") {
@@ -138,7 +186,11 @@ export async function onRequestPost(context) {
     if (!email) return json({ error: "not_authenticated" }, 200);
     const user = await getUser(env, email);
     if (!user) return json({ error: "not_authenticated" }, 200);
-    return json({ account: publicAccount(user) });
+    /* harApp forteller appen om de laaste delene skal aapnes: eier,
+       engangskjoep eller abonnement. Uten dette maatte hver del ha spurt
+       serveren selv. */
+    const tilgang = await tilgangFor(env, email, user);
+    return json({ account: publicAccount(user, tilgang) });
   }
 
   return json({ error: "ukjent action" }, 400);
