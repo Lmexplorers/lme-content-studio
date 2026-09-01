@@ -1700,9 +1700,9 @@ Workshop «…» – halvdag – for …" oninput="saveSettings()"></textarea></
     <div class="card">
     <div class="card-title">Automatisk publisering</div>
     <div style="font-size:12px;color:var(--text-s);line-height:1.7;margin-bottom:12px;">
-      Appen legger ut for deg. Instagram og Facebook går gjennom LME, og det eneste du gjør er å koble til kontoene dine én gang. Blotato er bare nødvendig hvis du også vil poste til TikTok og de andre.
+      Koble appen til Blotato, så publiserer du rett til Instagram, TikTok og Facebook herfra. Lim inn API-nøkkelen fra Blotato (Settings, så API keys), og fyll inn konto-ID-en for profilen du vil poste til.
     </div>
-    <a href="https://lmexplorers.com/planlegger" target="_blank" rel="noopener" class="act-btn" style="display:block;width:100%;box-sizing:border-box;text-align:center;text-decoration:none;background:var(--rose);color:#fff;margin-bottom:10px;">Koble til Instagram og Facebook</a><label style="font-size:12px;color:var(--text);font-weight:600;">Blotato API-nøkkel (valgfritt, for TikTok og resten)</label>
+    <label style="font-size:12px;color:var(--text);font-weight:600;">Blotato API-nøkkel</label>
     <input type="password" id="s-blotato-key" placeholder="blotato-api-key" oninput="saveSettings()" style="margin:5px 0 10px;"/>
     <button type="button" class="act-btn sage-btn" id="s-blotato-fetch" onclick="blotatoFetchAccounts()" style="width:100%;margin-bottom:8px;">Hent kontoene mine</button>
     <select id="s-blotato-accounts-list" onchange="blotatoPickAccount(this)" style="display:none;width:100%;padding:10px;border-radius:8px;border:1px solid var(--line);margin-bottom:8px;"></select>
@@ -3860,8 +3860,7 @@ async function blotatoFetchAccounts(){
   const btn=document.getElementById('s-blotato-fetch');
   const sel=document.getElementById('s-blotato-accounts-list');
   const note=document.getElementById('s-blotato-note');
-  // Uten Blotato-nokkel viser vi bare LME-kontoene. Det er den vanlige veien.
-  if(!key){ renderBlotatoAccountChecks(lmeKontoer); if(note)note.textContent=lmeKontoer.length?(lmeKontoer.length+' konto(er) funnet. Huk av alle du vil poste til.'):'Fant ingen kontoer. Koble til Instagram og Facebook med knappen over, eller lim inn en Blotato-nøkkel.'; return; }
+  if(!key){ if(note)note.textContent='Lim inn Blotato API-nøkkelen først.'; return; }
   btn.disabled=true; const old=btn.textContent; btn.textContent='Henter…';
   try{
     const res=await fetch('/api/blotato-accounts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({blotatoKey:key})});
@@ -3869,7 +3868,7 @@ async function blotatoFetchAccounts(){
     if(!d.ok){ try{ console.log('Blotato-kontoer feil:', d); }catch(_){} if(lmeKontoer.length) renderBlotatoAccountChecks(lmeKontoer); if(note){ note.textContent=(d.error||'Kunne ikke hente Blotato-kontoer.'); note.style.color='#C81860'; } btn.disabled=false; btn.textContent=old; return; }
     if(note) note.style.color='var(--text-s)';
     const accts=lmeKontoer.concat(d.accounts||[]);
-    if(!accts.length){ if(note)note.textContent='Fant ingen kontoer. Koble til Instagram og Facebook med knappen over, eller lim inn en Blotato-nøkkel.'; if(sel)sel.style.display='none'; btn.disabled=false; btn.textContent=old; return; }
+    if(!accts.length){ if(note)note.textContent='Fant ingen tilkoblede kontoer. Koble til profiler i Blotato først.'; if(sel)sel.style.display='none'; btn.disabled=false; btn.textContent=old; return; }
     renderBlotatoAccountChecks(accts);
     if(note)note.textContent=accts.length+' konto(er) funnet. Huk av alle du vil poste til.';
   }catch(e){ if(note)note.textContent='Feil: '+((e&&e.message)||e); }
