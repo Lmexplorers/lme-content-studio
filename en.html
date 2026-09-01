@@ -1413,9 +1413,9 @@ Workshop "…" – half day – for …" oninput="saveSettings()"></textarea></d
     <div class="card">
     <div class="card-title">Automatic publishing</div>
     <div style="font-size:12px;color:var(--text-s);line-height:1.7;margin-bottom:12px;">
-      Connect the app to Blotato to publish straight to Instagram, TikTok and Facebook from here. Paste the API key from Blotato (Settings, then API keys), and enter the account ID for the profile you want to post to.
+      The app posts for you. Instagram and Facebook go through LME, and all you do is connect your accounts once. Blotato is only needed if you also want to post to TikTok and the others.
     </div>
-    <label style="font-size:12px;color:var(--text);font-weight:600;">Blotato API key</label>
+    <a href="https://lmexplorers.com/planlegger" target="_blank" rel="noopener" class="act-btn" style="display:block;width:100%;box-sizing:border-box;text-align:center;text-decoration:none;background:var(--rose);color:#fff;margin-bottom:10px;">Connect Instagram and Facebook</a><label style="font-size:12px;color:var(--text);font-weight:600;">Blotato API key (optional, for TikTok and the rest)</label>
     <input type="password" id="s-blotato-key" placeholder="blotato-api-key" oninput="saveSettings()" style="margin:5px 0 10px;"/>
     <button type="button" class="act-btn sage-btn" id="s-blotato-fetch" onclick="blotatoFetchAccounts()" style="width:100%;margin-bottom:8px;">Fetch my accounts</button>
     <select id="s-blotato-accounts-list" onchange="blotatoPickAccount(this)" style="display:none;width:100%;padding:10px;border-radius:8px;border:1px solid var(--line);margin-bottom:8px;"></select>
@@ -3507,12 +3507,13 @@ function _syncBlotatoKey(){
   return cfg.blotatoKey;
 }
 async function blotatoPublish({text, mediaUrls, scheduledTime, mediaName, target, contentKind, accountIds}){
-  if(!_syncBlotatoKey()) return {ok:false, error:'Missing Blotato key. Add it in Settings.'};
   // Multi-select: post to every ticked account, or only the ones picked for this post (accountIds).
   // Falls back to a single account.
-  let accounts=(cfg.blotatoAccounts||[]).filter(a=>a&&a.id).filter(a=>!accountIds||accountIds.includes(String(a.id))).map(a=>({id:String(a.id), platform:a.platform||cfg.blotatoPlatform||'instagram', pageId:a.pageId||undefined, boardId:a.boardId||undefined}));
+  let accounts=(cfg.blotatoAccounts||[]).filter(a=>a&&a.id).filter(a=>!accountIds||accountIds.includes(String(a.id))).map(a=>({id:String(a.id), platform:a.platform||cfg.blotatoPlatform||'instagram', src:a.src||undefined, pageId:a.pageId||undefined, boardId:a.boardId||undefined}));
   if(!accounts.length && cfg.blotatoAccount){ accounts=[{id:String(cfg.blotatoAccount), platform:cfg.blotatoPlatform||'instagram'}]; }
   if(!accounts.length) return {ok:false, error:'Missing account. Pick at least one account in Settings.'};
+  // Blotato-nokkelen trengs bare for kontoer som IKKE gaar gjennom LME.
+  if(accounts.some(a=>a.src!=='lme') && !_syncBlotatoKey()) return {ok:false, error:'Missing a Blotato key for that account. Add it in Settings, or pick the accounts you connected through LME.'};
   try{
     const res=await fetch('/api/publish',{
       method:'POST',
@@ -3540,21 +3541,34 @@ function blotatoTime(publishAt){
   if(!publishAt) return undefined;
   try{ return new Date(publishAt.replace(' ','T')).toISOString(); }catch(e){ return undefined; }
 }
+// Hent kontoene kunden har koblet til gjennom LME (Instagram og Facebook).
+// Dette er veien som gjor at appen legger ut uten at hun trenger Blotato.
+async function hentLmeKontoer(){
+  try{
+    const token=(typeof lmeToken==='function' ? lmeToken() : null);
+    if(!token) return [];
+    const r=await fetch('/api/lme-accounts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token})});
+    const d=await r.json().catch(()=>({}));
+    return (d&&d.ok&&Array.isArray(d.accounts)) ? d.accounts : [];
+  }catch(e){ return []; }
+}
 // Fetch connected Blotato accounts and fill the dropdown.
 async function blotatoFetchAccounts(){
   const key=(document.getElementById('s-blotato-key').value||'').trim();
+  const lmeKontoer=await hentLmeKontoer();
   const btn=document.getElementById('s-blotato-fetch');
   const sel=document.getElementById('s-blotato-accounts-list');
   const note=document.getElementById('s-blotato-note');
-  if(!key){ if(note)note.textContent='Paste the Blotato API key first.'; return; }
+  // Uten Blotato-nokkel viser vi bare LME-kontoene. Det er den vanlige veien.
+  if(!key){ renderBlotatoAccountChecks(lmeKontoer); if(note)note.textContent=lmeKontoer.length?(lmeKontoer.length+' account(s) found. Tick every one you want to post to.'):'No accounts found. Connect Instagram and Facebook with the button above, or paste a Blotato key.'; return; }
   btn.disabled=true; const old=btn.textContent; btn.textContent='Fetching…';
   try{
     const res=await fetch('/api/blotato-accounts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({blotatoKey:key})});
     const d=await res.json().catch(()=>({}));
-    if(!d.ok){ try{ console.log('Blotato accounts error:', d); }catch(_){} if(note){ note.textContent=(d.error||'Could not fetch accounts.'); note.style.color='#C81860'; } btn.disabled=false; btn.textContent=old; return; }
+    if(!d.ok){ try{ console.log('Blotato accounts error:', d); }catch(_){} if(lmeKontoer.length) renderBlotatoAccountChecks(lmeKontoer); if(note){ note.textContent=(d.error||'Could not fetch Blotato accounts.'); note.style.color='#C81860'; } btn.disabled=false; btn.textContent=old; return; }
     if(note) note.style.color='var(--text-s)';
-    const accts=d.accounts||[];
-    if(!accts.length){ if(note)note.textContent='No connected accounts found. Connect profiles in Blotato first.'; if(sel)sel.style.display='none'; btn.disabled=false; btn.textContent=old; return; }
+    const accts=lmeKontoer.concat(d.accounts||[]);
+    if(!accts.length){ if(note)note.textContent='No accounts found. Connect Instagram and Facebook with the button above, or paste a Blotato key.'; if(sel)sel.style.display='none'; btn.disabled=false; btn.textContent=old; return; }
     renderBlotatoAccountChecks(accts);
     if(note)note.textContent=accts.length+' account(s) found. Tick everyone you want to post to.';
   }catch(e){ if(note)note.textContent='Error: '+((e&&e.message)||e); }
@@ -3569,8 +3583,8 @@ function renderBlotatoAccountChecks(accts){
   host.innerHTML='<label style="display:flex;align-items:center;gap:8px;padding:5px 2px;font-size:13px;font-weight:700;cursor:pointer;border-bottom:1px solid var(--line);margin-bottom:4px;"><input type="checkbox" id="s-blotato-all" onchange="blotatoToggleAll(this)" style="width:18px;height:18px;accent-color:var(--rose);"> Select all</label>'+
     accts.map(function(a){
       const on=sel.has(String(a.id));
-      const label=(emoji[a.platform]?emoji[a.platform]+' ':'')+(a.platform?a.platform+': ':'')+(a.name||a.id);
-      return '<label style="display:flex;align-items:center;gap:8px;padding:5px 2px;font-size:13px;cursor:pointer;"><input type="checkbox" value="'+esc(a.id)+'" data-plat="'+esc(a.platform)+'" data-name="'+esc(a.name)+'" data-pageid="'+esc(a.pageId||'')+'" data-boardid="'+esc(a.boardId||'')+'" '+(on?'checked':'')+' onchange="blotatoToggleAccount(this)" style="width:18px;height:18px;accent-color:var(--rose);"> '+esc(label)+'</label>';
+      const label=(emoji[a.platform]?emoji[a.platform]+' ':'')+(a.platform?a.platform+': ':'')+(a.name||a.id)+(a.src==='lme'?' (via LME)':'');
+      return '<label style="display:flex;align-items:center;gap:8px;padding:5px 2px;font-size:13px;cursor:pointer;"><input type="checkbox" value="'+esc(a.id)+'" data-plat="'+esc(a.platform)+'" data-name="'+esc(a.name)+'" data-src="'+esc(a.src||'')+'" data-pageid="'+esc(a.pageId||'')+'" data-boardid="'+esc(a.boardId||'')+'" '+(on?'checked':'')+' onchange="blotatoToggleAccount(this)" style="width:18px;height:18px;accent-color:var(--rose);"> '+esc(label)+'</label>';
     }).join('');
   host.style.display='block';
   const all=document.getElementById('s-blotato-all'); if(all) all.checked = accts.length>0 && accts.every(a=>sel.has(String(a.id)));
@@ -3578,9 +3592,9 @@ function renderBlotatoAccountChecks(accts){
 }
 function blotatoToggleAccount(cb){
   if(!Array.isArray(cfg.blotatoAccounts)) cfg.blotatoAccounts=[];
-  const id=cb.value, plat=cb.getAttribute('data-plat')||'', name=cb.getAttribute('data-name')||'', pageId=cb.getAttribute('data-pageid')||'', boardId=cb.getAttribute('data-boardid')||'';
+  const id=cb.value, plat=cb.getAttribute('data-plat')||'', name=cb.getAttribute('data-name')||'', src=cb.getAttribute('data-src')||'', pageId=cb.getAttribute('data-pageid')||'', boardId=cb.getAttribute('data-boardid')||'';
   const i=cfg.blotatoAccounts.findIndex(a=>String(a.id)===String(id));
-  if(cb.checked){ if(i<0) cfg.blotatoAccounts.push({id:id, platform:plat, name:name, pageId:pageId||undefined, boardId:boardId||undefined}); else { cfg.blotatoAccounts[i].pageId=pageId||cfg.blotatoAccounts[i].pageId; cfg.blotatoAccounts[i].boardId=boardId||cfg.blotatoAccounts[i].boardId; } }
+  if(cb.checked){ if(i<0) cfg.blotatoAccounts.push({id:id, platform:plat, name:name, src:src||undefined, pageId:pageId||undefined, boardId:boardId||undefined}); else { cfg.blotatoAccounts[i].pageId=pageId||cfg.blotatoAccounts[i].pageId; cfg.blotatoAccounts[i].boardId=boardId||cfg.blotatoAccounts[i].boardId; } }
   else { if(i>=0) cfg.blotatoAccounts.splice(i,1); }
   updateBlotatoPostToSummary(); saveSettings();
   reelPickedAccountIds=null; try{ renderReelAccountPicker(); }catch(e){}
