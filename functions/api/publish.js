@@ -135,7 +135,7 @@ async function harPubliseringstilgang(env, token) {
 
   return {
     ok: false, code: "app_required",
-    error: "Autopublisering folger med appen. Kjop den en gang for 1490 kr pa " +
+    error: "Autopublisering folger med appen. Kjop den en gang pa " +
            "lmexplorers.com/autopilot-app, eller velg et abonnement.",
   };
 }
