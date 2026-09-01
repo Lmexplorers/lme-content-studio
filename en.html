@@ -3513,7 +3513,7 @@ async function blotatoPublish({text, mediaUrls, scheduledTime, mediaName, target
   if(!accounts.length && cfg.blotatoAccount){ accounts=[{id:String(cfg.blotatoAccount), platform:cfg.blotatoPlatform||'instagram'}]; }
   if(!accounts.length) return {ok:false, error:'Missing account. Pick at least one account in Settings.'};
   // Blotato-nokkelen trengs bare for kontoer som IKKE gaar gjennom LME.
-  if(accounts.some(a=>a.src!=='lme') && !_syncBlotatoKey()) return {ok:false, error:'Missing a Blotato key for that account. Add it in Settings, or pick the accounts you connected through LME.'};
+  if(accounts.some(a=>a.src!=='lme') && !_syncBlotatoKey()) return {ok:false, error:'Missing Blotato key. Add it in Settings.'};
   try{
     const res=await fetch('/api/publish',{
       method:'POST',

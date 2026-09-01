@@ -3812,7 +3812,7 @@ async function blotatoPublish({text, mediaUrls, scheduledTime, mediaName, target
   if(!accounts.length && cfg.blotatoAccount){ accounts=[{id:String(cfg.blotatoAccount), platform:cfg.blotatoPlatform||'instagram'}]; }
   if(!accounts.length) return {ok:false, error:'Mangler konto. Velg minst én konto i Innstillinger.'};
   // Blotato-nokkelen trengs bare for kontoer som IKKE gaar gjennom LME.
-  if(accounts.some(a=>a.src!=='lme') && !_syncBlotatoKey()) return {ok:false, error:'Mangler Blotato-nøkkel for denne kontoen. Legg den inn i Innstillinger, eller velg kontoene du har koblet til via LME.'};
+  if(accounts.some(a=>a.src!=='lme') && !_syncBlotatoKey()) return {ok:false, error:'Mangler Blotato-nøkkel. Legg den inn i Innstillinger.'};
   try{
     const res=await fetch('/api/publish',{
       method:'POST',
