@@ -846,8 +846,8 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
     <!-- ════ REEL VIDEO UPLOAD (shown for Reel format) ════ -->
     <div id="reel-section" style="display:none;margin-top:16px;border-top:1px solid var(--border);padding-top:16px;">
       <div class="reel-section">
-        <div class="reel-section-title">Last opp din Reel-video</div>
-        <div class="reel-section-sub">Manuset ditt er klart ovenfor. Ta opp video med manuset, og last opp her for automatisk publisering til Instagram, TikTok og Facebook.</div>
+        <div class="reel-section-title">Eller last opp din egen video</div>
+        <div class="reel-section-sub">Har du filmet selv, laster du opp her i stedet. Manuset ditt ligger klart ovenfor. Videoen publiseres automatisk til Instagram, TikTok og Facebook.</div>
 
         <div class="video-drop-zone" id="video-drop-zone">
           <input type="file" class="video-file-input" id="video-file-input" accept="video/mp4,video/mov,video/quicktime,video/*" onchange="handleVideoFile(this.files[0])"/>
@@ -2678,14 +2678,19 @@ function updateReelSection(){
   document.getElementById('reel-section').style.display = isReel ? 'block' : 'none';
   // Story: show image-publish section (generates 9:16 image + posts as story)
   // Other formats: show image-publish section
-  document.getElementById('image-publish-section').style.display = isReel ? 'none' : 'block';
+  /* AI-seksjonen skal ALLTID stå, også for reel. Reel hadde 'none' her,
+     og da satt kunden igjen med bare en opplastingsboks: hele poenget med
+     appen, at innholdet genereres, var borte. Nå er det et valg: lag
+     bildet med AI og gjør det om til en reel, eller last opp din egen
+     video lenger nede. Renate 1. september 2026. */
+  document.getElementById('image-publish-section').style.display = 'block';
   // Update image-publish section title for story
   const pubTitle = document.getElementById('pub-section-title');
   if(pubTitle){
     if(isStory){
       pubTitle.textContent = 'AI-bilde (9:16) + Autopubliser som Story';
     } else {
-      pubTitle.textContent = 'AI-bilde + Autopublisering';
+      pubTitle.textContent = isReel ? 'AI-bilde eller reel + Autopublisering' : 'AI-bilde + Autopublisering';
     }
   }
 }
