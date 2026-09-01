@@ -3338,7 +3338,15 @@ async function genererBilde(){
 
     const hookPart = hook ? `Hook concept: "${hook}". ` : '';
     const sizePart = asp==='9:16'?'Vertical 9:16 portrait format.':asp==='16:9'?'Wide 16:9 landscape format.':asp==='4:5'?'Portrait 4:5 format.':'Square 1:1 format.';
-    const _brandPart = cfg.brand ? cfg.brand+'. ' : '';
+    /* Merkevarenavnet skal IKKE inn i bildeprompten. Sto det
+       "Little Montessori Explorers" der, dro bildemodellen hver eneste
+       scene mot Montessori og barn, uansett hva temaet var. Renate
+       1. september 2026: "Arg jeg får fortsatt Montessori innhold!"
+       Tekstpromptene har en vaktsetning mot dette, men en bildemodell
+       tar dårlig imot "ikke gjør X". Den sikre veien er å la være å
+       nevne merkevaren i det hele tatt. Stil styres av stylePart, og
+       faste figurer av _charPart. */
+    const _brandPart = '';
     const _charPart = (cfg.charPreset==='custom'&&cfg.charNames) ? ('Featuring '+cfg.charNames+(cfg.charDesc?' ('+cfg.charDesc+')':'')+'. ') : '';
     const stylePart = IMG_STYLES[state.imgStyle||'auto']||IMG_STYLES.auto;
     const userPrompt=(document.getElementById('img-prompt')?.value||'').trim();
@@ -3689,7 +3697,7 @@ async function generateHashtags(){
     const res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:400,messages:[{role:'user',content:`Generate 20 niche English Instagram hashtags for ${cfg.brand||'the brand'}${cfg.niche?(' in the niche '+cfg.niche):''} about "${topic||cfg.niche||cfg.brand||'the content'}". Mix: 5 large (1M+), 8 medium (100k-1M), 7 small niche (<100k). Return only hashtags separated by spaces, no explanation.`}]})
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:400,messages:[{role:'user',content:`Generate 20 niche English Instagram hashtags for ${cfg.brand||'the brand'}${cfg.niche?(' in the niche '+cfg.niche):''} about "${topic||cfg.niche||cfg.brand||'the content'}". Stay strictly on the topic, and do not pull in unrelated themes even if the brand normally covers other subjects. Mix: 5 large (1M+), 8 medium (100k-1M), 7 small niche (<100k). Return only hashtags separated by spaces, no explanation.`}]})
     });
     const data=await res.json();
     const tags=data.content?.map(b=>b.text||'').join('').trim()||'';
