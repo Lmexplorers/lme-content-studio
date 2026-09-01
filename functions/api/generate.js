@@ -35,6 +35,18 @@ function bufToB64(buf) {
   return btoa(bin);
 }
 
+import { loggForbruk } from "../_lib/forbrukslogg.js";
+
+/* Hvilken modell-id vi faktisk kalte, slik den heter hos leverandøren.
+   Appen bruker korte kallenavn ("dalle3", "nano"), mens forbruksloggen og
+   /ai-kostnader vil ha den ekte id-en, ellers finner de ingen pris. */
+function modellId(kortnavn, harMalbilde) {
+  if (kortnavn === "nano") return "gemini-2.5-flash-image";
+  if (kortnavn === "nano-pro") return "gemini-3-pro-image-preview";
+  // DALL-E 3 kan ikke ta malbilde, da bytter koden over til gpt-image-1.
+  return harMalbilde ? "gpt-image-1" : "dall-e-3";
+}
+
 /* ───────── Konto / token / plan-tak ───────── */
 
 // Inkluderte mengder per plan (dekket av abonnementet, på LMEs egen nøkkel).
@@ -356,7 +368,22 @@ export async function onRequestPost(context) {
         }
       }
 
+      const t0 = Date.now();
       const result = await generateImage(env, body, !useServerKey);
+      // Bare kall paa LMEs egen nokkel foeres i loggen: det er de som koster
+      // Renate penger. Bruker kunden sin egen nokkel, betaler hun direkte.
+      if (useServerKey) {
+        await loggForbruk(env, {
+          task: "image",
+          modelId: modellId(body.model, !!body.refData),
+          email: (gateUser && gateUser.email) || "",
+          units: { images: 1 },
+          status: result.imageUrl ? "ok" : "error",
+          ms: Date.now() - t0,
+          error: result.imageUrl ? "" : (result.error || ""),
+          note: gateOwner ? "eier" : "",
+        });
+      }
       if (result.imageUrl) {
         if (useServerKey && gateUser && !gateOwner) {
           try { await consumeImageCredit(env, gateUser); } catch (e) {}
@@ -382,6 +409,9 @@ export async function onRequestPost(context) {
       if (!key) return json({ error: provider === "openai" ? "OpenAI-nøkkel mangler." : "Claude-nøkkel mangler." }, 400);
 
       let text = "";
+      const tTekst = Date.now();
+      let brukteTokens = {};
+      let tekstModell = body.model || (provider === "openai" ? "gpt-4o" : "claude-sonnet-4-6");
       if (provider === "openai") {
         const r = await fetch("https://api.openai.com/v1/chat/completions", {
           method: "POST",
@@ -391,6 +421,7 @@ export async function onRequestPost(context) {
         const d = await r.json().catch(() => ({}));
         if (!r.ok) return json({ error: (d.error && d.error.message) || ("OpenAI " + r.status) }, 200);
         text = (d.choices && d.choices[0] && d.choices[0].message && d.choices[0].message.content) || "";
+        if (d.usage) brukteTokens = { inputTokens: d.usage.prompt_tokens || 0, outputTokens: d.usage.completion_tokens || 0 };
       } else {
         const r = await fetch("https://api.anthropic.com/v1/messages", {
           method: "POST",
@@ -400,6 +431,18 @@ export async function onRequestPost(context) {
         const d = await r.json().catch(() => ({}));
         if (!r.ok) return json({ error: (d.error && d.error.message) || ("Claude " + r.status) }, 200);
         text = (d.content && d.content.map((b) => b.text || "").join("")) || "";
+        if (d.usage) brukteTokens = { inputTokens: d.usage.input_tokens || 0, outputTokens: d.usage.output_tokens || 0 };
+      }
+      if (useServerKey) {
+        await loggForbruk(env, {
+          task: "text",
+          modelId: tekstModell,
+          email: (gu && gu.email) || "",
+          units: brukteTokens,
+          status: "ok",
+          ms: Date.now() - tTekst,
+          note: go ? "eier" : "",
+        });
       }
       if (useServerKey && gu && !go) { try { await consumeCredit(env, gu, "text"); } catch (e) {} }
       return json({ text });
