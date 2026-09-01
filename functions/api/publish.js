@@ -21,6 +21,7 @@
 import {
   lesKobling, finnKonto, offentligMedia, publiserTil, planleggTil,
 } from "../_lib/meta-publish.js";
+import { erEierEpost } from "../_lib/eier.js";
 
 const BLOTATO = "https://backend.blotato.com/v2";
 
@@ -75,7 +76,7 @@ async function blotato(path, key, body) {
  * AUTH_SECRET mangler), slipper vi gjennom. Da er dette et oppsett uten
  * kontoer, og a lase alle ute ville vaert verre enn a la alle publisere.
  */
-const OWNER_EMAILS = ["renateshobby@hotmail.com"];
+/* Eierlista ligger i _lib/eier.js, felles for auth, generate og publish. */
 
 async function harPubliseringstilgang(env, token) {
   if (!env || !env.ACCOUNTS_KV || !env.AUTH_SECRET) return { ok: true };
@@ -107,7 +108,7 @@ async function harPubliseringstilgang(env, token) {
   if (!email) return LOGG_INN;
 
   // Eieren skal aldri stoppes av en las i sitt eget produkt.
-  if (OWNER_EMAILS.includes(email) || (env.OWNER_EMAIL && email === String(env.OWNER_EMAIL).toLowerCase())) {
+  if (erEierEpost(email, env)) {
     return { ok: true, email: email };
   }
 
