@@ -772,6 +772,12 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
     <div class="chip-wrap" id="topic-chips"></div>
   </div>
 
+  <div class="card">
+    <div class="card-title">Target group</div>
+    <div style="font-size:11px;color:var(--text-s);margin-bottom:8px;line-height:1.5;">Who are you speaking to? Leave it on Everyone and the topic steers the content on its own.</div>
+    <div class="chip-wrap" id="target-chips"></div>
+  </div>
+
   <div class="row" style="margin-bottom:14px;">
     <div class="card">
       <div class="card-title">Age group</div>
@@ -2115,7 +2121,10 @@ const TOPICS = [
   {label:'Custom theme...',             emoji:'✨'},
 ];
 
-const AGE_GROUPS  = ['3-6 years','6-9 years','9-12 years','13-16 years','All age groups','Parents general'];
+const AGE_GROUPS  = ['3-6 years','6-9 years','9-12 years','13-16 years','16-20 years','Adults','All age groups'];
+/* Who the content speaks TO, regardless of age. See the Norwegian file. */
+const TARGET_GROUPS = ['Everyone','Women','Men','Parents','Parents of toddlers','Mothers','Fathers',
+  'Grandparents','Aunts and uncles','Educators','Teachers','Entrepreneurs','Content creators'];
 const CHARACTERS  = ['Custom characters','No character'];
 // Is this LME's own account (Renate)? Then Mia & Teo is always available.
 const OWNER_EMAILS=['renate@lmexplorers.com','renateshobby@hotmail.com'];
@@ -2303,7 +2312,7 @@ const PLAN_DAYS = [
 const state = {
   niche:'', goal:'', timeLevel:'',
   format:'carousel', topic:'Child-led activity', customTopic:'',
-  ageGroup:'3-6 år', char:'No character', tone:'Warm and personal',
+  ageGroup:'All age groups', targetGroup:'Everyone', char:'No character', tone:'Warm and personal',
   slideCount:5, cta:'', extra:'',
   platforms:['Instagram'],
   result:null, slides:null, currentSlide:0,
@@ -2356,6 +2365,7 @@ window.cfg = cfg;
 function init(){
   renderFormats(); renderNiches(); renderGoals(); renderTopics();
   renderChips('age-chips', AGE_GROUPS, 'ageGroup');
+  renderChips('target-chips', TARGET_GROUPS, 'targetGroup');
   renderChips('char-chips', charOptions(), 'char');
   renderChips('tone-chips', TONES, 'tone');
   updateCharAvailability();
@@ -2932,7 +2942,12 @@ function buildPrompt(){
   else if(preset==='none'){ characters='no specific characters'; }
   else if(preset==='custom'&&cfg.charNames){ characters=`${cfg.charNames}${cfg.charDesc?', '+cfg.charDesc:''}`; }
   else{ characters='no specific characters'; }
-  const base=`You write social media content. THE TOPIC (what the content MUST be about): "${topic}". Write strictly and ONLY about this topic. Everything that follows describes WHO IS SPEAKING, never WHAT THE POST IS ABOUT: if any of it does not fit the topic, ignore it rather than bending the topic to fit it. The brand's usual niche is "${cfg.niche||'your niche'}" and its usual audience is "${cfg.audience||state.ageGroup}", but a post about something else must never be reframed, explained or justified through that niche or that audience. Do NOT introduce unrelated themes, audiences or angles that the topic does not imply, even if the brand normally covers other subjects. You post as the brand "${cfg.brand||'Your brand'}", so use its voice and identity, but never force the brand's usual subject matter onto an off-topic post. ${characters!=='no specific characters'?`Characters: ${characters}.`:''} Brand voice: ${cfg.voice||'Warm, clear and professional'}. Audience hint (ignore it completely when the topic implies someone else): ${cfg.audience||state.ageGroup}. Tone: ${state.tone}. Language: English. ${personRule()}${goalLine} ${state.extra?'Context: '+state.extra:''}`;
+  /* Audience is built from target group and age. Both on "all" means we say nothing. */
+  const publikumDeler = [];
+  if (state.targetGroup && state.targetGroup !== 'Everyone') publikumDeler.push(state.targetGroup);
+  if (state.ageGroup && state.ageGroup !== 'All age groups') publikumDeler.push(state.ageGroup);
+  const publikum = publikumDeler.join(', ') || cfg.audience || 'no particular audience';
+  const base=`You write social media content. THE TOPIC (what the content MUST be about): "${topic}". Write strictly and ONLY about this topic. Everything that follows describes WHO IS SPEAKING, never WHAT THE POST IS ABOUT: if any of it does not fit the topic, ignore it rather than bending the topic to fit it. The brand's usual niche is "${cfg.niche||'your niche'}" and its usual audience is "${publikum}", but a post about something else must never be reframed, explained or justified through that niche or that audience. Do NOT introduce unrelated themes, audiences or angles that the topic does not imply, even if the brand normally covers other subjects. You post as the brand "${cfg.brand||'Your brand'}", so use its voice and identity, but never force the brand's usual subject matter onto an off-topic post. ${characters!=='no specific characters'?`Characters: ${characters}.`:''} Brand voice: ${cfg.voice||'Warm, clear and professional'}. Audience hint (ignore it completely when the topic implies someone else): ${publikum}. Tone: ${state.tone}. Language: English. ${personRule()}${goalLine} ${state.extra?'Context: '+state.extra:''}`;
 
   if(state.format==='carousel'||state.format==='story'){
     const type=state.format==='story'?'Story set (9:16 vertical, short punchy headline + 1-2 lines per frame)':'Instagram carousel';

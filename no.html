@@ -771,6 +771,12 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
     <div class="chip-wrap" id="topic-chips"></div>
   </div>
 
+  <div class="card">
+    <div class="card-title">Målgruppe</div>
+    <div style="font-size:11px;color:var(--text-s);margin-bottom:8px;line-height:1.5;">Hvem snakker du til? Står den på Alle, styrer temaet innholdet helt alene.</div>
+    <div class="chip-wrap" id="target-chips"></div>
+  </div>
+
   <div class="row" style="margin-bottom:14px;">
     <div class="card">
       <div class="card-title">Aldersgruppe</div>
@@ -2408,7 +2414,13 @@ const TOPICS = [
   {label:'Eget tema...',             emoji:'✨'},
 ];
 
-const AGE_GROUPS  = ['3-6 år','6-9 år','9-12 år','13-16 år','Alle aldersgrupper','Foreldre generelt'];
+const AGE_GROUPS  = ['3-6 år','6-9 år','9-12 år','13-16 år','16-20 år','Voksne','Alle aldersgrupper'];
+/* Hvem innholdet snakker TIL, uavhengig av alder. Foer fantes bare alder,
+   og "Foreldre generelt" laa inne blant aldersgruppene fordi det ikke var
+   noe annet sted aa gjoere av det. Na er de to skilt: alder er alder, og
+   maalgruppe er mennesket. Renate 2. september 2026. */
+const TARGET_GROUPS = ['Alle','Kvinner','Menn','Foreldre','Småbarnsforeldre','Mødre','Fedre',
+  'Besteforeldre','Tanter og onkler','Pedagoger','Lærere','Gründere','Innholdsskapere'];
 const CHARACTERS  = ['Egne karakterer','Ingen karakter'];
 // Er dette LME sin egen konto (Renate)? Da er Mia & Teo alltid tilgjengelig.
 const OWNER_EMAILS=['renate@lmexplorers.com','renateshobby@hotmail.com'];
@@ -2596,7 +2608,10 @@ const PLAN_DAYS = [
 const state = {
   niche:'', goal:'', timeLevel:'',
   format:'carousel', topic:'Ny innholdsidé', customTopic:'',
-  ageGroup:'3-6 år', char:'Ingen karakter', tone:'Varm og personlig',
+  /* Ingen maalgruppe og ingen alder er valgt paa forhaand. Foer sto
+     "3-6 aar" som standard, og den fulgte med inn i prompten selv naar
+     temaet handlet om noe helt annet. */
+  ageGroup:'Alle aldersgrupper', targetGroup:'Alle', char:'Ingen karakter', tone:'Varm og personlig',
   slideCount:5, cta:'', extra:'',
   platforms:['Instagram'],
   result:null, slides:null, currentSlide:0,
@@ -2649,6 +2664,7 @@ window.cfg = cfg;
 function init(){
   renderFormats(); renderNiches(); renderGoals(); renderTopics();
   renderChips('age-chips', AGE_GROUPS, 'ageGroup');
+  renderChips('target-chips', TARGET_GROUPS, 'targetGroup');
   renderChips('char-chips', charOptions(), 'char');
   renderChips('tone-chips', TONES, 'tone');
   updateCharAvailability();
@@ -3228,7 +3244,13 @@ function buildPrompt(){
   else if(preset==='none'){ characters='ingen spesifikke karakterer'; }
   else if(preset==='custom'&&cfg.charNames){ characters=`${cfg.charNames}${cfg.charDesc?', '+cfg.charDesc:''}`; }
   else{ characters='ingen spesifikke karakterer'; }
-  const base=`You write social media content. THE TOPIC (what the content MUST be about): "${topic}". Write strictly and ONLY about this topic. Everything that follows describes WHO IS SPEAKING, never WHAT THE POST IS ABOUT: if any of it does not fit the topic, ignore it rather than bending the topic to fit it. The brand's usual niche is "${cfg.niche||'din nisje'}" and its usual audience is "${cfg.audience||state.ageGroup}", but a post about something else must never be reframed, explained or justified through that niche or that audience. Do NOT introduce unrelated themes, audiences or angles that the topic does not imply, even if the brand normally covers other subjects. You post as the brand "${cfg.brand||'merkevaren din'}", so use its voice and identity, but never force the brand's usual subject matter onto an off-topic post. ${characters!=='no specific characters'&&characters!=='ingen spesifikke karakterer'?`Characters: ${characters}.`:''} Brand voice: ${cfg.voice||'vennlig, tydelig og profesjonell'}. Audience hint (ignore it completely when the topic implies someone else): ${cfg.audience||state.ageGroup}. Tone: ${state.tone}. Language: Norwegian bokmål. ${personRuleEn()}${goalLine} ${state.extra?'Context: '+state.extra:''}
+  /* Publikum settes sammen av maalgruppe og alder. Staar begge paa Alle,
+     sier vi ingenting om publikum, og da faar temaet styre alene. */
+  const publikumDeler = [];
+  if (state.targetGroup && state.targetGroup !== 'Alle') publikumDeler.push(state.targetGroup);
+  if (state.ageGroup && state.ageGroup !== 'Alle aldersgrupper') publikumDeler.push(state.ageGroup);
+  const publikum = publikumDeler.join(', ') || cfg.audience || 'ingen bestemt målgruppe';
+  const base=`You write social media content. THE TOPIC (what the content MUST be about): "${topic}". Write strictly and ONLY about this topic. Everything that follows describes WHO IS SPEAKING, never WHAT THE POST IS ABOUT: if any of it does not fit the topic, ignore it rather than bending the topic to fit it. The brand's usual niche is "${cfg.niche||'din nisje'}" and its usual audience is "${publikum}", but a post about something else must never be reframed, explained or justified through that niche or that audience. Do NOT introduce unrelated themes, audiences or angles that the topic does not imply, even if the brand normally covers other subjects. You post as the brand "${cfg.brand||'merkevaren din'}", so use its voice and identity, but never force the brand's usual subject matter onto an off-topic post. ${characters!=='no specific characters'&&characters!=='ingen spesifikke karakterer'?`Characters: ${characters}.`:''} Brand voice: ${cfg.voice||'vennlig, tydelig og profesjonell'}. Audience hint (ignore it completely when the topic implies someone else): ${publikum}. Tone: ${state.tone}. Language: Norwegian bokmål. ${personRuleEn()}${goalLine} ${state.extra?'Context: '+state.extra:''}
 
 NORSKE SKRIVEREGLER (følg alltid i norsk tekst): Bruk rette anførselstegn, aldri « ». Bruk ALDRI lange bindestreker (— eller –), bruk heller komma, kolon, punktum eller "og". VIKTIG kolonregel (gjøres ofte feil): stor forbokstav etter kolon KUN når en hel setning følger (eksempel: "Husk: Du trenger ikke være ekspert."), ellers liten forbokstav ved oppramsinger, undertitler og fragmenter (eksempel: "Faste holdepunkter: måltider, hvile og leggetid."). Liten forbokstav etter semikolon. Komma foran "men", "for" og "så" når de binder to helsetninger, komma etter en innledende leddsetning, komma rundt innskutte setninger, og ikke komma foran siste "og" i en oppramsing.`;
 
