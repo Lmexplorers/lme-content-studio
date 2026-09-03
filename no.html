@@ -93,7 +93,9 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 .result-title{font-weight:700;color:var(--rose-d);font-size:15px;margin-bottom:14px;}
 .slide-view{background:linear-gradient(145deg,var(--rose-l),var(--warm));border-radius:16px;padding:22px 18px;min-height:180px;border:1.5px solid var(--rose-m);position:relative;font-size:13px;line-height:1.8;color:var(--text);white-space:pre-wrap;box-shadow:0 4px 20px rgba(240,36,120,.15);}
 .slide-counter{position:absolute;top:10px;right:12px;font-size:10px;color:var(--rose-d);font-style:italic;z-index:2;pointer-events:none;}
-.slide-wrap{position:relative;}
+.slide-wrap{position:relative;margin-bottom:10px;}
+.slide-wrap.valgt textarea.slide-view{border-color:var(--rose);}
+textarea.slide-view{min-height:0;padding-top:26px;}
 textarea.text-result,textarea.slide-view{display:block;width:100%;font-family:'Sasson Montessori',sans-serif;font-size:inherit;line-height:inherit;color:inherit;resize:vertical;overflow-y:auto;max-height:none;box-sizing:border-box;}
 textarea.text-result:focus,textarea.slide-view:focus{outline:none;border:1.5px solid var(--rose);}
 textarea.text-result{border:1.5px solid transparent;}
@@ -3568,10 +3570,10 @@ async function generate(){
 /* Teksten som ble generert var låst, du kunne ikke rette et ord eller legge
    til en setning. Nå skriver du rett i den, og endringen følger med videre
    til kopiering, forhåndsvisning, hook og publisering. Renate 3. september 2026. */
-function voksTekstfelt(ta){
+function voksTekstfelt(ta,minst){
   if(!ta) return;
   ta.style.height='auto';
-  ta.style.height=Math.max(150,Math.min(ta.scrollHeight+4,620))+'px';
+  ta.style.height=Math.max(minst||150,Math.min(ta.scrollHeight+4,620))+'px';
 }
 function lagreRedigertTekst(v){
   state.result=v;
@@ -3579,12 +3581,12 @@ function lagreRedigertTekst(v){
   voksTekstfelt(document.getElementById('result-edit'));
   try{ renderVisibilityScore(); }catch(e){}
 }
-function lagreRedigertSlide(v){
+function lagreRedigertSlide(j,v){
   if(!state.slides) return;
-  state.slides[state.currentSlide]=v;
+  state.slides[j]=v;
   state.result=state.slides;
   if(state.history[0]) state.history[0].result=state.slides;
-  voksTekstfelt(document.getElementById('slide-edit'));
+  voksTekstfelt(document.getElementById('slide-edit-'+j),96);
   try{ renderVisibilityScore(); }catch(e){}
 }
 function renderResult(){
@@ -3675,17 +3677,41 @@ function renderVisibilityScore(){
   </div>`;
 }
 
+/* Slidene lå én om gangen bak nummerknappene nederst, så for å rette slide 3
+   måtte du først finne fram til den. Nå ligger alle slidene under hverandre
+   som egne felter, og du skriver rett i den du vil endre.
+   Renate 3. september 2026. */
 function renderSlides(){
   const slides=state.slides; const i=state.currentSlide;
   const label=state.format==='story'?'Frame':'Slide';
-  document.getElementById('result-content').innerHTML=`
-    <div class="slide-wrap"><span class="slide-counter">${label} ${i+1} / ${slides.length}</span><textarea class="slide-view" id="slide-edit" spellcheck="true" oninput="lagreRedigertSlide(this.value)"></textarea></div><div class="edit-hint">Du kan skrive rett i sliden.</div>
-    <div class="slide-nav">${slides.map((_,j)=>`<button class="slide-dot${j===i?' active':''}" onclick="goSlide(${j})">${j+1}</button>`).join('')}</div>`;
-  const se=document.getElementById('slide-edit');
-  se.value=slides[i]||'';
-  voksTekstfelt(se);
+  document.getElementById('result-content').innerHTML=
+    slides.map(function(_,j){
+      return '<div class="slide-wrap'+(j===i?' valgt':'')+'" id="slide-wrap-'+j+'">'
+        +'<span class="slide-counter">'+label+' '+(j+1)+' / '+slides.length+(j===i?' \u00b7 Vist i forhåndsvisningen':'')+'</span>'
+        +'<textarea class="slide-view" id="slide-edit-'+j+'" spellcheck="true" '
+        +'oninput="lagreRedigertSlide('+j+',this.value)" onfocus="goSlide('+j+')"></textarea></div>';
+    }).join('')
+    + '<div class="edit-hint">Du kan skrive rett i hver slide. Endringene følger med til forhåndsvisning, bilder og publisering.</div>';
+  slides.forEach(function(t,j){
+    const el=document.getElementById('slide-edit-'+j);
+    el.value=t||'';
+    voksTekstfelt(el,96);
+  });
 }
-function goSlide(i){ state.currentSlide=i; renderSlides(); }
+/* Sliden du står i styrer forhåndsvisningen og bildet, men vi tegner ikke alt
+   på nytt, for da mistet du markøren midt i en setning. */
+function goSlide(i){
+  if(state.currentSlide===i) return;
+  state.currentSlide=i;
+  const slides=state.slides||[];
+  const label=state.format==='story'?'Frame':'Slide';
+  slides.forEach(function(_,j){
+    const w=document.getElementById('slide-wrap-'+j); if(!w) return;
+    w.classList.toggle('valgt',j===i);
+    const c=w.querySelector('.slide-counter');
+    if(c) c.textContent=label+' '+(j+1)+' / '+slides.length+(j===i?' \u00b7 Vist i forhåndsvisningen':'');
+  });
+}
 
 function copyResult(){
   const text=Array.isArray(state.result)?state.result.join('\n\n---\n\n'):state.result;
@@ -4566,8 +4592,8 @@ function pinHtml(text,img){
   return `<div style="background:#f0f0f0;padding:12px;"><div style="background:white;border-radius:16px;overflow:hidden;"><div style="background:${bg};aspect-ratio:2/3;display:flex;align-items:center;justify-content:center;font-size:50px;">${img?'':'🌿'}</div><div style="padding:10px 12px 14px;"><div style="font-size:13px;font-weight:700;color:#111;margin-bottom:4px;">${esc(title)}</div><div style="font-size:11px;color:#666;line-height:1.5;">${esc(desc)}</div></div></div></div>`;
 }
 
-function pvPrev(){ if(state.currentSlide>0){state.currentSlide--;renderPreview();} }
-function pvNext(){ if(state.slides&&state.currentSlide<state.slides.length-1){state.currentSlide++;renderPreview();} }
+function pvPrev(){ if(state.currentSlide>0){goSlide(state.currentSlide-1);renderPreview();} }
+function pvNext(){ if(state.slides&&state.currentSlide<state.slides.length-1){goSlide(state.currentSlide+1);renderPreview();} }
 
 // ══ SETTINGS ══
 function loadSettings(){
