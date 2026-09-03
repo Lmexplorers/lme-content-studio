@@ -1041,8 +1041,17 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
   <div class="card">
     <div class="card-title">90-dagers strategi</div>
     <p style="font-size:12px;color:var(--text-s);margin-bottom:12px;line-height:1.6;">Bygget på nisjen, målet og stemmen din. Du får innholdspilarer, ukestemaer og ferdige innleggsideer med salgs- og leadsmomenter. Klikk en idé for å lage selve innlegget.</p>
+    <!-- Nisjen og målet står her, ikke bare i Innstillinger. Før lå de gjemt, og
+         strategien ble bygget på en gammel nisje uten at noe viste det. -->
+    <div style="background:var(--bg-2,#FFF6F9);border-radius:12px;padding:12px;margin-bottom:12px;">
+      <div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Strategien bygges for denne nisjen</div>
+      <input type="text" id="strat-niche" placeholder='F.eks. "digitale produkter" eller "yogastudio"'
+             oninput="onStratNiche(this.value)" style="width:100%;margin-bottom:10px;"/>
+      <div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Hovedmål</div>
+      <select id="strat-goal" onchange="onStratGoal(this.value)" style="width:100%;"></select>
+    </div>
     <button class="gen-btn" id="strat-gen-btn" onclick="generateStrategy()">Generer 90-dagers strategi</button>
-    <div style="font-size:11px;color:var(--text-s);margin-top:8px;text-align:center;">Velg nisje og mål under Lag innhold først, eller kjør veiviseren.</div>
+    <div style="font-size:11px;color:var(--text-s);margin-top:8px;text-align:center;">Endrer du nisjen her, endres den også i Innstillinger. Stemmen din hentes fra Innstillinger.</div>
   </div>
   <div id="strategy-out"></div>
 
@@ -3079,6 +3088,9 @@ function showTab(id,btn){
   document.querySelectorAll('.nav-dropdown-item').forEach(b=>{
     if(b.getAttribute('onclick')&&b.getAttribute('onclick').includes("'"+id+"'")) b.classList.add('active');
   });
+  /* Nisje- og malfeltene fylles hver gang fanen apnes, slik at de viser det
+     som faktisk gjelder selv om du nettopp endret noe i Innstillinger. */
+  if(id==='plan'){ try{ fyllStratFelter(); }catch(e){} }
   if(id==='dashboard')renderDashboard();
   if(id==='calendar')renderCalendar();
   if(id==='history')renderHistory();
@@ -3161,6 +3173,8 @@ function strategyPrompt(){
   const time = state.timeLevel || '30 minutter om dagen';
   return `Du er en strateg for innholdsmarkedsføring. Lag en 90-dagers innholdsstrategi (13 uker) for "${brand}" i nisjen "${niche}". Hovedmål: ${goal}. Plattformer: ${plats}. Stemme: ${voice}. Tilgjengelig tid: ${time}.
 
+Nisjen over er fasit. Merkevarenavnet kan peke mot et helt annet fagfelt enn nisjen, og da er det nisjen og målet som gjelder, ikke det navnet antyder. Ikke dra inn temaer, målgrupper eller vinklinger som nisjen og målet ikke tilsier.
+
 Skriv ALL tekst (pilarer, ukestemaer og innleggsideer) på norsk (bokmål).
 
 Returner KUN gyldig JSON, ingen forklaring, på dette formatet:
@@ -3175,6 +3189,32 @@ Krav:
 - ${personRule()}
 - ${SKRIVEREGLER_NO}`;
 }
+/* Nisjen og målet strategien faktisk bruker, vist og redigerbart der du står.
+   cfg.niche er fasit for prompten, men den lå bare i Innstillinger, så en gammel
+   nisje kunne styre strategien uten at noe på siden viste hvilken. */
+function fyllStratFelter(){
+  const n=document.getElementById('strat-niche');
+  if(n){ const v=(cfg.niche||'').trim(); if(n.value!==v) n.value=v; }
+  const g=document.getElementById('strat-goal');
+  if(g){
+    const valgt=state.goal||'';
+    if(!g.options.length){
+      g.innerHTML='<option value="">Velg mål</option>'+
+        GOALS.map(x=>`<option value="${x.label.replace(/"/g,'&quot;')}">${x.emoji} ${x.label}</option>`).join('');
+    }
+    if(g.value!==valgt) g.value=valgt;
+  }
+}
+function onStratNiche(v){
+  cfg.niche=(v||'').trim();
+  const e=document.getElementById('s-niche'); if(e) e.value=cfg.niche;
+  const c=document.getElementById('custom-niche'); if(c) c.value=cfg.niche;
+  try{persistCfg();}catch(e){}
+  try{updateCharAvailability();}catch(e){}
+  renderStrategy();
+}
+function onStratGoal(v){ state.goal=v||''; try{renderGoals();}catch(e){} }
+
 let strategy90 = null, stratFlat = [];
 function loadStrategy(){ try{ const s=localStorage.getItem('lme_strategy_90'); if(s) strategy90=JSON.parse(s); }catch(e){} renderStrategy(); }
 function saveStrategy(){ try{ localStorage.setItem('lme_strategy_90', JSON.stringify(strategy90)); }catch(e){} }
@@ -3230,6 +3270,7 @@ async function generateStrategy(){
 }
 const PURPOSE_COLOR={Verdi:'#9CC000',Engasjement:'#2D9CDB',Salg:'#F02478',Leads:'#8B5CF6',Autoritet:'#E07B39','E-post':'#00B894'};
 function renderStrategy(){
+  try{ fyllStratFelter(); }catch(e){}
   const host=document.getElementById('strategy-out'); if(!host)return;
   if(!strategy90||!strategy90.weeks){ host.innerHTML=''; return; }
   stratFlat=[];

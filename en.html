@@ -1041,6 +1041,15 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
   <div class="card">
     <div class="card-title">90-day strategy</div>
     <p style="font-size:12px;color:var(--text-s);margin-bottom:12px;line-height:1.6;">Built on your niche, goal and voice. You get content pillars, weekly themes and ready post ideas with sales and lead moments. Click an idea to create the post itself.</p>
+    <!-- The niche and the goal live here, not only in Settings. They used to be
+         hidden, and the strategy was built on an old niche with nothing showing it. -->
+    <div style="background:var(--bg-2,#FFF6F9);border-radius:12px;padding:12px;margin-bottom:12px;">
+      <div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">The strategy is built for this niche</div>
+      <input type="text" id="strat-niche" placeholder='E.g. "digital products" or "yoga studio"'
+             oninput="onStratNiche(this.value)" style="width:100%;margin-bottom:10px;"/>
+      <div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Main goal</div>
+      <select id="strat-goal" onchange="onStratGoal(this.value)" style="width:100%;"></select>
+    </div>
     <button class="gen-btn" id="strat-gen-btn" onclick="generateStrategy()">Generate 90-day strategy</button>
     <div style="font-size:11px;color:var(--text-s);margin-top:8px;text-align:center;">Pick a niche and goal under Create content first, or run the wizard.</div>
   </div>
@@ -2776,6 +2785,7 @@ function showTab(id,btn){
   document.querySelectorAll('.nav-dropdown-item').forEach(b=>{
     if(b.getAttribute('onclick')&&b.getAttribute('onclick').includes("'"+id+"'")) b.classList.add('active');
   });
+  if(id==='plan'){ try{ fyllStratFelter(); }catch(e){} }
   if(id==='dashboard')renderDashboard();
   if(id==='calendar')renderCalendar();
   if(id==='history')renderHistory();
@@ -2860,6 +2870,8 @@ function strategyPrompt(){
 
 Write ALL text (pillars, weekly themes and post ideas) in ENGLISH, even if the niche or brand name is Norwegian.
 
+The niche above is the source of truth. The brand name may point to a completely different field than the niche, and then the niche and the goal are what count, not what the name suggests. Do not bring in themes, audiences or angles the niche and goal do not imply.
+
 Return ONLY valid JSON, no explanation, in this format:
 {"pillars":["pillar 1","pillar 2","pillar 3","pillar 4"],"rhythm":"one short sentence on posting rhythm matched to the time","weeks":[{"week":1,"theme":"theme of the week","posts":[{"day":"Mon","idea":"short concrete post idea","format":"reel","purpose":"Value"}]}]}
 
@@ -2872,6 +2884,33 @@ Requirements:
 - ${personRule()}
 - ${WRITING_RULES_EN}`;
 }
+/* The niche and goal the strategy actually uses, shown and editable where you
+   stand. cfg.niche is the source of truth for the prompt, but it only lived in
+   Settings, so an old niche could drive the strategy with nothing on the page
+   showing which one. */
+function fyllStratFelter(){
+  const n=document.getElementById('strat-niche');
+  if(n){ const v=(cfg.niche||'').trim(); if(n.value!==v) n.value=v; }
+  const g=document.getElementById('strat-goal');
+  if(g){
+    const valgt=state.goal||'';
+    if(!g.options.length){
+      g.innerHTML='<option value="">Choose a goal</option>'+
+        GOALS.map(x=>`<option value="${x.label.replace(/"/g,'&quot;')}">${x.emoji} ${x.label}</option>`).join('');
+    }
+    if(g.value!==valgt) g.value=valgt;
+  }
+}
+function onStratNiche(v){
+  cfg.niche=(v||'').trim();
+  const e=document.getElementById('s-niche'); if(e) e.value=cfg.niche;
+  const c=document.getElementById('custom-niche'); if(c) c.value=cfg.niche;
+  try{persistCfg();}catch(e){}
+  try{updateCharAvailability();}catch(e){}
+  renderStrategy();
+}
+function onStratGoal(v){ state.goal=v||''; try{renderGoals();}catch(e){} }
+
 let strategy90 = null, stratFlat = [];
 function loadStrategy(){ try{ const s=localStorage.getItem('lme_strategy_90'); if(s) strategy90=JSON.parse(s); }catch(e){} renderStrategy(); }
 function saveStrategy(){ try{ localStorage.setItem('lme_strategy_90', JSON.stringify(strategy90)); }catch(e){} }
@@ -2927,6 +2966,7 @@ async function generateStrategy(){
 }
 const PURPOSE_COLOR={Value:'#9CC000',Engage:'#2D9CDB',Sell:'#F02478',Lead:'#8B5CF6',Authority:'#E07B39',Email:'#00B894'};
 function renderStrategy(){
+  try{ fyllStratFelter(); }catch(e){}
   const host=document.getElementById('strategy-out'); if(!host)return;
   if(!strategy90||!strategy90.weeks){ host.innerHTML=''; return; }
   stratFlat=[];
