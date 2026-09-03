@@ -855,7 +855,7 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
     </div>
 
     <!-- HOOK (alle formater) -->
-    <div class="reel-extra" id="hook-card-wrap" style="margin-top:14px;"><div class="re-card"><div class="re-title">Hook</div><div class="re-sub">Write or generate a hook. It shows on top of the reel or cover image, and in the preview.</div><input id="reel-hook-text" class="text-overlay-input" placeholder="Hook text shown on the video..." oninput="updateReelHook()"/><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:4px;"><button type="button" class="re-chip" data-hookpos="top" onclick="setReelHookPos('top')">Top</button><button type="button" class="re-chip on" data-hookpos="center" onclick="setReelHookPos('center')">Middle</button><button type="button" class="re-chip" data-hookpos="bottom" onclick="setReelHookPos('bottom')">Bottom</button><button type="button" class="re-chip" id="gen-hook-btn" onclick="generateHook()" style="background:var(--rose);border-color:var(--rose);color:#fff;font-weight:700;">Hook suggestions</button><button type="button" class="re-chip" onclick="hentHookFraManus()">Pull from script</button></div><div id="hook-suggestions" class="hook-sugg"></div><div class="hk-row"><div class="hk-lab">Emoji</div><div class="hk-emojis"><button type="button" class="hk-emoji" onclick="insertHookEmoji('🌿')">🌿</button><button type="button" class="hk-emoji" onclick="insertHookEmoji('🌸')">🌸</button><button type="button" class="hk-emoji" onclick="insertHookEmoji('✨')">✨</button><button type="button" class="hk-emoji" onclick="insertHookEmoji('🌟')">🌟</button><button type="button" class="hk-emoji" onclick="insertHookEmoji('💛')">💛</button><button type="button" class="hk-emoji" onclick="insertHookEmoji('💚')">💚</button><button type="button" class="hk-emoji" onclick="insertHookEmoji('🩷')">🩷</button><button type="button" class="hk-emoji" onclick="insertHookEmoji('🌈')">🌈</button><button type="button" class="hk-emoji" onclick="insertHookEmoji('🍃')">🍃</button><button type="button" class="hk-emoji" onclick="insertHookEmoji('☀️')">☀️</button><button type="button" class="hk-emoji" onclick="insertHookEmoji('🧺')">🧺</button><button type="button" class="hk-emoji" onclick="insertHookEmoji('📚')">📚</button><button type="button" class="hk-emoji" onclick="insertHookEmoji('🎨')">🎨</button><button type="button" class="hk-emoji" onclick="insertHookEmoji('🦋')">🦋</button><button type="button" class="hk-emoji" onclick="insertHookEmoji('💕')">💕</button><button type="button" class="hk-emoji" onclick="insertHookEmoji('🤍')">🤍</button><button type="button" class="hk-emoji" onclick="insertHookEmoji('👶')">👶</button><button type="button" class="hk-emoji" onclick="insertHookEmoji('⭐')">⭐</button></div></div><div class="hk-row"><div class="hk-lab">Font</div><div class="hk-fonts"><button type="button" class="hk-font on" data-hookfont style="font-family:'Playpen Sans';font-weight:800;" onclick="setHookFont(this,'playpen')">Playpen</button><button type="button" class="hk-font" data-hookfont style="font-family:'Anton';" onclick="setHookFont(this,'anton')">Anton</button><button type="button" class="hk-font" data-hookfont style="font-family:'Luckiest Guy';" onclick="setHookFont(this,'luckiest')">Luckiest</button><button type="button" class="hk-font" data-hookfont style="font-family:'Fredoka';font-weight:700;" onclick="setHookFont(this,'fredoka')">Fredoka</button><button type="button" class="hk-font" data-hookfont style="font-family:'Bebas Neue';letter-spacing:.5px;" onclick="setHookFont(this,'bebas')">Bebas</button></div></div><div class="hk-row"><div class="hk-lab">Size</div><input type="range" min="16" max="56" value="24" id="hook-size" oninput="setHookSize(this.value)" style="width:100%;accent-color:var(--rose);"></div><div class="hk-row"><div class="hk-lab">Text colour</div><div class="hk-sws" id="hook-textcolors"></div></div><div class="hk-row"><div class="hk-lab">Background behind text</div><div class="hk-sws" id="hook-bgcolors"></div></div></div></div>
+    <div class="reel-extra" id="hook-card-wrap" style="margin-top:14px;"><div class="re-card"><div class="re-title">Hook</div><div class="re-sub">Write or generate a hook. It shows on top of the reel or cover image, and in the preview.</div><input id="reel-hook-text" class="text-overlay-input" placeholder="Hook text shown on the video..." oninput="updateReelHook()"/><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:4px;"><button type="button" class="re-chip" data-hookpos="top" onclick="setReelHookPos('top')">Top</button><button type="button" class="re-chip on" data-hookpos="center" onclick="setReelHookPos('center')">Middle</button><button type="button" class="re-chip" data-hookpos="bottom" onclick="setReelHookPos('bottom')">Bottom</button><button type="button" class="re-chip" id="gen-hook-btn" onclick="generateHook()" style="background:var(--rose);border-color:var(--rose);color:#fff;font-weight:700;">Hook suggestions</button><button type="button" class="re-chip" onclick="hentHookFraManus()">Pull from script</button></div><div class="hk-row"><div class="hk-lab">Position up/down</div><input type="range" min="0" max="100" value="50" data-hooky oninput="setHookY(this.value)" style="width:100%;accent-color:var(--rose);"><div style="font-size:11px;color:var(--text-s);margin-top:5px;line-height:1.5;">Drag to move the hook up or down, for example away from a face.</div></div><div id="hook-suggestions" class="hook-sugg"></div><div class="hk-row"><div class="hk-lab">Emoji</div><div class="hk-emojis"><button type="button" class="hk-emoji" onclick="insertHookEmoji('🌿')">🌿</button><button type="button" class="hk-emoji" onclick="insertHookEmoji('🌸')">🌸</button><button type="button" class="hk-emoji" onclick="insertHookEmoji('✨')">✨</button><button type="button" class="hk-emoji" onclick="insertHookEmoji('🌟')">🌟</button><button type="button" class="hk-emoji" onclick="insertHookEmoji('💛')">💛</button><button type="button" class="hk-emoji" onclick="insertHookEmoji('💚')">💚</button><button type="button" class="hk-emoji" onclick="insertHookEmoji('🩷')">🩷</button><button type="button" class="hk-emoji" onclick="insertHookEmoji('🌈')">🌈</button><button type="button" class="hk-emoji" onclick="insertHookEmoji('🍃')">🍃</button><button type="button" class="hk-emoji" onclick="insertHookEmoji('☀️')">☀️</button><button type="button" class="hk-emoji" onclick="insertHookEmoji('🧺')">🧺</button><button type="button" class="hk-emoji" onclick="insertHookEmoji('📚')">📚</button><button type="button" class="hk-emoji" onclick="insertHookEmoji('🎨')">🎨</button><button type="button" class="hk-emoji" onclick="insertHookEmoji('🦋')">🦋</button><button type="button" class="hk-emoji" onclick="insertHookEmoji('💕')">💕</button><button type="button" class="hk-emoji" onclick="insertHookEmoji('🤍')">🤍</button><button type="button" class="hk-emoji" onclick="insertHookEmoji('👶')">👶</button><button type="button" class="hk-emoji" onclick="insertHookEmoji('⭐')">⭐</button></div></div><div class="hk-row"><div class="hk-lab">Font</div><div class="hk-fonts"><button type="button" class="hk-font on" data-hookfont style="font-family:'Playpen Sans';font-weight:800;" onclick="setHookFont(this,'playpen')">Playpen</button><button type="button" class="hk-font" data-hookfont style="font-family:'Anton';" onclick="setHookFont(this,'anton')">Anton</button><button type="button" class="hk-font" data-hookfont style="font-family:'Luckiest Guy';" onclick="setHookFont(this,'luckiest')">Luckiest</button><button type="button" class="hk-font" data-hookfont style="font-family:'Fredoka';font-weight:700;" onclick="setHookFont(this,'fredoka')">Fredoka</button><button type="button" class="hk-font" data-hookfont style="font-family:'Bebas Neue';letter-spacing:.5px;" onclick="setHookFont(this,'bebas')">Bebas</button></div></div><div class="hk-row"><div class="hk-lab">Size</div><input type="range" min="16" max="56" value="24" id="hook-size" oninput="setHookSize(this.value)" style="width:100%;accent-color:var(--rose);"></div><div class="hk-row"><div class="hk-lab">Text colour</div><div class="hk-sws" id="hook-textcolors"></div></div><div class="hk-row"><div class="hk-lab">Background behind text</div><div class="hk-sws" id="hook-bgcolors"></div></div></div></div>
 
     <!-- ════ REEL VIDEO UPLOAD (shown for Reel format) ════ -->
     <div id="reel-section" style="display:none;margin-top:16px;border-top:1px solid var(--border);padding-top:16px;">
@@ -888,7 +888,17 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
       </div>
     </div>
 
-    <script>(function(){function el(i){return document.getElementById(i);} var audio=null;function reRenderPv(){var ov=el("preview-overlay");if(ov&&ov.style.display!=="none"&&typeof renderPreview==="function"){try{renderPreview();}catch(e){}}}function hs(){if(typeof state==="undefined")return null;if(!state.hookStyle)state.hookStyle={font:"'Playpen Sans'",size:24,color:"#ffffff",bg:"none"};return state.hookStyle;}function escH(s){return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}window.hookCss=function(){var h=hs()||{font:"'Playpen Sans'",size:24,color:"#ffffff",bg:"none"};var c="font-family:"+h.font+",'Playpen Sans',sans-serif;font-weight:800;font-size:"+h.size+"px;color:"+h.color+";line-height:1.3;";if(h.bg&&h.bg!=="none"){c+="display:inline;background:"+h.bg+";padding:.1em .4em;border-radius:9px;-webkit-box-decoration-break:clone;box-decoration-break:clone;";}else{c+="display:inline-block;text-shadow:0 2px 12px rgba(0,0,0,.7);";}return c;};window.updateReelHook=function(){var o=el("reel-hook-overlay"),t=el("reel-hook-text");var v=t?t.value:"";if(o)o.innerHTML=v?'<span style="'+hookCss()+'">'+escH(v)+'</span>':'';if(typeof state!=="undefined"){hs();state.reelHook=v;}reRenderPv();};window.applyHookStyle=function(){updateReelHook();};window.setHookFont=function(btn,key){var m={playpen:"'Playpen Sans'",anton:"'Anton'",luckiest:"'Luckiest Guy'",fredoka:"'Fredoka'",bebas:"'Bebas Neue'"};var h=hs();if(h)h.font=m[key]||"'Playpen Sans'";document.querySelectorAll("[data-hookfont]").forEach(function(b){b.classList.toggle("on",b===btn);});updateReelHook();};window.setHookSize=function(v){var h=hs();if(h)h.size=parseInt(v,10)||24;updateReelHook();};window.setHookColor=function(elm,c){var h=hs();if(h)h.color=c;document.querySelectorAll("[data-hookcolor]").forEach(function(b){b.classList.toggle("on",b===elm);});updateReelHook();};window.setHookBg=function(elm,c){var h=hs();if(h)h.bg=c;document.querySelectorAll("[data-hookbg]").forEach(function(b){b.classList.toggle("on",b===elm);});updateReelHook();};window.setReelHookPos=function(p){var o=el("reel-hook-overlay");if(o)o.className="reel-hook-overlay "+p;document.querySelectorAll("[data-hookpos]").forEach(function(b){b.classList.toggle("on",b.getAttribute("data-hookpos")===p);});if(typeof state!=="undefined")state.reelHookPos=p;reRenderPv();};window.hentHookFraManus=function(){var r=(typeof state!=="undefined")?state.result:null;if(!r)return;var txt=Array.isArray(r)?r.join("\n"):r;var line=txt.split("\n").find(function(l){return /HOOK/i.test(l);});var hook=line?line.replace(/^.*HOOK[:\s]*/i,"").trim():(txt.split("\n")[0]||"");if(hook){el("reel-hook-text").value=hook.slice(0,90);updateReelHook();}};function renderReelMusic(){var host=el("reel-flow-music-list");if(!host)return;if(typeof renderMusicList==="function"){renderMusicList("reel-flow-music-list");}}var HOOK_COLORS=[["White","#ffffff"],["Black","#1A1A1A"],["Light pink","#F7A8C4"],["Cerise","#F02478"],["Red","#E5484D"],["Orange","#FF8A3D"],["Yellow","#FFD43B"],["Sage","#9CC000"],["Green","#3FA34D"],["Blue","#2D8FE5"],["Purple","#8B5CF6"],["Brown","#5A3825"],["Grey","#8A8A8A"],["Cream","#FFF3CD"]];function renderHookColors(){var tc=el("hook-textcolors"),bgc=el("hook-bgcolors");if(tc)tc.innerHTML=HOOK_COLORS.map(function(c){return '<span class="hk-sw'+(c[1]==="#ffffff"?" on":"")+'" data-hookcolor title="'+c[0]+'" style="background:'+c[1]+'" onclick="setHookColor(this,\''+c[1]+'\')"></span>';}).join("");if(bgc)bgc.innerHTML='<button type="button" class="hk-bg on" data-hookbg onclick="setHookBg(this,\'none\')">None</button>'+HOOK_COLORS.map(function(c){return '<span class="hk-bg" data-hookbg title="'+c[0]+'" style="background:'+c[1]+'" onclick="setHookBg(this,\''+c[1]+'\')"></span>';}).join("");}window.insertHookEmoji=function(e){var t=el("reel-hook-text");if(!t)return;var s=(typeof t.selectionStart==="number")?t.selectionStart:t.value.length,en=(typeof t.selectionEnd==="number")?t.selectionEnd:t.value.length;t.value=t.value.slice(0,s)+e+t.value.slice(en);var np=s+e.length;t.focus();try{t.setSelectionRange(np,np);}catch(_){}updateReelHook();};function init(){if(el("reel-flow-music-list"))renderReelMusic();renderHookColors();}if(document.readyState!=="loading")init();else document.addEventListener("DOMContentLoaded",init);})();</script>
+    <script>(function(){function el(i){return document.getElementById(i);} var audio=null;function reRenderPv(){var ov=el("preview-overlay");if(ov&&ov.style.display!=="none"&&typeof renderPreview==="function"){try{renderPreview();}catch(e){}}}function hs(){if(typeof state==="undefined")return null;if(!state.hookStyle)state.hookStyle={font:"'Playpen Sans'",size:24,color:"#ffffff",bg:"none"};return state.hookStyle;}function escH(s){return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}window.hookCss=function(){var h=hs()||{font:"'Playpen Sans'",size:24,color:"#ffffff",bg:"none"};var c="font-family:"+h.font+",'Playpen Sans',sans-serif;font-weight:800;font-size:"+h.size+"px;color:"+h.color+";line-height:1.3;";if(h.bg&&h.bg!=="none"){c+="display:inline;background:"+h.bg+";padding:.1em .4em;border-radius:9px;-webkit-box-decoration-break:clone;box-decoration-break:clone;";}else{c+="display:inline-block;text-shadow:0 2px 12px rgba(0,0,0,.7);";}return c;};window.updateReelHook=function(){var o=el("reel-hook-overlay"),t=el("reel-hook-text");var v=t?t.value:"";if(o)o.innerHTML=v?'<span style="'+hookCss()+'">'+escH(v)+'</span>':'';if(typeof state!=="undefined"){hs();state.reelHook=v;}syncHookY();reRenderPv();};window.applyHookStyle=function(){updateReelHook();};window.setHookFont=function(btn,key){var m={playpen:"'Playpen Sans'",anton:"'Anton'",luckiest:"'Luckiest Guy'",fredoka:"'Fredoka'",bebas:"'Bebas Neue'"};var h=hs();if(h)h.font=m[key]||"'Playpen Sans'";document.querySelectorAll("[data-hookfont]").forEach(function(b){b.classList.toggle("on",b===btn);});updateReelHook();};window.setHookSize=function(v){var h=hs();if(h)h.size=parseInt(v,10)||24;updateReelHook();};window.setHookColor=function(elm,c){var h=hs();if(h)h.color=c;document.querySelectorAll("[data-hookcolor]").forEach(function(b){b.classList.toggle("on",b===elm);});updateReelHook();};window.setHookBg=function(elm,c){var h=hs();if(h)h.bg=c;document.querySelectorAll("[data-hookbg]").forEach(function(b){b.classList.toggle("on",b===elm);});updateReelHook();};window.hookYPct=function(){if(typeof state==="undefined")return 50;if(typeof state.reelHookY==="number")return state.reelHookY;var p=state.reelHookPos||"center";return p==="top"?12:p==="bottom"?85:50;};
+window.hookPosCss=function(){return "top:"+hookYPct()+"%;transform:translateY(-50%);";};
+function syncHookY(){var y=hookYPct();var o=el("reel-hook-overlay");if(o){o.className="reel-hook-overlay";o.style.top=y+"%";o.style.bottom="auto";o.style.transform="translateY(-50%)";}
+document.querySelectorAll("[data-hooky]").forEach(function(s){if(String(s.value)!==String(y))s.value=y;});
+var naer=function(a,b){return Math.abs(a-b)<=3;};
+document.querySelectorAll("[data-hookpos]").forEach(function(b){var p=b.getAttribute("data-hookpos");b.classList.toggle("on",(p==="top"&&naer(y,12))||(p==="center"&&naer(y,50))||(p==="bottom"&&naer(y,85)));});}
+window.syncHookY=syncHookY;
+var brennTimer=null;
+function kanskjeBrennPaaNytt(){if(typeof state==="undefined"||!state.hookBrent)return;clearTimeout(brennTimer);brennTimer=setTimeout(function(){if(typeof leggHookPaaBilde==="function"){try{leggHookPaaBilde(true);}catch(e){}}},260);}
+window.setHookY=function(v){var y=parseInt(v,10);if(isNaN(y))y=50;y=Math.max(0,Math.min(100,y));if(typeof state!=="undefined"){state.reelHookY=y;state.reelHookPos=y<=25?"top":y>=75?"bottom":"center";}syncHookY();reRenderPv();kanskjeBrennPaaNytt();};
+window.setReelHookPos=function(p){var y=p==="top"?12:p==="bottom"?85:50;setHookY(y);};window.hentHookFraManus=function(){var r=(typeof state!=="undefined")?state.result:null;if(!r)return;var txt=Array.isArray(r)?r.join("\n"):r;var line=txt.split("\n").find(function(l){return /HOOK/i.test(l);});var hook=line?line.replace(/^.*HOOK[:\s]*/i,"").trim():(txt.split("\n")[0]||"");if(hook){el("reel-hook-text").value=hook.slice(0,90);updateReelHook();}};function renderReelMusic(){var host=el("reel-flow-music-list");if(!host)return;if(typeof renderMusicList==="function"){renderMusicList("reel-flow-music-list");}}var HOOK_COLORS=[["White","#ffffff"],["Black","#1A1A1A"],["Light pink","#F7A8C4"],["Cerise","#F02478"],["Red","#E5484D"],["Orange","#FF8A3D"],["Yellow","#FFD43B"],["Sage","#9CC000"],["Green","#3FA34D"],["Blue","#2D8FE5"],["Purple","#8B5CF6"],["Brown","#5A3825"],["Grey","#8A8A8A"],["Cream","#FFF3CD"]];function renderHookColors(){var tc=el("hook-textcolors"),bgc=el("hook-bgcolors");if(tc)tc.innerHTML=HOOK_COLORS.map(function(c){return '<span class="hk-sw'+(c[1]==="#ffffff"?" on":"")+'" data-hookcolor title="'+c[0]+'" style="background:'+c[1]+'" onclick="setHookColor(this,\''+c[1]+'\')"></span>';}).join("");if(bgc)bgc.innerHTML='<button type="button" class="hk-bg on" data-hookbg onclick="setHookBg(this,\'none\')">None</button>'+HOOK_COLORS.map(function(c){return '<span class="hk-bg" data-hookbg title="'+c[0]+'" style="background:'+c[1]+'" onclick="setHookBg(this,\''+c[1]+'\')"></span>';}).join("");}window.insertHookEmoji=function(e){var t=el("reel-hook-text");if(!t)return;var s=(typeof t.selectionStart==="number")?t.selectionStart:t.value.length,en=(typeof t.selectionEnd==="number")?t.selectionEnd:t.value.length;t.value=t.value.slice(0,s)+e+t.value.slice(en);var np=s+e.length;t.focus();try{t.setSelectionRange(np,np);}catch(_){}updateReelHook();};function init(){if(el("reel-flow-music-list"))renderReelMusic();renderHookColors();syncHookY();}if(document.readyState!=="loading")init();else document.addEventListener("DOMContentLoaded",init);})();</script>
 
     <!-- ════ IMAGE + PUBLISH (shown for non-Reel formats) ════ -->
     <div id="image-publish-section" class="publish-section">
@@ -952,6 +962,11 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
           <button class="act-btn sage-btn" style="flex:1;font-size:12px;" onclick="brukIStoryEditor()">Open in Story editor</button>
         </div>
         <button class="act-btn" style="width:100%;margin-top:8px;font-size:12px;" onclick="leggHookPaaBilde()">🔤 Add hook to image</button>
+        <div id="bilde-hook-rad" style="display:none;margin-top:10px;background:var(--rose-l);border-radius:12px;padding:11px 13px;">
+          <div style="font-size:11px;font-weight:700;color:var(--rose-d);margin-bottom:6px;">Move the hook up or down</div>
+          <input type="range" min="0" max="100" value="50" data-hooky oninput="setHookY(this.value)" style="width:100%;accent-color:var(--rose);">
+          <div style="font-size:10.5px;color:var(--text-s);margin-top:5px;line-height:1.5;">The hook lands where you set the slider. If the image is already marked, it updates straight away.</div>
+        </div>
         <button class="gen-btn purple" style="width:100%;margin-top:8px;font-size:12px;padding:11px;" onclick="imageToReel()">🎬 Turn image into a reel</button>
         <div id="pub-bilde-status" style="margin-top:10px;"></div>
       </div>
@@ -2831,6 +2846,7 @@ function renderPlanDays(){
 function toggleDone(n,btn){ doneDays.has(n)?doneDays.delete(n):doneDays.add(n); btn.textContent=doneDays.has(n)?'✅':'⬜'; renderPlanDays(); }
 function showPlanDay(d){
   selectedPlanDay=d;
+  planFormat=(d.format==='none'?'post':d.format)||'post';
   const fmtE=d.format==='carousel'?'🎠':d.format==='reel'?'🎬':d.format==='story'?'🌸':d.format==='post'?'🌿':'📅';
   document.getElementById('plan-detail-content').innerHTML=`
     <div style="font-family:'Playpen Sans';font-size:16px;font-weight:800;color:var(--rose-d);margin-bottom:12px;">Day ${d.day}, ${d.weekday} ${fmtE}</div>
@@ -2841,14 +2857,26 @@ function showPlanDay(d){
     <div style="background:var(--warm);border-radius:12px;padding:12px 14px;">
       <div style="font-size:10px;font-weight:700;color:var(--rose-d);text-transform:uppercase;margin-bottom:6px;">${fmtE} Post</div>
       <div style="font-size:13px;font-weight:600;line-height:1.7;">${esc(d.post)}</div>
+    </div>
+    <div style="margin-top:12px;">
+      <div style="font-size:10px;font-weight:700;color:var(--rose-d);text-transform:uppercase;margin-bottom:7px;">Format, you can change it</div>
+      <div class="strat-fmtrow" style="padding:0;" id="plan-fmtrow">${fmtChipsHtml(planFormat,'settPlanFormat',null)}</div>
     </div>`;
   const det=document.getElementById('plan-detail');
   det.style.display='block'; det.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
+/* Dagen i planen foreslar et format, men du velger selv. Valget her styrer
+   hva som faktisk blir generert. Renate 3. september 2026. */
+let planFormat='post';
+window.settPlanFormat=function(f){
+  planFormat=f;
+  const r=document.getElementById('plan-fmtrow');
+  if(r) r.innerHTML=fmtChipsHtml(planFormat,'settPlanFormat',null);
+};
 function generateFromPlan(){
   if(!selectedPlanDay)return;
   const d=selectedPlanDay;
-  state.format=d.format==='none'?'post':d.format;
+  state.format=planFormat||(d.format==='none'?'post':d.format);
   state.topic='Custom topic...';
   state.customTopic=d.post.replace(/^(Carousel|Reel|Static post|Story|Static):\s*/i,'');
   document.getElementById('custom-topic').value=state.customTopic;
@@ -3006,6 +3034,29 @@ async function generateStrategy(){
   btn.disabled=false; btn.innerHTML=old;
 }
 const PURPOSE_COLOR={Value:'#9CC000',Engage:'#2D9CDB',Sell:'#F02478',Lead:'#8B5CF6',Authority:'#E07B39',Email:'#00B894'};
+/* The format in the plan is a suggestion, not a lock. If it says reel and
+   you would rather have a carousel, you can switch it here, and the choice is
+   saved into the plan itself. Renate 3 September 2026. */
+const FMT_VALG=[['carousel','Carousel','\uD83C\uDFA0'],['reel','Reel','\uD83C\uDFAC'],['story','Story','\uD83C\uDF38'],['post','Post','\uD83C\uDF3F'],['caption','Caption','\u270D\uFE0F'],['email','Newsletter','\uD83D\uDC8C'],['pinterest','Pinterest','\uD83D\uDCCC']];
+function fmtEmoji(f){ const r=FMT_VALG.find(x=>x[0]===f); return r?r[2]:'\uD83D\uDCC4'; }
+function fmtNavn(f){ const r=FMT_VALG.find(x=>x[0]===f); return r?r[1]:(f||''); }
+function fmtChipsHtml(valgt,fnavn,arg){
+  return FMT_VALG.map(function(v){
+    return '<button type="button" class="fmt-chip'+(valgt===v[0]?' on':'')+'" onclick="event.stopPropagation();'+fnavn+'('+(arg===null?'':arg+',')+'\''+v[0]+'\')">'+v[2]+' '+v[1]+'</button>';
+  }).join('');
+}
+window.aapneStratFormat=function(i){
+  const r=document.getElementById('stratfmt-'+i); if(!r)return;
+  const apen=r.style.display!=='none';
+  document.querySelectorAll('.strat-fmtrow').forEach(function(x){x.style.display='none';});
+  r.style.display=apen?'none':'flex';
+};
+window.settStratFormat=function(i,f){
+  const p=stratFlat[i]; if(!p)return;
+  p.format=f;
+  try{ saveStrategy(); }catch(e){}
+  renderStrategy();
+};
 function renderStrategy(){
   try{ fyllStratFelter(); }catch(e){}
   const host=document.getElementById('strategy-out'); if(!host)return;
@@ -3017,7 +3068,8 @@ function renderStrategy(){
       const idx=stratFlat.push(p)-1;
       const col=PURPOSE_COLOR[p.purpose]||'#999';
       const fmtE={reel:'🎬',carousel:'🎠',story:'🌸',post:'🌿',caption:'✍️',email:'💌',pinterest:'📌'}[p.format]||'📄';
-      return `<div class="strat-post" onclick="generateFromStrategy(${idx})"><span class="strat-day">${esc(p.day||'')}</span><span class="strat-idea">${fmtE} ${esc(p.idea||'')}</span><span class="strat-purpose" style="background:${col}">${esc(p.purpose||'')}</span></div>`;
+      const pf=p.format||'post';
+      return `<div class="strat-post" onclick="generateFromStrategy(${idx})"><span class="strat-day">${esc(p.day||'')}</span><span class="strat-idea">${esc(p.idea||'')}</span><button type="button" class="strat-fmt" title="Change format" onclick="event.stopPropagation();aapneStratFormat(${idx})">${fmtEmoji(pf)} ${esc(fmtNavn(pf))} \u25BE</button><span class="strat-purpose" style="background:${col}">${esc(p.purpose||'')}</span></div><div class="strat-fmtrow" id="stratfmt-${idx}" style="display:none;">${fmtChipsHtml(pf,'settStratFormat',idx)}</div>`;
     }).join('');
     return `<div class="strat-week"><div class="strat-week-head"><b>Week ${esc(String(w.week||''))}</b> · ${esc(w.theme||'')}</div>${posts}</div>`;
   }).join('');
@@ -3376,6 +3428,7 @@ function setImgCount(el,n){ state.imgCount=n; document.querySelectorAll('#img-co
 
 function selectBildeVariant(url,el){
   state.imageUrl=url; state.imageUrlClean=url;
+  state.hookBrent=false; var _hr=document.getElementById('bilde-hook-rad'); if(_hr) _hr.style.display='none';
   document.getElementById('bilde-preview-img').src=url;
   document.getElementById('bilde-last-ned').href=url;
   document.querySelectorAll('#bilde-varianter .img-variant').forEach(t=>t.classList.toggle('on',t===el));
@@ -3383,6 +3436,7 @@ function selectBildeVariant(url,el){
 function renderBildeVarianter(urls){
   const grid=document.getElementById('bilde-varianter');
   state.imageUrl=urls[0]; state.imageUrlClean=urls[0];
+  state.hookBrent=false; var _hr=document.getElementById('bilde-hook-rad'); if(_hr) _hr.style.display='none';
   document.getElementById('bilde-preview-img').src=urls[0];
   document.getElementById('bilde-last-ned').href=urls[0];
   if(urls.length>1){
@@ -3935,8 +3989,7 @@ function renderPreview(){
 function hookOverlayHtml(){
   var hk=(typeof state!=='undefined'&&state.reelHook)?String(state.reelHook).trim():'';
   if(!hk) return '';
-  var pos=(typeof state!=='undefined'&&state.reelHookPos)||'center';
-  var posCss=pos==='top'?'top:8%;':pos==='bottom'?'bottom:12%;':'top:50%;transform:translateY(-50%);';
+  var posCss=(typeof hookPosCss==='function')?hookPosCss():'top:50%;transform:translateY(-50%);';
   var css=(typeof hookCss==='function')?hookCss():"font-family:'Playpen Sans';font-weight:800;font-size:24px;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.7);display:inline-block;";
   return '<div style="position:absolute;left:0;right:0;'+posCss+'text-align:center;padding:0 14px;z-index:8;pointer-events:none;"><span style="'+css+'">'+esc(hk.substring(0,90))+'</span></div>';
 }
@@ -3976,8 +4029,7 @@ function reelHtml(text,videoUrl,coverImg){
   const main=mainLines.map(l=>l.replace(/^MAIN[:\s]*/i,'').trim()).filter(Boolean).join('\n');
   const cta=ctaLine.replace(/^CTA[:\s]*/i,'').trim();
   const userHook=((typeof state!=='undefined'&&state.reelHook)||'').trim();
-  const hookPos=(typeof state!=='undefined'&&state.reelHookPos)||'center';
-  const hookPosCss=hookPos==='top'?'top:15%;':hookPos==='bottom'?'bottom:26%;':'top:50%;transform:translateY(-50%);';
+  const hookPosCss=(typeof window.hookPosCss==='function')?window.hookPosCss():'top:50%;transform:translateY(-50%);';
   let bgInner='';
   if(videoUrl){
     bgInner=`<video src="${videoUrl}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" autoplay muted loop playsinline></video>`;
@@ -6725,12 +6777,18 @@ async function _drawHook(ctx,W,H,text){
   const lines=[]; let cur='';
   for(const w of words){ const t=cur?cur+' '+w:w; if(ctx.measureText(t).width>maxW&&cur){ lines.push(cur); cur=w; } else cur=t; }
   if(cur) lines.push(cur);
-  const lineH=fontPx*1.28;
-  const blockH=lines.length*lineH;
-  const hp=(typeof state!=='undefined'&&state.reelHookPos)||'center';
-  const y0= hp==='top'? H*0.10 : hp==='bottom'? (H*0.82-blockH) : (H/2 - blockH/2);
   const cx=W/2, padX=fontPx*0.42, padY=fontPx*0.16, radius=fontPx*0.3;
   const useBg=h.bg&&h.bg!=='none';
+  /* Boksen bak hver linje er fontPx+padY*2 hoey. Var linjeavstanden mindre
+     enn det, la boksene seg oppaa hverandre og teksten saa hakkete ut. */
+  const boksH=fontPx+padY*2;
+  const lineH= useBg ? (boksH+fontPx*0.10) : fontPx*1.28;
+  const blockH=(lines.length-1)*lineH + (useBg?boksH:fontPx*1.18);
+  const yPct=(typeof hookYPct==='function')?hookYPct():50;
+  let y0=H*(yPct/100) - blockH/2;
+  const marg=H*0.03;
+  if(blockH < H-marg*2) y0=Math.max(marg, Math.min(y0, H-marg-blockH));
+  else y0=Math.max(0,(H-blockH)/2);
   for(let i=0;i<lines.length;i++){
     const ly=y0+i*lineH;
     const lw=ctx.measureText(lines[i]).width;
@@ -6775,17 +6833,23 @@ async function burnHookIntoImage(srcUrl){
   });
 }
 
-async function leggHookPaaBilde(){
+/* After the hook is burned into the image it must still be movable, so we
+   keep the original image and re-burn from it instead of stacking text on
+   top of text. Renate 3 September 2026. */
+async function leggHookPaaBilde(stille){
   const src=state.imageUrlClean||state.imageUrl;
-  if(!src){ alert('Generate an image first!'); return; }
+  if(!src){ if(!stille) alert('Generate an image first!'); return; }
+  if(!state.imageUrlClean) state.imageUrlClean=src;
   const st=document.getElementById('pub-bilde-status');
   const hk=(state.reelHook||'').trim();
-  if(!hk){ if(st) st.innerHTML='<div class="pub-status error">Write or generate a hook first (in the Hook card above).</div>'; return; }
-  if(st) st.innerHTML='<div class="pub-status loading">Burning hook into the image…</div>';
-  const out=await burnHookIntoImage(src);
+  if(!hk){ if(!stille&&st) st.innerHTML='<div class="pub-status error">Write or generate a hook first (in the Hook card above).</div>'; return; }
+  if(!stille&&st) st.innerHTML='<div class="pub-status loading">Burning hook into the image…</div>';
+  const out=await burnHookIntoImage(state.imageUrlClean);
   state.imageUrl=out;
-  document.getElementById('bilde-preview-img').src=out;
-  document.getElementById('bilde-last-ned').href=out;
+  state.hookBrent=true;
+  const pv=document.getElementById('bilde-preview-img'); if(pv) pv.src=out;
+  const dl=document.getElementById('bilde-last-ned'); if(dl) dl.href=out;
+  const rad=document.getElementById('bilde-hook-rad'); if(rad) rad.style.display='block';
   if(st) st.innerHTML='<div class="pub-status success">Hook added to the image. Download or publish.</div>';
 }
 
@@ -7054,6 +7118,11 @@ if('serviceWorker' in navigator){
 .strat-week-head{font-size:13.5px;color:var(--text);margin-bottom:8px;}
 .strat-week-head b{font-family:'Playpen Sans',sans-serif;color:var(--rose-d);}
 .strat-post{display:flex;align-items:center;gap:10px;padding:10px 6px;border-top:1px solid var(--border);cursor:pointer;transition:background .12s;}
+.strat-fmt{font-family:'Sasson Montessori',sans-serif;font-size:10.5px;font-weight:700;color:var(--rose-d);background:#fff;border:1.5px solid var(--rose-m);border-radius:999px;padding:4px 9px;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.strat-fmt:hover{background:var(--rose-l);}
+.strat-fmtrow{display:flex;flex-wrap:wrap;gap:6px;padding:0 6px 10px;}
+.fmt-chip{font-family:'Sasson Montessori',sans-serif;font-size:11.5px;border:1.5px solid var(--border);background:#fff;color:var(--text-s);border-radius:999px;padding:6px 11px;cursor:pointer;}
+.fmt-chip.on{background:var(--rose);border-color:var(--rose);color:#fff;font-weight:700;}
 .strat-post:hover{background:var(--rose-l);}
 .strat-day{font-size:11px;font-weight:700;color:var(--text-s);min-width:28px;}
 .strat-idea{flex:1;font-size:13px;line-height:1.4;}
