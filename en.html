@@ -822,6 +822,7 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
 
   <div class="error-box" id="error-box" style="display:none;"></div>
 
+  <div id="fakta-varsel" style="display:none;background:var(--rose-l);border:1.5px solid var(--rose-m);border-radius:14px;padding:12px 14px;margin-bottom:12px;font-size:12px;line-height:1.6;color:var(--text-s);"><div><b>The copy stays generic if I do not know what you sell.</b> Fill in what you are launching and what you offer in Settings, and the AI writes about what the product actually does instead of generic promises.</div><button type="button" class="act-btn sage-btn" style="margin-top:9px;font-size:12px;" onclick="showTab('settings',null);setTimeout(function(){var e=document.getElementById('s-launch');if(e){e.scrollIntoView({behavior:'smooth',block:'center'});e.focus();}},250);">Fill it in now</button></div>
   <button class="gen-btn" id="gen-btn" onclick="generate()">Generate content</button>
   <div class="byok-upsell" onclick="goTab('pricing')">You are using your own key. <strong>With Pro, text, images and video are included.</strong></div>
 
@@ -1339,6 +1340,7 @@ window.setReelHookPos=function(p){var y=p==="top"?12:p==="bottom"?85:50;setHookY
     <div style="font-size:11px;color:var(--text-s);margin-bottom:10px;line-height:1.6;">What you sell: courses, workshops, your signature course, bundles. Nathalie AI uses this to write copy and CTAs that point at the right offers. Write freely, or let her pull it from your website.</div>
     <div style="display:flex;flex-direction:column;gap:10px;">
       <div><div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Your website</div><input type="text" id="s-website" placeholder="https://lmexplorers.com" oninput="saveSettings()"/></div>
+      <div><div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">What you are launching now</div><textarea id="s-launch" rows="7" placeholder="What the product is, what it actually does, who it is for, which problem it solves and what sets it apart. The more concrete you are here, the less generic the copy the AI writes." oninput="saveSettings()"></textarea><div style="font-size:11px;color:var(--text-s);line-height:1.6;margin-top:6px;">This field matters most for keeping the content about your product instead of generic. It travels with the strategy, every post and the hooks.</div><button type="button" class="act-btn sage-btn" style="margin-top:8px;font-size:12px;" onclick="fyllLanseringAutopilot()">Fill in LME Autopilot</button></div>
       <div><div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Your offers</div><textarea id="s-offers" rows="6" placeholder="e.g.
 Signature course "…" – 3 weeks, $249 – for …
 Workshop "…" – half day – for …" oninput="saveSettings()"></textarea></div>
@@ -2407,6 +2409,7 @@ function init(){
   renderIdeas(); renderCalendar(); renderHistory();
   updateSlidesCard(); updateReelSection();
   loadStrategy();
+  try{ oppdaterFaktaVarsel(); }catch(e){}
   maybeAutoWizard();
 }
 
@@ -2887,6 +2890,32 @@ function generateFromPlan(){
 }
 
 // ══ 90-DAY STRATEGY (AI) ══
+/* Why the copy came out generic: the "Your offers" field in Settings was
+   saved but never sent to the AI. The model only got the brand name, niche,
+   voice and a topic, and generic marketing filler is all it can write from
+   that. Now the real product facts travel with every prompt: strategy,
+   content and hooks. Renate 3 September 2026. */
+/* Without product facts the model can only write generically. You should be
+   told why, and taken straight to the field, instead of assuming the AI is bad. */
+function oppdaterFaktaVarsel(){
+  const v=document.getElementById('fakta-varsel'); if(!v) return;
+  const tomt=!((cfg.launch||'').trim()||(cfg.offers||'').trim());
+  v.style.display=tomt?'block':'none';
+}
+function produktFakta(){
+  const d=[];
+  if(cfg.brand) d.push('Brand: '+cfg.brand);
+  if(cfg.website) d.push('Website: '+cfg.website);
+  if((cfg.launch||'').trim()) d.push('THIS IS BEING LAUNCHED NOW, and is the most important product in the content:\n'+cfg.launch.trim());
+  if((cfg.offers||'').trim()) d.push('Everything I sell:\n'+cfg.offers.trim());
+  if(!d.length) return '';
+  return '\n\nPRODUCT FACTS (use these, not generic claims):\n'+d.join('\n')+'\n'+FAKTAREGLER_EN;
+}
+const FAKTAREGLER_EN=`Rules for how the facts are used:
+- Be concrete about what the product actually does, naming features and what they save the reader. No generic promises like "take your business to the next level", "unlock your potential" or "everything you need in one place".
+- Every claim must trace back to something in the facts above. If you cannot find backing, write about the problem the product solves instead.
+- Never invent features, numbers, prices, results or testimonials that are not in the facts.
+- Name the product when the post is about it, not just "the app" or "the tool".`;
 function strategyPrompt(){
   const niche = cfg.niche || (currentNiche()&&currentNiche().label) || 'your niche';
   const goal = state.goal || 'growth and visibility';
@@ -2910,7 +2939,7 @@ Requirements:
 - purpose is one of: Value, Engage, Sell, Lead, Authority, Email. Include Sell and Lead regularly, and at least one Email growth idea each month.
 - idea is short (max 12 words), concrete and tailored to the niche and goal.
 - ${personRule()}
-- ${WRITING_RULES_EN}`;
+- ${WRITING_RULES_EN}${produktFakta()}`;
 }
 /* The niche and goal the strategy actually uses, shown and editable where you
    stand. cfg.niche is the source of truth for the prompt, but it only lived in
@@ -2960,7 +2989,7 @@ Requirements:
 - purpose is one of: Value, Engage, Sell, Lead, Authority, Email.
 - idea is short (max 12 words), concrete and tailored to the niche and goal.
 - ${personRule()}
-- ${WRITING_RULES_EN}`;
+- ${WRITING_RULES_EN}${produktFakta()}`;
 }
 
 let strategy90 = null, stratFlat = [];
@@ -3113,7 +3142,7 @@ function buildPrompt(){
   if (state.targetGroup && state.targetGroup !== 'Everyone') publikumDeler.push(state.targetGroup);
   if (state.ageGroup && state.ageGroup !== 'All age groups') publikumDeler.push(state.ageGroup);
   const publikum = publikumDeler.join(', ') || cfg.audience || 'no particular audience';
-  const base=`You write social media content. THE TOPIC (what the content MUST be about): "${topic}". Write strictly and ONLY about this topic. Everything that follows describes WHO IS SPEAKING, never WHAT THE POST IS ABOUT: if any of it does not fit the topic, ignore it rather than bending the topic to fit it. The brand's usual niche is "${cfg.niche||'your niche'}" and its usual audience is "${publikum}", but a post about something else must never be reframed, explained or justified through that niche or that audience. Do NOT introduce unrelated themes, audiences or angles that the topic does not imply, even if the brand normally covers other subjects. You post as the brand "${cfg.brand||'Your brand'}", so use its voice and identity, but never force the brand's usual subject matter onto an off-topic post. ${characters!=='no specific characters'?`Characters: ${characters}.`:''} Brand voice: ${cfg.voice||'Warm, clear and professional'}. Audience hint (ignore it completely when the topic implies someone else): ${publikum}. Tone: ${state.tone}. Language: English. ${personRule()}${goalLine} ${state.extra?'Context: '+state.extra:''}`;
+  const base=`You write social media content. THE TOPIC (what the content MUST be about): "${topic}". Write strictly and ONLY about this topic. Everything that follows describes WHO IS SPEAKING, never WHAT THE POST IS ABOUT: if any of it does not fit the topic, ignore it rather than bending the topic to fit it. The brand's usual niche is "${cfg.niche||'your niche'}" and its usual audience is "${publikum}", but a post about something else must never be reframed, explained or justified through that niche or that audience. Do NOT introduce unrelated themes, audiences or angles that the topic does not imply, even if the brand normally covers other subjects. You post as the brand "${cfg.brand||'Your brand'}", so use its voice and identity, but never force the brand's usual subject matter onto an off-topic post. ${characters!=='no specific characters'?`Characters: ${characters}.`:''} Brand voice: ${cfg.voice||'Warm, clear and professional'}. Audience hint (ignore it completely when the topic implies someone else): ${publikum}. Tone: ${state.tone}. Language: English. ${personRule()}${goalLine} ${state.extra?'Context: '+state.extra:''}${produktFakta()}`;
 
   if(state.format==='carousel'||state.format==='story'){
     const type=state.format==='story'?'Story set (9:16 vertical, short punchy headline + 1-2 lines per frame)':'Instagram carousel';
@@ -4188,7 +4217,7 @@ function loadSettings(){
 function applySettingsToUI(){
   const s=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
   s('s-brand',cfg.brand); s('s-niche',cfg.niche); s('s-voice',cfg.voice); s('s-audience',cfg.audience);
-  s('s-website',cfg.website); s('s-offers',cfg.offers);
+  s('s-website',cfg.website); s('s-offers',cfg.offers); s('s-launch',cfg.launch);
   { const el=document.getElementById('s-team-mode'); if(el) el.value=cfg.teamMode||'solo'; }
   s('s-email',cfg.email);
   s('s-greeting',cfg.greeting); s('s-signature',cfg.signature);
@@ -4208,7 +4237,8 @@ function applySettingsToUI(){
 function saveSettings(){
   const g=id=>{const el=document.getElementById(id);return el?el.value:'';};
   cfg.brand=g('s-brand'); cfg.niche=g('s-niche'); cfg.voice=g('s-voice'); cfg.audience=g('s-audience');
-  cfg.website=g('s-website'); cfg.offers=g('s-offers');
+  cfg.website=g('s-website'); cfg.offers=g('s-offers'); cfg.launch=g('s-launch');
+  try{ oppdaterFaktaVarsel(); }catch(e){}
   cfg.teamMode=g('s-team-mode')||'solo';
   cfg.email=g('s-email');
   cfg.greeting=g('s-greeting'); cfg.signature=g('s-signature');
@@ -4242,6 +4272,15 @@ function persistCfg(){ try{ localStorage.setItem('lme_en_v2',JSON.stringify(cfg)
 // costs per search and is off by default in the bot panel, so the saved field
 // is what Nathalie normally reads from.
 const LME_BRAIN_ENDPOINT='https://lme-ai-brain.renateshobby.workers.dev/api/ai';
+const LANSERING_AUTOPILOT='LME Autopilot, the app that makes your content for you.\nWhat it is: an app where you enter your niche, audience and voice once, and it then produces finished posts, reels, carousels, stories, captions, newsletters and Pinterest content in Norwegian and English.\nWhat is inside: a 90-day content plan laid out week by week, a 30-day starter plan, AI images for every post, AI video, hooks burned straight onto the image or reel, per-channel variants of the same post, a calendar, an idea bank, history and publishing straight to your channels.\nWho it is for: someone running everything alone who has no time to invent posts every day.\nThe problem it solves: the blank field. You never start from nothing, and you do not have to choose between being visible and getting your actual work done.\nTry it: add your own price and link here.';
+/* The app can describe itself, so the launch text does not have to be written
+   from scratch. No prices here: the price lives in one place, on
+   lmexplorers.com, and the store app shows neither price nor buy button. */
+function fyllLanseringAutopilot(){
+  const b=document.getElementById("s-launch"); if(!b) return;
+  if(b.value.trim() && !confirm("Replace what is in the field?")) return;
+  b.value=LANSERING_AUTOPILOT; saveSettings();
+}
 async function fetchOffersFromWebsite(btn){
   const site=((document.getElementById('s-website')||{}).value||'').trim();
   if(!site){ alert('Enter your website in the field above first.'); return; }

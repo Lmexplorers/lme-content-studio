@@ -822,6 +822,7 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
 
   <div class="error-box" id="error-box" style="display:none;"></div>
 
+  <div id="fakta-varsel" style="display:none;background:var(--rose-l);border:1.5px solid var(--rose-m);border-radius:14px;padding:12px 14px;margin-bottom:12px;font-size:12px;line-height:1.6;color:var(--text-s);"><div><b>Teksten blir generell hvis jeg ikke vet hva du selger.</b> Fyll inn hva du lanserer og hva du tilbyr i Innstillinger, så skriver AI-en om det produktet faktisk gjør i stedet for generelle løfter.</div><button type="button" class="act-btn sage-btn" style="margin-top:9px;font-size:12px;" onclick="showTab('settings',null);setTimeout(function(){var e=document.getElementById('s-launch');if(e){e.scrollIntoView({behavior:'smooth',block:'center'});e.focus();}},250);">Fyll det inn nå</button></div>
   <button class="gen-btn" id="gen-btn" onclick="generate()">Generer innhold</button>
   <div class="byok-upsell" onclick="goTab('pricing')">Du bruker din egen nøkkel. <strong>Med Pro er tekst, bilder og video inkludert.</strong></div>
 
@@ -1625,6 +1626,7 @@ window.setReelHookPos=function(p){var y=p==="top"?12:p==="bottom"?85:50;setHookY
     <div style="font-size:11px;color:var(--text-s);margin-bottom:10px;line-height:1.6;">Det du selger: kurs, workshops, signaturkurset, pakker. Nathalie AI bruker dette til å skrive tekst og CTA som peker på de riktige tilbudene. Skriv fritt, eller la henne hente det fra nettsiden din.</div>
     <div style="display:flex;flex-direction:column;gap:10px;">
       <div><div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Nettstedet ditt</div><input type="text" id="s-website" placeholder="https://lmexplorers.com" oninput="saveSettings()"/></div>
+      <div><div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Det du lanserer nå</div><textarea id="s-launch" rows="7" placeholder="Hva produktet er, hva det faktisk gjør, hvem det er for, hvilket problem det løser og hva som skiller det fra alt annet. Jo mer konkret du skriver her, jo mindre generell blir teksten AI-en lager." oninput="saveSettings()"></textarea><div style="font-size:11px;color:var(--text-s);line-height:1.6;margin-top:6px;">Dette feltet er det viktigste for at innholdet skal handle om produktet ditt og ikke bli generelt. Det følger med i strategien, i hvert innlegg og i hookene.</div><button type="button" class="act-btn sage-btn" style="margin-top:8px;font-size:12px;" onclick="fyllLanseringAutopilot()">Fyll inn LME Autopilot</button></div>
       <div><div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Tilbudene dine</div><textarea id="s-offers" rows="6" placeholder="F.eks.
 Signaturkurset «…» – 3 uker, 2 490 kr – for …
 Workshop «…» – halvdag – for …" oninput="saveSettings()"></textarea></div>
@@ -2708,6 +2710,7 @@ function init(){
   renderIdeas(); renderCalendar(); renderHistory();
   updateSlidesCard(); updateReelSection();
   loadStrategy();
+  try{ oppdaterFaktaVarsel(); }catch(e){}
   maybeAutoWizard();
 }
 
@@ -3192,6 +3195,32 @@ function generateFromPlan(){
 }
 
 // ══ 90-DAGERS STRATEGI (AI) ══
+/* Hvorfor tekstene ble svada: feltet "Tilbudene dine" i Innstillinger ble
+   lagret, men aldri sendt med til AI-en. Modellen fikk bare merkevarenavn,
+   nisje, stemme og et tema, og da er generell markedsføringsfyll det eneste
+   den kan skrive. Nå følger de faktiske produktfaktaene med i hver eneste
+   prompt: strategi, innhold og hooks. Renate 3. september 2026. */
+/* Uten produktfakta kan modellen bare skrive generelt. Da skal du få vite
+   hvorfor, og komme rett til feltet, i stedet for å tro at AI-en er dårlig. */
+function oppdaterFaktaVarsel(){
+  const v=document.getElementById('fakta-varsel'); if(!v) return;
+  const tomt=!((cfg.launch||'').trim()||(cfg.offers||'').trim());
+  v.style.display=tomt?'block':'none';
+}
+function produktFakta(){
+  const d=[];
+  if(cfg.brand) d.push('Merkevare: '+cfg.brand);
+  if(cfg.website) d.push('Nettsted: '+cfg.website);
+  if((cfg.launch||'').trim()) d.push('DETTE LANSERES NÅ, og er det viktigste produktet i innholdet:\n'+cfg.launch.trim());
+  if((cfg.offers||'').trim()) d.push('Alt jeg selger:\n'+cfg.offers.trim());
+  if(!d.length) return '';
+  return '\n\nFAKTA OM PRODUKTET (bruk disse, ikke generelle påstander):\n'+d.join('\n')+'\n'+FAKTAREGLER_NO;
+}
+const FAKTAREGLER_NO=`Regler for hvordan faktaene brukes:
+- Skriv konkret om det produktet faktisk gjør, med navn på funksjoner og hva de sparer leseren for. Ingen generelle løfter som "ta virksomheten din til neste nivå", "frigjør potensialet ditt" eller "alt du trenger på ett sted".
+- Hver påstand skal kunne knyttes til noe i faktaene over. Finner du ikke dekning, skriv heller om problemet produktet løser.
+- Finn aldri på funksjoner, tall, priser, resultater eller kundesitater som ikke står i faktaene.
+- Nevn produktet ved navn når innlegget handler om det, ikke bare "appen" eller "verktøyet".`;
 function strategyPrompt(){
   const niche = cfg.niche || (currentNiche()&&currentNiche().label) || 'din nisje';
   const goal = state.goal || 'vekst og synlighet';
@@ -3215,7 +3244,7 @@ Krav:
 - purpose er én av: Verdi, Engasjement, Salg, Leads, Autoritet, E-post. Inkluder jevnlig Salg og Leads, og minst én E-post-idé hver måned.
 - idé er kort (maks 12 ord), konkret og tilpasset nisjen og målet.
 - ${personRule()}
-- ${SKRIVEREGLER_NO}`;
+- ${SKRIVEREGLER_NO}${produktFakta()}`;
 }
 /* Nisjen og målet strategien faktisk bruker, vist og redigerbart der du står.
    cfg.niche er fasit for prompten, men den lå bare i Innstillinger, så en gammel
@@ -3264,7 +3293,7 @@ Krav:
 - purpose er én av: Verdi, Engasjement, Salg, Leads, Autoritet, E-post.
 - idé er kort (maks 12 ord), konkret og tilpasset nisjen og målet.
 - ${personRule()}
-- ${SKRIVEREGLER_NO}`;
+- ${SKRIVEREGLER_NO}${produktFakta()}`;
 }
 
 let strategy90 = null, stratFlat = [];
@@ -3420,7 +3449,7 @@ function buildPrompt(){
   const publikum = publikumDeler.join(', ') || cfg.audience || 'ingen bestemt målgruppe';
   const base=`You write social media content. THE TOPIC (what the content MUST be about): "${topic}". Write strictly and ONLY about this topic. Everything that follows describes WHO IS SPEAKING, never WHAT THE POST IS ABOUT: if any of it does not fit the topic, ignore it rather than bending the topic to fit it. The brand's usual niche is "${cfg.niche||'din nisje'}" and its usual audience is "${publikum}", but a post about something else must never be reframed, explained or justified through that niche or that audience. Do NOT introduce unrelated themes, audiences or angles that the topic does not imply, even if the brand normally covers other subjects. You post as the brand "${cfg.brand||'merkevaren din'}", so use its voice and identity, but never force the brand's usual subject matter onto an off-topic post. ${characters!=='no specific characters'&&characters!=='ingen spesifikke karakterer'?`Characters: ${characters}.`:''} Brand voice: ${cfg.voice||'vennlig, tydelig og profesjonell'}. Audience hint (ignore it completely when the topic implies someone else): ${publikum}. Tone: ${state.tone}. Language: Norwegian bokmål. ${personRuleEn()}${goalLine} ${state.extra?'Context: '+state.extra:''}
 
-${SKRIVEREGLER_NO}`;
+${SKRIVEREGLER_NO}${produktFakta()}`;
 
   if(state.format==='carousel'||state.format==='story'){
     const type=state.format==='story'?'Story set (9:16 vertical, short punchy headline + 1-2 lines per frame)':'Instagram carousel';
@@ -4211,7 +4240,7 @@ async function generateHook(){
     const res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:300,messages:[{role:'user',content:`Lag 5 korte, fengende hooks for en reel om: "${desc}". Skriv strengt om dette emnet, og ikke dra inn urelaterte temaer (for eksempel ikke Montessori eller barn) hvis emnet ikke tilsier det, selv om merkevaren vanligvis dekker noe annet. Hver hook maks 8 ord og under 60 tegn, og skal stoppe scrollingen. Skriv på norsk bokmål, uten anførselstegn, uten punktum på slutten. Returner som en nummerert liste, én hook per linje, ingen forklaring.`}]})
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:300,messages:[{role:'user',content:`Lag 5 korte, fengende hooks for en reel om: "${desc}". Skriv strengt om dette emnet, og ikke dra inn urelaterte temaer (for eksempel ikke Montessori eller barn) hvis emnet ikke tilsier det, selv om merkevaren vanligvis dekker noe annet. Hver hook maks 8 ord og under 60 tegn, og skal stoppe scrollingen. Skriv på norsk bokmål, uten anførselstegn, uten punktum på slutten. Returner som en nummerert liste, én hook per linje, ingen forklaring.${produktFakta()}`}]})
     });
     const data=await res.json();
     const raw=(data.content?.map(b=>b.text||'').join('')||'');
@@ -4502,7 +4531,7 @@ function loadSettings(){
 function applySettingsToUI(){
   const s=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
   s('s-brand',cfg.brand); s('s-niche',cfg.niche); s('s-voice',cfg.voice); s('s-audience',cfg.audience);
-  s('s-website',cfg.website); s('s-offers',cfg.offers);
+  s('s-website',cfg.website); s('s-offers',cfg.offers); s('s-launch',cfg.launch);
   { const el=document.getElementById('s-team-mode'); if(el) el.value=cfg.teamMode||'solo'; }
   s('s-email',cfg.email);
   s('s-greeting',cfg.greeting); s('s-signature',cfg.signature);
@@ -4522,7 +4551,8 @@ function applySettingsToUI(){
 function saveSettings(){
   const g=id=>{const el=document.getElementById(id);return el?el.value:'';};
   cfg.brand=g('s-brand'); cfg.niche=g('s-niche'); cfg.voice=g('s-voice'); cfg.audience=g('s-audience');
-  cfg.website=g('s-website'); cfg.offers=g('s-offers');
+  cfg.website=g('s-website'); cfg.offers=g('s-offers'); cfg.launch=g('s-launch');
+  try{ oppdaterFaktaVarsel(); }catch(e){}
   cfg.teamMode=g('s-team-mode')||'solo';
   cfg.email=g('s-email');
   cfg.greeting=g('s-greeting'); cfg.signature=g('s-signature');
@@ -4557,6 +4587,15 @@ function persistCfg(){ try{ localStorage.setItem('lme_no_v1',JSON.stringify(cfg)
 // Nettsøk koster per søk, og er avslått som standard i botpanelet — derfor er
 // det lagrede feltet det Nathalie normalt leser fra.
 const LME_BRAIN_ENDPOINT='https://lme-ai-brain.renateshobby.workers.dev/api/ai';
+const LANSERING_AUTOPILOT='LME Autopilot, appen som lager innholdet ditt for deg.\nHva den er: en app der du skriver inn nisjen, målgruppen og stemmen din én gang, og så lager den ferdige innlegg, reels, karuseller, stories, bildetekster, nyhetsbrev og Pinterest-innhold på norsk og engelsk.\nDette er inni: 90-dagers innholdsplan som legger opp uke for uke, 30-dagers startplan, AI-bilder til hvert innlegg, AI-video, hooks med tekst rett på bildet eller reelen, varianter av samme innlegg tilpasset hver kanal, kalender, ideabank, historikk og publisering rett til kanalene dine.\nHvem den er for: den som driver alene og ikke har tid til å sitte og finne på innlegg hver dag.\nProblemet den løser: det tomme feltet. Du slipper å starte på null, og du slipper å velge mellom å være synlig og å få gjort jobben din.\nPrøv den: legg inn din egen pris og lenke her.';
+/* Appen kan beskrive seg selv, så lanseringsteksten ikke må skrives fra bunnen.
+   Ingen priser her: prisen står ett sted, på lmexplorers.com, og butikkappen
+   skal verken vise pris eller kjøpsknapp. Renate 3. september 2026. */
+function fyllLanseringAutopilot(){
+  const b=document.getElementById("s-launch"); if(!b) return;
+  if(b.value.trim() && !confirm("Erstatte det som står i feltet?")) return;
+  b.value=LANSERING_AUTOPILOT; saveSettings();
+}
 async function fetchOffersFromWebsite(btn){
   const site=((document.getElementById('s-website')||{}).value||'').trim();
   if(!site){ alert('Skriv inn nettstedet ditt i feltet over først.'); return; }
