@@ -392,12 +392,12 @@ export async function onRequestPost(context) {
           result = await generateImage(env, body, true);
           useServerKey = false;
         } else {
-          const annen = body.model === "dalle3"
-            ? "Bytt til Nano Banana under bildemodell, den bruker en annen konto."
-            : "Bytt til DALL-E 3 under bildemodell, den bruker en annen konto.";
+          /* Selve valget ligger som en knapp i appen, så meldingen sier bare
+             hva som er galt, ikke hva knappen alt tilbyr. */
           return json({
             error: "Bildekontoen til LME (" + result.leverandor + ") er tom for kreditt, så bildet " +
-              "kunne ikke lages. " + annen + " Du kan også legge inn din egen nøkkel i Innstillinger.",
+              "kunne ikke lages. Den andre bildemodellen går på en annen konto, eller du kan legge " +
+              "inn din egen nøkkel i Innstillinger.",
             code: "lme_tom_for_kreditt",
             leverandor: result.leverandor,
           }, 200);

@@ -3714,6 +3714,13 @@ function removeImgRef(){
   const inp=document.getElementById('img-ref-input'); if(inp) inp.value='';
 }
 
+/* Bytter bildemodell og prøver på nytt med en gang. Brukes fra feilmeldingen
+   når kontoen bak den valgte modellen er tom for kreditt. */
+function byttBildemodellOgProev(til){
+  try{ selectImgModel(til); }catch(e){}
+  try{ genererBilde(); }catch(e){}
+}
+
 async function genererBilde(){
   if(!state.result&&!(document.getElementById('img-prompt')?.value||'').trim()){alert('Generer innhold først, eller skriv en egen bildeprompt!');return;}
   const btn=document.getElementById('pub-btn');
@@ -3773,7 +3780,11 @@ async function genererBilde(){
       const _res = await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify(_body)});
       const _d = await _res.json().catch(()=>({}));
-      if(!_res.ok||_d.error) throw new Error(_d.error||('Feil '+_res.status));
+      if(!_res.ok||_d.error){
+        const feil=new Error(_d.error||('Feil '+_res.status));
+        feil.kode=_d.code||''; // f.eks. lme_tom_for_kreditt
+        throw feil;
+      }
       if(_d.imageUrl) urls.push(_d.imageUrl);
     }
     if(!urls.length)throw new Error('Ingen bilde i svaret');
@@ -3787,7 +3798,16 @@ async function genererBilde(){
        bildekontoen er tom), skal den stå alene. "Bildefeil:" foran gjør den
        bare vanskeligere å lese. */
     const ferdig=/^Bildekontoen|^Du har brukt opp|^Logg inn/.test(e.message||'');
-    statusEl.innerHTML=`<div class="pub-status error" style="margin-top:10px;">${ferdig?e.message:'Bildefeil: '+e.message}</div>`;
+    /* Er kontoen bak den valgte bildemodellen tom, holder det ikke å fortelle
+       at det finnes en annen modell. Da skal den andre ligge der som en knapp,
+       så du kommer videre med ett trykk i stedet for å lete i innstillingene. */
+    let bytt='';
+    if(e.kode==='lme_tom_for_kreditt'){
+      const til = useModel==='dalle3' ? 'nano' : 'dalle3';
+      bytt = `<button type="button" class="act-btn" style="margin-top:10px;" `+
+        `onclick="byttBildemodellOgProev('${til}')">Bytt til ${IMG_MODEL_NAMES[til]} og prøv igjen</button>`;
+    }
+    statusEl.innerHTML=`<div class="pub-status error" style="margin-top:10px;">${ferdig?e.message:'Bildefeil: '+e.message}${bytt}</div>`;
     btn.textContent='Generer forsidebilde';
   }
   btn.disabled=false;

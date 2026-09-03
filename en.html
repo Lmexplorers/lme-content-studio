@@ -3407,6 +3407,13 @@ function removeImgRef(){
   const inp=document.getElementById('img-ref-input'); if(inp) inp.value='';
 }
 
+/* Switches image model and retries right away. Used from the error message when
+   the account behind the chosen model has run out of credit. */
+function byttBildemodellOgProev(til){
+  try{ selectImgModel(til); }catch(e){}
+  try{ genererBilde(); }catch(e){}
+}
+
 async function genererBilde(){
   if(!state.result&&!(document.getElementById('img-prompt')?.value||'').trim()){alert('Generate content first, or write a custom image prompt!');return;}
   const btn=document.getElementById('pub-btn');
@@ -3466,7 +3473,11 @@ async function genererBilde(){
       const _res = await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify(_body)});
       const _d = await _res.json().catch(()=>({}));
-      if(!_res.ok||_d.error) throw new Error(_d.error||('Error '+_res.status));
+      if(!_res.ok||_d.error){
+        const feil=new Error(_d.error||('Error '+_res.status));
+        feil.kode=_d.code||'';
+        throw feil;
+      }
       if(_d.imageUrl) urls.push(_d.imageUrl);
     }
     if(!urls.length)throw new Error('No image in response');
@@ -3476,7 +3487,16 @@ async function genererBilde(){
     btn.textContent='Generate cover image';
 
   }catch(e){
-    statusEl.innerHTML=`<div class="pub-status error" style="margin-top:10px;">Image error: ${e.message}</div>`;
+    /* When the account behind the chosen image model is empty, it is not enough
+       to say another model exists. It should sit there as a button, so you get
+       on with one tap instead of hunting through the settings. */
+    let bytt='';
+    if(e.kode==='lme_tom_for_kreditt'){
+      const til = useModel==='dalle3' ? 'nano' : 'dalle3';
+      bytt = `<button type="button" class="act-btn" style="margin-top:10px;" `+
+        `onclick="byttBildemodellOgProev('${til}')">Switch to ${IMG_MODEL_NAMES[til]} and try again</button>`;
+    }
+    statusEl.innerHTML=`<div class="pub-status error" style="margin-top:10px;">${e.message}${bytt}</div>`;
     btn.textContent='Generate cover image';
   }
   btn.disabled=false;
