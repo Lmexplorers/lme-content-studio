@@ -1056,8 +1056,8 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
   <div id="strategy-out"></div>
 
   <div class="card">
-    <div class="card-title" style="font-size:14px;color:var(--rose-d);">Ferdig 30-dagers mal</div>
-    <p style="font-size:12px;color:var(--text-s);margin-bottom:14px;line-height:1.6;">En klar mal du kan bruke med en gang. Klikk på en dag for å se ideen og innlegget, og generer innholdet direkte.</p>
+    <div class="card-title" style="font-size:14px;color:var(--rose-d);">Ferdig 30-dagers mal (noe annet enn strategien over)</div>
+    <p style="font-size:12px;color:var(--text-s);margin-bottom:14px;line-height:1.6;">Dette er ikke resultatet av 90-dagers strategien, men en ferdig, generell mal på 30 dager du kan bruke med en gang uten å generere noe. Den er lik for alle og bygger ikke på nisjen din. Klikk på en dag for å se ideen og innlegget, og generer innholdet direkte.</p>
     <div id="plan-week-tabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;"></div>
     <div id="plan-days-list"></div>
   </div>
@@ -3215,6 +3215,30 @@ function onStratNiche(v){
 }
 function onStratGoal(v){ state.goal=v||''; try{renderGoals();}catch(e){} }
 
+/* Ber om de ukene som mangler, med pilarene og ukene som alt finnes som
+   bakgrunn, så resten henger sammen med begynnelsen. */
+function strategyPromptRest(sofar){
+  const fra=(sofar.weeks.length?Math.max.apply(null,sofar.weeks.map(w=>Number(w.week)||0)):0)+1;
+  const tema=(sofar.weeks||[]).map(w=>w.week+': '+(w.theme||'')).join('; ');
+  const niche = cfg.niche || (currentNiche()&&currentNiche().label) || 'din nisje';
+  const goal = state.goal || 'vekst og synlighet';
+  return `Du fortsetter en 90-dagers innholdsstrategi for nisjen "${niche}". Hovedmål: ${goal}.
+Pilarene er allerede satt: ${(sofar.pillars||[]).join(', ')}.
+Ukene som finnes fra før: ${tema}.
+
+Lag KUN uke ${fra} til 13. Ikke gjenta ukene over, og ikke lag nye pilarer.
+
+Returner KUN gyldig JSON: {"weeks":[{"week":${fra},"theme":"ukens tema","posts":[{"day":"Man","idea":"kort konkret innleggsidé","format":"reel","purpose":"Verdi"}]}]}
+
+Krav:
+- 4 til 5 poster per uke fordelt på ukedager (Man, Tir, Ons, Tor, Fre, Lør, Søn).
+- format er én av: reel, carousel, story, post, caption, email, pinterest.
+- purpose er én av: Verdi, Engasjement, Salg, Leads, Autoritet, E-post.
+- idé er kort (maks 12 ord), konkret og tilpasset nisjen og målet.
+- ${personRule()}
+- ${SKRIVEREGLER_NO}`;
+}
+
 let strategy90 = null, stratFlat = [];
 function loadStrategy(){ try{ const s=localStorage.getItem('lme_strategy_90'); if(s) strategy90=JSON.parse(s); }catch(e){} renderStrategy(); }
 function saveStrategy(){ try{ localStorage.setItem('lme_strategy_90', JSON.stringify(strategy90)); }catch(e){} }
@@ -3260,6 +3284,23 @@ async function generateStrategy(){
     if(a>=0&&b>a) txt=txt.slice(a,b+1);
     const parsed=JSON.parse(txt);
     if(!parsed||!parsed.weeks||!parsed.weeks.length) throw new Error('Uventet svar');
+    /* AI-en gir ikke alltid alle 13 ukene, selv om den blir bedt om det, og da
+       satt du igjen med en plan på fire uker der det skulle stått nitti dager.
+       Nå hentes resten i et eget kall, opptil to ganger, og settes sammen. */
+    let forsok=0;
+    while(parsed.weeks.length<13 && forsok<2){
+      forsok++;
+      btn.innerHTML='AI fyller ut uke '+(parsed.weeks.length+1)+' til 13…';
+      const rest=await callClaude(strategyPromptRest(parsed), key, 8000);
+      let rt=String(rest||'').trim().replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/```$/,'').trim();
+      const ra=rt.indexOf('{'), rb=rt.lastIndexOf('}');
+      if(ra>=0&&rb>ra) rt=rt.slice(ra,rb+1);
+      let mer=null; try{ mer=JSON.parse(rt); }catch(e){ break; }
+      if(!mer||!mer.weeks||!mer.weeks.length) break;
+      const har=new Set(parsed.weeks.map(w=>Number(w.week)));
+      mer.weeks.forEach(w=>{ if(!har.has(Number(w.week))){ parsed.weeks.push(w); har.add(Number(w.week)); } });
+    }
+    parsed.weeks.sort((a,b)=>Number(a.week)-Number(b.week));
     /* Merk strategien med nisjen den ble laget for. Uten det kunne en gammel
        strategi fra en annen nisje bli stående uten at noe fortalte deg det. */
     parsed._nisje=(cfg.niche||'').trim();

@@ -1056,8 +1056,8 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
   <div id="strategy-out"></div>
 
   <div class="card">
-    <div class="card-title" style="font-size:14px;color:var(--rose-d);">Ready-made 30-day template</div>
-    <p style="font-size:12px;color:var(--text-s);margin-bottom:14px;line-height:1.6;">A ready template you can use right away. Click a day to see the idea and the post, then generate content directly.</p>
+    <div class="card-title" style="font-size:14px;color:var(--rose-d);">Ready-made 30-day template (not the strategy above)</div>
+    <p style="font-size:12px;color:var(--text-s);margin-bottom:14px;line-height:1.6;">This is not the result of the 90-day strategy, but a ready-made, general 30-day template you can use right away without generating anything. It is the same for everyone and is not built on your niche. Click a day to see the idea and the post, and generate the content straight away.</p>
     <div id="plan-week-tabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;"></div>
     <div id="plan-days-list"></div>
   </div>
@@ -2911,6 +2911,30 @@ function onStratNiche(v){
 }
 function onStratGoal(v){ state.goal=v||''; try{renderGoals();}catch(e){} }
 
+/* Asks for the weeks that are missing, with the pillars and the weeks already
+   there as background, so the rest hangs together with the beginning. */
+function strategyPromptRest(sofar){
+  const fra=(sofar.weeks.length?Math.max.apply(null,sofar.weeks.map(w=>Number(w.week)||0)):0)+1;
+  const tema=(sofar.weeks||[]).map(w=>w.week+': '+(w.theme||'')).join('; ');
+  const niche = cfg.niche || (currentNiche()&&currentNiche().label) || 'your niche';
+  const goal = state.goal || 'growth and visibility';
+  return `You are continuing a 90-day content strategy for the niche "${niche}". Main goal: ${goal}.
+The pillars are already set: ${(sofar.pillars||[]).join(', ')}.
+Weeks that already exist: ${tema}.
+
+Create ONLY week ${fra} to 13. Do not repeat the weeks above, and do not create new pillars.
+
+Return ONLY valid JSON: {"weeks":[{"week":${fra},"theme":"theme of the week","posts":[{"day":"Mon","idea":"short concrete post idea","format":"reel","purpose":"Value"}]}]}
+
+Requirements:
+- 4 to 5 posts per week spread across weekdays (Mon, Tue, Wed, Thu, Fri, Sat, Sun).
+- format is one of: reel, carousel, story, post, caption, email, pinterest.
+- purpose is one of: Value, Engage, Sell, Lead, Authority, Email.
+- idea is short (max 12 words), concrete and tailored to the niche and goal.
+- ${personRule()}
+- ${WRITING_RULES_EN}`;
+}
+
 let strategy90 = null, stratFlat = [];
 function loadStrategy(){ try{ const s=localStorage.getItem('lme_strategy_90'); if(s) strategy90=JSON.parse(s); }catch(e){} renderStrategy(); }
 function saveStrategy(){ try{ localStorage.setItem('lme_strategy_90', JSON.stringify(strategy90)); }catch(e){} }
@@ -2956,6 +2980,23 @@ async function generateStrategy(){
     if(a>=0&&b>a) txt=txt.slice(a,b+1);
     const parsed=JSON.parse(txt);
     if(!parsed||!parsed.weeks||!parsed.weeks.length) throw new Error('Unexpected response');
+    /* The model does not always return all 13 weeks even when asked, and then you
+       were left with a four-week plan where ninety days should have been. The rest
+       is now fetched in a separate call, up to twice, and merged in. */
+    let forsok=0;
+    while(parsed.weeks.length<13 && forsok<2){
+      forsok++;
+      btn.innerHTML='AI is filling in week '+(parsed.weeks.length+1)+' to 13…';
+      const rest=await callClaude(strategyPromptRest(parsed), key, 8000);
+      let rt=String(rest||'').trim().replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/```$/,'').trim();
+      const ra=rt.indexOf('{'), rb=rt.lastIndexOf('}');
+      if(ra>=0&&rb>ra) rt=rt.slice(ra,rb+1);
+      let mer=null; try{ mer=JSON.parse(rt); }catch(e){ break; }
+      if(!mer||!mer.weeks||!mer.weeks.length) break;
+      const har=new Set(parsed.weeks.map(w=>Number(w.week)));
+      mer.weeks.forEach(w=>{ if(!har.has(Number(w.week))){ parsed.weeks.push(w); har.add(Number(w.week)); } });
+    }
+    parsed.weeks.sort((a,b)=>Number(a.week)-Number(b.week));
     /* Tag the strategy with the niche it was built for, so an old strategy from
        a different niche cannot sit there with nothing telling you. */
     parsed._nisje=(cfg.niche||'').trim();
