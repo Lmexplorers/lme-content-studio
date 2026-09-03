@@ -332,6 +332,14 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 <script src="/lme-pricing.js" defer></script>
 </head>
 <body>
+<script>
+/* Norske skriveregler, én kilde. De sto tre steder i ulike utgaver, og den
+   korteste, i strategi-prompten, manglet forbudet mot vinkel-anførselstegn.
+   Derfor kom 90-dagers planen ut med dem. Ligger tidlig, så alt som bygger
+   en prompt senere på siden kan bruke den samme teksten. */
+const SKRIVEREGLER_NO = "NORSKE SKRIVEREGLER (følg alltid): Bruk rette anførselstegn, aldri « ». Bruk ALDRI lange bindestreker (— eller –), bruk heller komma, kolon, punktum eller \"og\". VIKTIG kolonregel (gjøres ofte feil): stor forbokstav etter kolon KUN når en hel setning følger (eksempel: \"Husk: Du trenger ikke være ekspert.\"), ellers liten forbokstav ved oppramsinger, undertitler og fragmenter (eksempel: \"Faste holdepunkter: måltider, hvile og leggetid.\"). Liten forbokstav etter semikolon. Komma foran \"men\", \"for\" og \"så\" når de binder to helsetninger, komma etter en innledende leddsetning, komma rundt innskutte setninger, og ikke komma foran siste \"og\" i en oppramsing. Sammensatte norske ord skrives i ett ord, ikke med bindestrek (Montessoripedagog, ikke Montessori-pedagog).";
+</script>
+
 
 <style id="lme-ob-style">
 #lme-ob{position:fixed;inset:0;z-index:99998;display:none;font-family:'Sasson Montessori',sans-serif;color:#1A1A1A;}
@@ -1148,7 +1156,7 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
       guide:'Skriv et X-innlegg på maks 280 tegn: skarp hook, klart poeng, 1-2 hashtags.'}
   ];
 
-  var STYLE_NO='NORSKE SKRIVEREGLER (følg alltid): Bruk rette anførselstegn, aldri « ». Bruk ALDRI lange bindestreker (— eller –), bruk heller komma, kolon, punktum eller "og". VIKTIG kolonregel (gjøres ofte feil): stor forbokstav etter kolon KUN når en hel setning følger (eksempel: "Husk: Du trenger ikke være ekspert."), ellers liten forbokstav ved oppramsinger, undertitler og fragmenter (eksempel: "Faste holdepunkter: måltider, hvile og leggetid."). Liten forbokstav etter semikolon. Komma foran "men", "for" og "så" når de binder to helsetninger, komma etter en innledende leddsetning, komma rundt innskutte setninger, og ikke komma foran siste "og" i en oppramsing.';
+  var STYLE_NO=SKRIVEREGLER_NO;
   var VFORMATS=[
     {id:'feed',     label:'Feed 1:1',            dalle:'1024x1024', gem:'1:1'},
     {id:'portrait', label:'Story / Reel 9:16',   dalle:'1024x1792', gem:'9:16'},
@@ -3164,7 +3172,8 @@ Krav:
 - format er én av: reel, carousel, story, post, caption, email, pinterest.
 - purpose er én av: Verdi, Engasjement, Salg, Leads, Autoritet, E-post. Inkluder jevnlig Salg og Leads, og minst én E-post-idé hver måned.
 - idé er kort (maks 12 ord), konkret og tilpasset nisjen og målet.
-- Norske skriveregler: rette anførselstegn, ingen lange bindestreker, riktig kolonbruk.`;
+- ${personRule()}
+- ${SKRIVEREGLER_NO}`;
 }
 let strategy90 = null, stratFlat = [];
 function loadStrategy(){ try{ const s=localStorage.getItem('lme_strategy_90'); if(s) strategy90=JSON.parse(s); }catch(e){} renderStrategy(); }
@@ -3277,7 +3286,7 @@ function buildPrompt(){
   const publikum = publikumDeler.join(', ') || cfg.audience || 'ingen bestemt målgruppe';
   const base=`You write social media content. THE TOPIC (what the content MUST be about): "${topic}". Write strictly and ONLY about this topic. Everything that follows describes WHO IS SPEAKING, never WHAT THE POST IS ABOUT: if any of it does not fit the topic, ignore it rather than bending the topic to fit it. The brand's usual niche is "${cfg.niche||'din nisje'}" and its usual audience is "${publikum}", but a post about something else must never be reframed, explained or justified through that niche or that audience. Do NOT introduce unrelated themes, audiences or angles that the topic does not imply, even if the brand normally covers other subjects. You post as the brand "${cfg.brand||'merkevaren din'}", so use its voice and identity, but never force the brand's usual subject matter onto an off-topic post. ${characters!=='no specific characters'&&characters!=='ingen spesifikke karakterer'?`Characters: ${characters}.`:''} Brand voice: ${cfg.voice||'vennlig, tydelig og profesjonell'}. Audience hint (ignore it completely when the topic implies someone else): ${publikum}. Tone: ${state.tone}. Language: Norwegian bokmål. ${personRuleEn()}${goalLine} ${state.extra?'Context: '+state.extra:''}
 
-NORSKE SKRIVEREGLER (følg alltid i norsk tekst): Bruk rette anførselstegn, aldri « ». Bruk ALDRI lange bindestreker (— eller –), bruk heller komma, kolon, punktum eller "og". VIKTIG kolonregel (gjøres ofte feil): stor forbokstav etter kolon KUN når en hel setning følger (eksempel: "Husk: Du trenger ikke være ekspert."), ellers liten forbokstav ved oppramsinger, undertitler og fragmenter (eksempel: "Faste holdepunkter: måltider, hvile og leggetid."). Liten forbokstav etter semikolon. Komma foran "men", "for" og "så" når de binder to helsetninger, komma etter en innledende leddsetning, komma rundt innskutte setninger, og ikke komma foran siste "og" i en oppramsing.`;
+${SKRIVEREGLER_NO}`;
 
   if(state.format==='carousel'||state.format==='story'){
     const type=state.format==='story'?'Story set (9:16 vertical, short punchy headline + 1-2 lines per frame)':'Instagram carousel';
@@ -4432,7 +4441,7 @@ function personRule(){
 }
 function personRuleEn(){
   return isSoloBrand()
-    ? 'The brand is run by ONE person, entirely alone. Write in the first person singular — "jeg", "meg", "min", "mitt". Never use "vi", "oss", "vart" or "vare", and never imply a team, staff, colleagues or departments.'
+    ? 'The brand is run by ONE person, entirely alone. Write in the first person singular: "jeg", "meg", "min", "mitt". Never use "vi", "oss", "vart" or "vare", and never imply a team, staff, colleagues or departments.'
     : 'The brand has several people behind it, so "vi" and "oss" are correct.';
 }
 var PROFILE_FIELDS=['brand','niche','voice','audience','teamMode','website','offers','greeting','signature','charPreset','charNames','charDesc','logoImage'];

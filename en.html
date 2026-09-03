@@ -332,6 +332,13 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 <script src="/lme-pricing.js" defer></script>
 </head>
 <body>
+<script>
+/* Writing rules, one source. The strategy prompt had none at all, so the plan
+   came back with angle quotes and long dashes. Sits early, so anything that
+   builds a prompt later on the page can use the same text. */
+const WRITING_RULES_EN = "WRITING RULES (always follow): Use straight quotes, never angle quotes. NEVER use em or en dashes (the long dashes); use a comma, a colon, a full stop or \"and\" instead. Keep sentences plain and concrete.";
+</script>
+
 
 <style id="lme-ob-style">
 #lme-ob{position:fixed;inset:0;z-index:99998;display:none;font-family:'Sasson Montessori',sans-serif;color:#1A1A1A;}
@@ -2861,7 +2868,9 @@ Requirements:
 - 4 to 5 posts per week spread across weekdays (Mon, Tue, Wed, Thu, Fri, Sat, Sun).
 - format is one of: reel, carousel, story, post, caption, email, pinterest.
 - purpose is one of: Value, Engage, Sell, Lead, Authority, Email. Include Sell and Lead regularly, and at least one Email growth idea each month.
-- idea is short (max 12 words), concrete and tailored to the niche and goal.`;
+- idea is short (max 12 words), concrete and tailored to the niche and goal.
+- ${personRule()}
+- ${WRITING_RULES_EN}`;
 }
 let strategy90 = null, stratFlat = [];
 function loadStrategy(){ try{ const s=localStorage.getItem('lme_strategy_90'); if(s) strategy90=JSON.parse(s); }catch(e){} renderStrategy(); }
@@ -4117,7 +4126,7 @@ async function fetchOffersFromWebsite(btn){
 function isSoloBrand(){ return ((typeof cfg!=='undefined' && cfg.teamMode) || 'solo') !== 'team'; }
 function personRule(){
   return isSoloBrand()
-    ? 'The brand is run by ONE person, entirely alone. Write in the first person singular — "I", "me", "my". Never use "we", "us" or "our", and never imply a team, staff, colleagues or departments.'
+    ? 'The brand is run by ONE person, entirely alone. Write in the first person singular: "I", "me", "my". Never use "we", "us" or "our", and never imply a team, staff, colleagues or departments.'
     : 'The brand has several people behind it, so "we" and "us" are correct.';
 }
 function personRuleEn(){ return personRule(); }
