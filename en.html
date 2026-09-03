@@ -92,7 +92,12 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 .result-box{background:white;border-radius:20px;border:2px solid var(--rose);padding:18px 16px;box-shadow:0 8px 32px rgba(240,36,120,.18);margin-bottom:14px;}
 .result-title{font-weight:700;color:var(--rose-d);font-size:15px;margin-bottom:14px;}
 .slide-view{background:linear-gradient(145deg,var(--rose-l),var(--warm));border-radius:16px;padding:22px 18px;min-height:180px;border:1.5px solid var(--rose-m);position:relative;font-size:13px;line-height:1.8;color:var(--text);white-space:pre-wrap;box-shadow:0 4px 20px rgba(240,36,120,.15);}
-.slide-counter{position:absolute;top:10px;right:12px;font-size:10px;color:var(--rose-d);font-style:italic;}
+.slide-counter{position:absolute;top:10px;right:12px;font-size:10px;color:var(--rose-d);font-style:italic;z-index:2;pointer-events:none;}
+.slide-wrap{position:relative;}
+textarea.text-result,textarea.slide-view{display:block;width:100%;font-family:'Sasson Montessori',sans-serif;font-size:inherit;line-height:inherit;color:inherit;resize:vertical;overflow-y:auto;max-height:none;box-sizing:border-box;}
+textarea.text-result:focus,textarea.slide-view:focus{outline:none;border:1.5px solid var(--rose);}
+textarea.text-result{border:1.5px solid transparent;}
+.edit-hint{font-size:11px;color:var(--text-s);margin-top:7px;line-height:1.5;}
 .slide-nav{display:flex;gap:7px;justify-content:center;margin-top:11px;flex-wrap:wrap;}
 .slide-dot{width:28px;height:28px;border-radius:50%;border:2px solid var(--rose-m);background:white;color:var(--rose);font-size:10px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .18s;}
 .slide-dot.active{background:var(--rose);color:white;border-color:var(--rose);}
@@ -3228,12 +3233,39 @@ async function generate(){
   btn.disabled=false; btn.innerHTML='Generate content';
 }
 
+/* The generated text was locked, you could not correct a word or add a
+   sentence. Now you type straight into it, and the edit travels on to
+   copying, preview, hook and publishing. Renate 3 September 2026. */
+function voksTekstfelt(ta){
+  if(!ta) return;
+  ta.style.height='auto';
+  ta.style.height=Math.max(150,Math.min(ta.scrollHeight+4,620))+'px';
+}
+function lagreRedigertTekst(v){
+  state.result=v;
+  if(state.history[0]) state.history[0].result=v;
+  voksTekstfelt(document.getElementById('result-edit'));
+  try{ renderVisibilityScore(); }catch(e){}
+}
+function lagreRedigertSlide(v){
+  if(!state.slides) return;
+  state.slides[state.currentSlide]=v;
+  state.result=state.slides;
+  if(state.history[0]) state.history[0].result=state.slides;
+  voksTekstfelt(document.getElementById('slide-edit'));
+  try{ renderVisibilityScore(); }catch(e){}
+}
 function renderResult(){
   const fmt=FORMATS.find(f=>f.id===state.format);
   document.getElementById('result-title').textContent=`${fmt?.emoji} Innholdet er klart!`;
   const contentEl=document.getElementById('result-content');
   if(state.slides){ renderSlides(); }
-  else{ contentEl.innerHTML=`<div class="text-result">${esc(state.result)}</div>`; }
+  else{
+    contentEl.innerHTML=`<textarea class="text-result" id="result-edit" spellcheck="true" oninput="lagreRedigertTekst(this.value)"></textarea><div class="edit-hint">You can type straight into the text. Your edits travel with it to copying, preview, hook and publishing.</div>`;
+    const ta=document.getElementById('result-edit');
+    ta.value=(typeof state.result==='string')?state.result:'';
+    voksTekstfelt(ta);
+  }
   document.getElementById('action-row').innerHTML=`
     <button class="act-btn" id="copy-btn" onclick="copyResult()">Copy tekst</button>
     <button class="act-btn" onclick="generate()">Ny versjon</button>
@@ -3315,8 +3347,11 @@ function renderSlides(){
   const slides=state.slides; const i=state.currentSlide;
   const label=state.format==='story'?'Frame':'Slide';
   document.getElementById('result-content').innerHTML=`
-    <div class="slide-view"><span class="slide-counter">${label} ${i+1} / ${slides.length}</span>${esc(slides[i])}</div>
+    <div class="slide-wrap"><span class="slide-counter">${label} ${i+1} / ${slides.length}</span><textarea class="slide-view" id="slide-edit" spellcheck="true" oninput="lagreRedigertSlide(this.value)"></textarea></div><div class="edit-hint">You can type straight into the slide.</div>
     <div class="slide-nav">${slides.map((_,j)=>`<button class="slide-dot${j===i?' active':''}" onclick="goSlide(${j})">${j+1}</button>`).join('')}</div>`;
+  const se=document.getElementById('slide-edit');
+  se.value=slides[i]||'';
+  voksTekstfelt(se);
 }
 function goSlide(i){ state.currentSlide=i; renderSlides(); }
 
