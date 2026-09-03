@@ -2866,6 +2866,14 @@ Requirements:
 let strategy90 = null, stratFlat = [];
 function loadStrategy(){ try{ const s=localStorage.getItem('lme_strategy_90'); if(s) strategy90=JSON.parse(s); }catch(e){} renderStrategy(); }
 function saveStrategy(){ try{ localStorage.setItem('lme_strategy_90', JSON.stringify(strategy90)); }catch(e){} }
+/* Deletes the strategy stored in the browser. There was no way out of it, so a
+   strategy from an old niche would sit there forever. */
+function slettStrategi(){
+  if(!confirm('Delete the 90-day strategy? You can build a new one any time.')) return;
+  strategy90=null;
+  try{ localStorage.removeItem('lme_strategy_90'); }catch(e){}
+  renderStrategy();
+}
 
 // ══ SCHEDULED POSTS (persistent 90-day plan) ══
 // Scheduled posts are stored separately from the ephemeral generation history,
@@ -2888,7 +2896,10 @@ function removePlanItem(id){
 async function generateStrategy(){
   const btn=document.getElementById('strat-gen-btn'); if(!btn)return;
   const key=getApiKey();
-  if(!key||key.length<20){ alert('API key missing. Add it in Settings.'); return; }
+  /* No API-key check here. The server (/api/generate) uses LME's own key up to
+     the plan's cap, and only then the customer's own. With this check in front,
+     both the customer and the owner were stopped before the server was ever
+     asked, over a key they do not need. */
   btn.disabled=true; const old=btn.innerHTML; btn.innerHTML='AI is building your strategy…';
   try{
     const raw=await callClaude(strategyPrompt(), key, 8000);
@@ -2897,6 +2908,9 @@ async function generateStrategy(){
     if(a>=0&&b>a) txt=txt.slice(a,b+1);
     const parsed=JSON.parse(txt);
     if(!parsed||!parsed.weeks||!parsed.weeks.length) throw new Error('Unexpected response');
+    /* Tag the strategy with the niche it was built for, so an old strategy from
+       a different niche cannot sit there with nothing telling you. */
+    parsed._nisje=(cfg.niche||'').trim();
     strategy90=parsed; saveStrategy(); renderStrategy();
     const out=document.getElementById('strategy-out'); if(out) out.scrollIntoView({behavior:'smooth',block:'start'});
   }catch(e){ alert('Could not build the strategy right now. Please try again. ('+(e.message||e)+')'); }
@@ -2917,7 +2931,15 @@ function renderStrategy(){
     }).join('');
     return `<div class="strat-week"><div class="strat-week-head"><b>Week ${esc(String(w.week||''))}</b> · ${esc(w.theme||'')}</div>${posts}</div>`;
   }).join('');
-  host.innerHTML=`<div class="strat-card"><div class="strat-h">Content pillars</div><div class="strat-pillars">${pillars}</div>${strategy90.rhythm?`<div class="strat-rhythm">📅 ${esc(strategy90.rhythm)}</div>`:''}<button class="act-btn" style="margin-top:14px;" onclick="generateStrategy()">Build a new strategy</button></div><div class="strat-weeks">${weeks}</div>`;
+  /* If the strategy was built for a different niche than the one set now, say
+     so. Otherwise it just looks as if the niche is stuck to you. */
+  const naaNisje=(cfg.niche||'').trim();
+  const laget=(strategy90._nisje||'').trim();
+  const utakt=laget && naaNisje && laget.toLowerCase()!==naaNisje.toLowerCase();
+  const varsel=utakt
+    ? `<div class="strat-rhythm" style="background:#FFF4E5;color:#8A5A00;">This strategy was built for "${esc(laget)}". Your niche is now "${esc(naaNisje)}". Build a new one, or delete this.</div>`
+    : '';
+  host.innerHTML=`<div class="strat-card"><div class="strat-h">Content pillars</div><div class="strat-pillars">${pillars}</div>${varsel}${strategy90.rhythm?`<div class="strat-rhythm">📅 ${esc(strategy90.rhythm)}</div>`:''}<button class="act-btn" style="margin-top:14px;" onclick="generateStrategy()">Build a new strategy</button><button class="act-btn" style="margin-top:8px;background:#fff;color:var(--text-s);border:1px solid #E7DDE3;" onclick="slettStrategi()">Delete the strategy</button></div><div class="strat-weeks">${weeks}</div>`;
 }
 function generateFromStrategy(i){
   const p=stratFlat[i]; if(!p)return;
@@ -3016,7 +3038,7 @@ async function generate(){
 
   try{
     const key=getApiKey();
-    if(!key||key.length<20){showError('API key missing. Add it in Settings.');btn.disabled=false;btn.innerHTML='Generate content';return;}
+    // Same reason as in generateStrategy: the server decides, not the client.
     const fmt=FORMATS.find(f=>f.id===state.format);
     const raw=await callClaude(buildPrompt(),key);
     const result=fmt?.slides?parseSlides(raw):raw;
@@ -3305,18 +3327,12 @@ async function genererBilde(){
   // The reference image is only used when you pick Nano Banana / Nano Banana Pro yourself.
   const useModel=imgModel;
 
-  if(useModel==='dalle3'){
-    if(!cfg.openaiKey||cfg.openaiKey.length<10){
-      statusEl.innerHTML=`<div class="pub-status error" style="margin-top:10px;">OpenAI API key missing. Enter it in ⚙️ Settings.</div>`;
-      return;
-    }
-  }else{
-    if(!cfg.geminiKey||cfg.geminiKey.length<10){
-      statusEl.innerHTML=`<div class="pub-status error" style="margin-top:10px;">Google Gemini API key missing (for Nano Banana). Enter it in ⚙️ Settings.</div>`;
-      return;
-    }
-  }
-
+  /* No check for the customer's own image key here. The server holds LME's own
+     keys for both DALL-E and Nano Banana, and draws from the plan's image quota
+     (30, 100 or 250 a month). With this check in front, a customer paying for
+     100 images a month could not make a single one without getting an OpenAI or
+     Google key of her own. When the quota runs out the server says so, and then
+     her own key is used if she has entered one. */
   btn.disabled=true; btn.textContent='Generating image…';
   document.getElementById('bilde-preview-seksjon').style.display='none';
 

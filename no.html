@@ -1231,7 +1231,6 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
     var key=null;
     if(varMode==='ai'){
       try{ key=getApiKey(); }catch(e){ key=null; }
-      if(!key||key.length<20){ status.textContent='Claude API-nøkkel mangler. Legg den inn i Innstillinger.'; return; }
     }
 
     var btn=document.getElementById('var-gen-btn'); btn.disabled=true; btn.textContent='Lager varianter…';
@@ -3170,6 +3169,14 @@ Krav:
 let strategy90 = null, stratFlat = [];
 function loadStrategy(){ try{ const s=localStorage.getItem('lme_strategy_90'); if(s) strategy90=JSON.parse(s); }catch(e){} renderStrategy(); }
 function saveStrategy(){ try{ localStorage.setItem('lme_strategy_90', JSON.stringify(strategy90)); }catch(e){} }
+/* Sletter strategien som ligger lagret i nettleseren. Den lå der uten noen vei
+   ut, så en strategi fra en gammel nisje ble stående for alltid. */
+function slettStrategi(){
+  if(!confirm('Slette 90-dagers strategien? Du kan lage en ny når du vil.')) return;
+  strategy90=null;
+  try{ localStorage.removeItem('lme_strategy_90'); }catch(e){}
+  renderStrategy();
+}
 
 // ══ PLANLAGTE INNLEGG (varig 90-dagers plan) ══
 // Planlagte innlegg lagres separat fra den flyktige genererings-historikken,
@@ -3191,8 +3198,11 @@ function removePlanItem(id){
 }
 async function generateStrategy(){
   const btn=document.getElementById('strat-gen-btn'); if(!btn)return;
+  /* Ingen sjekk av API-nøkkel her. Serveren (/api/generate) bruker LMEs egen
+     nøkkel opp til taket i abonnementet, og først deretter kundens egen. Sto
+     denne sjekken foran, ble både kunden og eieren stoppet før serveren i det
+     hele tatt fikk spørsmålet, med en beskjed om en nøkkel de ikke trenger. */
   const key=getApiKey();
-  if(!key||key.length<20){ alert('API-nøkkel mangler. Legg den inn i Innstillinger.'); return; }
   btn.disabled=true; const old=btn.innerHTML; btn.innerHTML='AI bygger strategien din…';
   try{
     const raw=await callClaude(strategyPrompt(), key, 8000);
@@ -3201,6 +3211,9 @@ async function generateStrategy(){
     if(a>=0&&b>a) txt=txt.slice(a,b+1);
     const parsed=JSON.parse(txt);
     if(!parsed||!parsed.weeks||!parsed.weeks.length) throw new Error('Uventet svar');
+    /* Merk strategien med nisjen den ble laget for. Uten det kunne en gammel
+       strategi fra en annen nisje bli stående uten at noe fortalte deg det. */
+    parsed._nisje=(cfg.niche||'').trim();
     strategy90=parsed; saveStrategy(); renderStrategy();
     const out=document.getElementById('strategy-out'); if(out) out.scrollIntoView({behavior:'smooth',block:'start'});
   }catch(e){ alert('Kunne ikke lage strategien akkurat nå. Prøv igjen. ('+(e.message||e)+')'); }
@@ -3221,7 +3234,15 @@ function renderStrategy(){
     }).join('');
     return `<div class="strat-week"><div class="strat-week-head"><b>Uke ${esc(String(w.week||''))}</b> · ${esc(w.theme||'')}</div>${posts}</div>`;
   }).join('');
-  host.innerHTML=`<div class="strat-card"><div class="strat-h">Innholdspilarer</div><div class="strat-pillars">${pillars}</div>${strategy90.rhythm?`<div class="strat-rhythm">📅 ${esc(strategy90.rhythm)}</div>`:''}<button class="act-btn" style="margin-top:14px;" onclick="generateStrategy()">Lag ny strategi</button></div><div class="strat-weeks">${weeks}</div>`;
+  /* Er strategien laget for en annen nisje enn den du har nå, skal du få vite
+     det. Ellers ser den bare ut som om nisjen henger igjen på deg. */
+  const naaNisje=(cfg.niche||'').trim();
+  const laget=(strategy90._nisje||'').trim();
+  const utakt=laget && naaNisje && laget.toLowerCase()!==naaNisje.toLowerCase();
+  const varsel=utakt
+    ? `<div class="strat-rhythm" style="background:#FFF4E5;color:#8A5A00;">Denne strategien ble laget for "${esc(laget)}". Nisjen din er nå "${esc(naaNisje)}". Lag en ny, eller slett denne.</div>`
+    : '';
+  host.innerHTML=`<div class="strat-card"><div class="strat-h">Innholdspilarer</div><div class="strat-pillars">${pillars}</div>${varsel}${strategy90.rhythm?`<div class="strat-rhythm">📅 ${esc(strategy90.rhythm)}</div>`:''}<button class="act-btn" style="margin-top:14px;" onclick="generateStrategy()">Lag ny strategi</button><button class="act-btn" style="margin-top:8px;background:#fff;color:var(--text-s);border:1px solid #E7DDE3;" onclick="slettStrategi()">Slett strategien</button></div><div class="strat-weeks">${weeks}</div>`;
 }
 function generateFromStrategy(i){
   const p=stratFlat[i]; if(!p)return;
@@ -3322,8 +3343,8 @@ async function generate(){
   document.getElementById('hashtag-result').innerHTML='';
 
   try{
+    // Samme grunn som i generateStrategy: serveren avgjør, ikke klienten.
     const key=getApiKey();
-    if(!key||key.length<20){showError('API-nøkkel mangler. Legg den inn i Innstillinger.');btn.disabled=false;btn.innerHTML='Generer innhold';return;}
     const fmt=FORMATS.find(f=>f.id===state.format);
     const raw=await callClaude(buildPrompt(),key);
     const result=fmt?.slides?parseSlides(raw):raw;
@@ -3612,18 +3633,12 @@ async function genererBilde(){
   // Malbilde brukes kun når du selv har valgt Nano Banana / Nano Banana Pro.
   const useModel=imgModel;
 
-  if(useModel==='dalle3'){
-    if(!cfg.openaiKey||cfg.openaiKey.length<10){
-      statusEl.innerHTML=`<div class="pub-status error" style="margin-top:10px;">OpenAI API-nøkkel mangler. Legg den inn i ⚙️ Innstillinger.</div>`;
-      return;
-    }
-  }else{
-    if(!cfg.geminiKey||cfg.geminiKey.length<10){
-      statusEl.innerHTML=`<div class="pub-status error" style="margin-top:10px;">Google Gemini API-nøkkel mangler (for Nano Banana). Legg den inn i ⚙️ Innstillinger.</div>`;
-      return;
-    }
-  }
-
+  /* Ingen sjekk av egen bilde-nøkkel her. Serveren har LMEs egne nøkler for
+     både DALL-E og Nano Banana, og trekker fra bildekvoten i abonnementet
+     (30, 100 eller 250 i måneden). Sto denne sjekken foran, kunne en kunde
+     som betalte for 100 bilder i måneden ikke lage ett eneste uten å skaffe
+     seg en OpenAI- eller Google-nøkkel selv. Er kvoten brukt opp, sier
+     serveren det, og da brukes kundens egen nøkkel hvis hun har lagt inn en. */
   btn.disabled=true; btn.textContent='Genererer bilde…';
   document.getElementById('bilde-preview-seksjon').style.display='none';
 
