@@ -3783,7 +3783,11 @@ async function genererBilde(){
     btn.textContent='Generer forsidebilde';
 
   }catch(e){
-    statusEl.innerHTML=`<div class="pub-status error" style="margin-top:10px;">Bildefeil: ${e.message}</div>`;
+    /* Er meldingen alt en hel forklaring fra serveren (for eksempel at
+       bildekontoen er tom), skal den stå alene. "Bildefeil:" foran gjør den
+       bare vanskeligere å lese. */
+    const ferdig=/^Bildekontoen|^Du har brukt opp|^Logg inn/.test(e.message||'');
+    statusEl.innerHTML=`<div class="pub-status error" style="margin-top:10px;">${ferdig?e.message:'Bildefeil: '+e.message}</div>`;
     btn.textContent='Generer forsidebilde';
   }
   btn.disabled=false;

@@ -241,6 +241,17 @@ function quotaMsg(kind, code) {
   return "Logg inn for å bruke det inkluderte, eller legg inn " + own + " i Innstillinger.";
 }
 
+/* Er dette leverandøren som sier at kontoen er tom, og ikke en vanlig feil?
+   Meldingen kommer på engelsk rett fra OpenAI eller Google, og sto før ordrett
+   i appen ("You have no credits remaining..."), som verken sier hvem sin konto
+   det gjelder eller hva du skal gjøre. */
+function erTomForKreditt(melding) {
+  const m = String(melding || "").toLowerCase();
+  return m.includes("no credits remaining") || m.includes("insufficient_quota") ||
+    m.includes("exceeded your current quota") || m.includes("billing hard limit") ||
+    m.includes("quota exceeded") || m.includes("resource_exhausted");
+}
+
 /* ───────── Bildegenerering (returnerer {imageUrl} eller {error}) ───────── */
 
 async function generateImage(env, body, forceUserKey) {
@@ -304,6 +315,7 @@ async function generateImage(env, body, forceUserKey) {
         lastErr = (d.error && d.error.message) || ("OpenAI " + r.status);
       }
     }
+    if (erTomForKreditt(lastErr)) return { error: lastErr, tom: true, leverandor: "OpenAI" };
     return { error: lastErr };
   } else {
     const key = forceUserKey ? body.key : (env.GEMINI_API_KEY || body.key);
@@ -318,7 +330,11 @@ async function generateImage(env, body, forceUserKey) {
       body: JSON.stringify({ contents: [{ parts: reqParts }], generationConfig: { responseModalities: ["TEXT", "IMAGE"], imageConfig: { aspectRatio: body.aspectRatio || "1:1" } } }),
     });
     const d = await r.json().catch(() => ({}));
-    if (!r.ok) return { error: (d.error && d.error.message) || ("Gemini " + r.status) };
+    if (!r.ok) {
+      const feil = (d.error && d.error.message) || ("Gemini " + r.status);
+      if (erTomForKreditt(feil)) return { error: feil, tom: true, leverandor: "Google Gemini" };
+      return { error: feil };
+    }
     const parts = (d.candidates && d.candidates[0] && d.candidates[0].content && d.candidates[0].content.parts) || [];
     const ip = parts.find((p) => p.inlineData || p.inline_data);
     const inl = ip && (ip.inlineData || ip.inline_data);
@@ -365,7 +381,28 @@ export async function onRequestPost(context) {
       }
 
       const t0 = Date.now();
-      const result = await generateImage(env, body, !useServerKey);
+      let result = await generateImage(env, body, !useServerKey);
+
+      /* Er LMEs egen konto tom for kreditt, skal ikke kunden stoppes hvis hun
+         har lagt inn sin egen nøkkel. Da bytter vi til hennes, og bildet blir
+         laget. Har hun ingen, sier vi hvem sin konto som er tom og hva som er
+         veien videre, i stedet for å sende den engelske råteksten videre. */
+      if (result && result.tom && useServerKey) {
+        if (body.key) {
+          result = await generateImage(env, body, true);
+          useServerKey = false;
+        } else {
+          const annen = body.model === "dalle3"
+            ? "Bytt til Nano Banana under bildemodell, den bruker en annen konto."
+            : "Bytt til DALL-E 3 under bildemodell, den bruker en annen konto.";
+          return json({
+            error: "Bildekontoen til LME (" + result.leverandor + ") er tom for kreditt, så bildet " +
+              "kunne ikke lages. " + annen + " Du kan også legge inn din egen nøkkel i Innstillinger.",
+            code: "lme_tom_for_kreditt",
+            leverandor: result.leverandor,
+          }, 200);
+        }
+      }
       // Bare kall paa LMEs egen nokkel foeres i loggen: det er de som koster
       // Renate penger. Bruker kunden sin egen nokkel, betaler hun direkte.
       if (useServerKey) {
