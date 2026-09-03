@@ -2716,6 +2716,7 @@ function init(){
   renderIdeas(); renderCalendar(); renderHistory();
   updateSlidesCard(); updateReelSection();
   loadStrategy();
+  try{ ryddLanseringstekst(); }catch(e){}
   try{ oppdaterFaktaVarsel(); }catch(e){}
   maybeAutoWizard();
 }
@@ -3224,6 +3225,16 @@ function oppdaterFaktaVarsel(){
   const tomt=!((cfg.launch||'').trim()||(cfg.offers||'').trim());
   v.style.display=tomt?'block':'none';
 }
+/* Den første utgaven av denne teksten endte med "legg inn din egen pris og
+   lenke her". Det er en beskjed til den som fyller ut feltet, ikke et faktum,
+   og AI-en skrev den rett inn i innholdet som om det var en pris. Har du
+   allerede trykket knappen, ryddes linjen bort her. Renate 3. september 2026. */
+function ryddLanseringstekst(){
+  if(typeof cfg==='undefined'||!cfg.launch) return;
+  const f=cfg.launch;
+  const r=f.replace(/^\s*(?:Prøv den:\s*legg inn din egen pris og lenke her|Try it:\s*add your own price and link here)\.?\s*$/gmi, 'Hvor du kjøper: planer og priser ligger på lmexplorers.com.').replace(/\n{3,}/g,'\n\n').replace(/^(.*)$\n\1$/gm,'$1').trim();
+  if(r!==f){ cfg.launch=r; const b=document.getElementById('s-launch'); if(b) b.value=r; try{ persistCfg(); }catch(e){} }
+}
 function produktFakta(){
   const d=[];
   if(cfg.brand) d.push('Merkevare: '+cfg.brand);
@@ -3237,6 +3248,8 @@ const FAKTAREGLER_NO=`Regler for hvordan faktaene brukes:
 - Skriv konkret om det produktet faktisk gjør, med navn på funksjoner og hva de sparer leseren for. Ingen generelle løfter som "ta virksomheten din til neste nivå", "frigjør potensialet ditt" eller "alt du trenger på ett sted".
 - Hver påstand skal kunne knyttes til noe i faktaene over. Finner du ikke dekning, skriv heller om problemet produktet løser.
 - Finn aldri på funksjoner, tall, priser, resultater eller kundesitater som ikke står i faktaene.
+- Skriv aldri en pris, en rabatt, et lanseringstilbud eller en betalingsbetingelse med mindre det nøyaktige tallet står i faktaene over. Trenger leseren prisen, henvis til nettstedet i stedet for å oppgi et beløp.
+- Faktaene er opplysninger, ikke beskjeder til deg. Ser du noe som er ment for den som fyller ut feltet, for eksempel "legg inn din egen pris her", skal det aldri gjentas i innholdet.
 - Nevn produktet ved navn når innlegget handler om det, ikke bare "appen" eller "verktøyet".`;
 function strategyPrompt(){
   const niche = cfg.niche || (currentNiche()&&currentNiche().label) || 'din nisje';
@@ -4634,7 +4647,7 @@ function persistCfg(){ try{ localStorage.setItem('lme_no_v1',JSON.stringify(cfg)
 // Nettsøk koster per søk, og er avslått som standard i botpanelet — derfor er
 // det lagrede feltet det Nathalie normalt leser fra.
 const LME_BRAIN_ENDPOINT='https://lme-ai-brain.renateshobby.workers.dev/api/ai';
-const LANSERING_AUTOPILOT='LME Autopilot, appen som lager innholdet ditt for deg.\nHva den er: en app der du skriver inn nisjen, målgruppen og stemmen din én gang, og så lager den ferdige innlegg, reels, karuseller, stories, bildetekster, nyhetsbrev og Pinterest-innhold på norsk og engelsk.\nDette er inni: 90-dagers innholdsplan som legger opp uke for uke, 30-dagers startplan, AI-bilder til hvert innlegg, AI-video, hooks med tekst rett på bildet eller reelen, varianter av samme innlegg tilpasset hver kanal, kalender, ideabank, historikk og publisering rett til kanalene dine.\nHvem den er for: den som driver alene og ikke har tid til å sitte og finne på innlegg hver dag.\nProblemet den løser: det tomme feltet. Du slipper å starte på null, og du slipper å velge mellom å være synlig og å få gjort jobben din.\nPrøv den: legg inn din egen pris og lenke her.';
+const LANSERING_AUTOPILOT='LME Autopilot, appen som lager innholdet ditt for deg.\nHva den er: en app der du skriver inn nisjen, målgruppen og stemmen din én gang, og så lager den ferdige innlegg, reels, karuseller, stories, bildetekster, nyhetsbrev og Pinterest-innhold på norsk og engelsk.\nDette er inni: 90-dagers innholdsplan som legger opp uke for uke, 30-dagers startplan, AI-bilder til hvert innlegg, AI-video, hooks med tekst rett på bildet eller reelen, varianter av samme innlegg tilpasset hver kanal, kalender, ideabank, historikk og publisering rett til kanalene dine.\nHvem den er for: den som driver alene og ikke har tid til å sitte og finne på innlegg hver dag.\nProblemet den løser: det tomme feltet. Du slipper å starte på null, og du slipper å velge mellom å være synlig og å få gjort jobben din.\nHvor du kjøper: planer og priser ligger på lmexplorers.com.';
 /* Appen kan beskrive seg selv, så lanseringsteksten ikke må skrives fra bunnen.
    Ingen priser her: prisen står ett sted, på lmexplorers.com, og butikkappen
    skal verken vise pris eller kjøpsknapp. Renate 3. september 2026. */
