@@ -827,6 +827,7 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
 
   <div class="error-box" id="error-box" style="display:none;"></div>
 
+  <div id="fra-plan-varsel" style="display:none;background:var(--rose-l);border:1.5px solid var(--rose);border-radius:14px;padding:12px 14px;margin-bottom:12px;font-size:12.5px;line-height:1.6;color:var(--text);"><div id="fra-plan-tekst" style="font-weight:700;color:var(--rose-d);margin-bottom:4px;"></div><div style="color:var(--text-s);font-size:11.5px;">Read it through, change the topic or add something of your own below, and press Generate content when you are ready.</div></div>
   <div id="fakta-varsel" style="display:none;background:var(--rose-l);border:1.5px solid var(--rose-m);border-radius:14px;padding:12px 14px;margin-bottom:12px;font-size:12px;line-height:1.6;color:var(--text-s);"><div><b>The copy stays generic if I do not know what you sell.</b> Fill in what you are launching and what you offer in Settings, and the AI writes about what the product actually does instead of generic promises.</div><button type="button" class="act-btn sage-btn" style="margin-top:9px;font-size:12px;" onclick="showTab('settings',null);setTimeout(function(){var e=document.getElementById('s-launch');if(e){e.scrollIntoView({behavior:'smooth',block:'center'});e.focus();}},250);">Fill it in now</button></div>
   <button class="gen-btn" id="gen-btn" onclick="generate()">Generate content</button>
   <div class="byok-upsell" onclick="goTab('pricing')">You are using your own key. <strong>With Pro, text, images and video are included.</strong></div>
@@ -2881,6 +2882,18 @@ window.settPlanFormat=function(f){
   const r=document.getElementById('plan-fmtrow');
   if(r) r.innerHTML=fmtChipsHtml(planFormat,'settPlanFormat',null);
 };
+/* The plan generated straight away, 300 ms after you arrived, so you never
+   got to see the topic or add anything of your own before the copy was
+   written. Now the fields are filled in and you decide when it writes. */
+function fraPlanen(tekst){
+  const v=document.getElementById('fra-plan-varsel'), t=document.getElementById('fra-plan-tekst');
+  if(t) t.textContent=tekst||'';
+  if(v) v.style.display=tekst?'block':'none';
+  showTab('create', document.querySelectorAll('.tab-btn')[0]);
+  window.scrollTo({top:0,behavior:'smooth'});
+  const ci=document.getElementById('custom-topic');
+  if(ci) setTimeout(function(){ ci.focus(); }, 450);
+}
 function generateFromPlan(){
   if(!selectedPlanDay)return;
   const d=selectedPlanDay;
@@ -2889,9 +2902,7 @@ function generateFromPlan(){
   state.customTopic=d.post.replace(/^(Carousel|Reel|Static post|Story|Static):\s*/i,'');
   document.getElementById('custom-topic').value=state.customTopic;
   renderFormats(); renderTopics(); updateSlidesCard(); updateReelSection();
-  showTab('create', document.querySelectorAll('.tab-btn')[0]);
-  window.scrollTo({top:0,behavior:'smooth'});
-  setTimeout(()=>generate(),300);
+  fraPlanen('Pulled from the 30-day plan, day %s.'.replace('%s', d.day));
 }
 
 // ══ 90-DAY STRATEGY (AI) ══
@@ -3099,6 +3110,7 @@ function renderStrategy(){
   const pillars=(strategy90.pillars||[]).map(p=>`<span class="strat-pill">${esc(p)}</span>`).join('');
   const weeks=(strategy90.weeks||[]).map(w=>{
     const posts=(w.posts||[]).map(p=>{
+      p._uke=w.week;
       const idx=stratFlat.push(p)-1;
       const col=PURPOSE_COLOR[p.purpose]||'#999';
       const fmtE={reel:'🎬',carousel:'🎠',story:'🌸',post:'🌿',caption:'✍️',email:'💌',pinterest:'📌'}[p.format]||'📄';
@@ -3123,9 +3135,7 @@ function generateFromStrategy(i){
   state.topic='Custom topic...'; state.customTopic=p.idea||'';
   const ci=document.getElementById('custom-topic'); if(ci) ci.value=state.customTopic;
   renderFormats(); renderTopics(); updateSlidesCard(); updateReelSection();
-  showTab('create', document.querySelectorAll('.tab-btn')[0]);
-  window.scrollTo({top:0,behavior:'smooth'});
-  setTimeout(()=>generate(),300);
+  fraPlanen('Pulled from the 90-day plan, week %s, %s.'.replace('%s', p._uke||'').replace('%s', p.day||''));
 }
 
 // ══ PROMPT ══
@@ -3211,6 +3221,7 @@ async function generate(){
   btn.disabled=true; btn.innerHTML=`your brand working… <span class="loading-dots"><span></span><span></span><span></span></span>`;
   document.getElementById('result-box').style.display='none';
   document.getElementById('hashtag-result').innerHTML='';
+  var _fp=document.getElementById('fra-plan-varsel'); if(_fp) _fp.style.display='none';
 
   try{
     const key=getApiKey();
