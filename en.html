@@ -647,7 +647,7 @@ const WRITING_RULES_EN = "WRITING RULES (always follow): Use straight quotes, ne
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Log in</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Log out</button>
-          <div class="nav-konto-ver">Version 20260904.1337</div>
+          <div class="nav-konto-ver">Version 20260904.1408</div>
           <div class="nav-konto-ver" id="ver-status" style="display:none;line-height:1.5;"></div>
           <button class="nav-konto-btn ut" onclick="seEtterNyVersjon()">Check for a new version</button>
         </div>
@@ -750,7 +750,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    looking at the new build or a cached old one. It now sits in the More menu,
    under the account, with a button that refetches the app and clears the
    cache. */
-window.LME_VERSJON = '20260904.1337';
+window.LME_VERSJON = '20260904.1408';
 /* The installed app has its own cache, separate from the browser, and on
    iPhone it is not cleared by refreshing the page in Safari. So you can be
    sitting on an old build without knowing, and bugs I have fixed look like
@@ -1178,6 +1178,11 @@ function renderHookColors(){var tc=el("hook-textcolors"),bgc=el("hook-bgcolors")
           <label style="display:flex;align-items:center;gap:9px;cursor:pointer;"><input type="checkbox" id="avslutning-paa" checked onchange="settAvslutning(this.checked)" style="width:auto;"><span style="font-size:12.5px;font-weight:700;color:var(--text);">Closing slide with the image</span></label>
           <div style="font-size:11px;color:var(--text-s);line-height:1.6;margin:6px 0 6px;">One last image after the slides, with your cover image and the text below. Move it wherever you like with the arrows.</div>
           <input type="text" id="avslutning-tekst" placeholder="Follow for more" oninput="settAvslutningTekst(this.value)"/>
+        </div>
+        <div id="bildetekst-rad" style="display:none;margin-top:10px;background:var(--rose-l);border-radius:12px;padding:11px 13px;">
+          <div style="font-size:11px;font-weight:700;color:var(--rose-d);margin-bottom:5px;">Caption under the post</div>
+          <div style="font-size:11px;color:var(--text-s);line-height:1.6;margin-bottom:7px;">Instagram has one caption for the whole carousel, the same one whichever image the reader swipes to. Leave it empty and your hook and call to action are used.</div>
+          <textarea id="bildetekst" rows="4" oninput="settBildetekst(this.value)" style="width:100%;resize:vertical;"></textarea>
         </div>
         <button type="button" class="act-btn" id="forhaandsvis-knapp" style="width:100%;margin-top:10px;font-size:12px;" onclick="forhaandsvisAlt()">👁 Preview before publishing</button>
         <div id="bilde-hook-rad" style="display:none;margin-top:10px;background:var(--rose-l);border-radius:12px;padding:11px 13px;">
@@ -2672,6 +2677,7 @@ function updateSlidesCard(){
   const f = FORMATS.find(x=>x.id===state.format);
   document.getElementById('slides-card').style.display = f?.slides ? 'block' : 'none';
   try{ tegnAvslutningUI(); }catch(e){}
+  try{ tegnBildetekstUI(); }catch(e){}
 }
 function updateReelSection(){
   try{ renderSchedPlatforms(); }catch(e){}
@@ -4309,7 +4315,7 @@ async function publiserMedBilde(){
      the first slide. Before, the whole carousel went out as a wall of text. */
   const kar2=await karusellMedier();
   const ok=await sendToPublishingService(
-    kar2?medReklame(String((state.slides||[])[0]||'')):text,
+    kar2?medReklame(bildetekstNaa()):text,
     kar2||[exportImg],
     state.format, null);
   if(ok){
@@ -4600,7 +4606,7 @@ async function schedulePost(){
        the first slide. Before, the whole carousel went out as a wall of text. */
     const kar=await karusellMedier();
     const medier=kar||(bildeMedHook()?[bildeMedHook()]:null);
-    const tekst=kar?medReklame(String((state.slides||[])[0]||'')):text;
+    const tekst=kar?medReklame(bildetekstNaa()):text;
     const success=await sendToPublishingService(tekst,medier,state.format,publishAt);
     if(success){
       ok.innerHTML=`Scheduled in the publishing service for ${date} at ${time}! Check your dashboard.`;
@@ -4855,7 +4861,7 @@ function karusellEkteHtml(url,idx,total){
     +'</div>'
     +'<div style="text-align:center;padding:7px 0;">'+dots+'</div>'
     +'<div style="padding:0 14px 14px;font-family:\'Sasson Montessori\';font-size:12.5px;line-height:1.6;color:#262626;white-space:pre-wrap;">'
-      +esc(String(medReklame(karusellForsteTekst())).slice(0,300))+'</div></div>';
+      +esc(String(medReklame(bildetekstNaa())).slice(0,300))+'</div></div>';
 }
 /* The preview showed the cover image with the slide's text laid over it,
    not the actual carousel images that get published. It now shows the image
@@ -6238,7 +6244,7 @@ const ARBEID_LS='lme_arbeid_v1';
 const ARBEID_FELT=['format','topic','customTopic','extra','cta','slideCount','ageGroup','targetGroup',
   'char','tone','goal','niche','timeLevel','platforms','result','slides','currentSlide',
   'reelHook','reelHookY','reelHookPos','hookStyle','imageUrl','imageUrlClean','imageUrlHook','hookBrent','imgAspect',
-  'slideStil','karusellOrden','karusellBilder','avslutningPaa','avslutningTekst','history'];
+  'slideStil','karusellOrden','karusellBilder','avslutningPaa','avslutningTekst','bildetekst','history'];
 
 function _erStortBilde(v){ return typeof v==='string' && v.slice(0,5)==='data:' && v.length>2000; }
 function _fangArbeid(){
@@ -8202,6 +8208,39 @@ function settAvslutningTekst(v){
     try{ oppdaterSlideStil(-1); }catch(e){}
     try{ lagreArbeid(); }catch(e){}
   },400);
+}
+/* THE CAPTION WAS A COPY OF THE FIRST SLIDE
+   The text from slide 1 sat both on the image and as the caption below, and
+   since Instagram has one caption for the whole carousel, it looked as if it
+   followed every image. The caption is now its own text, your hook and call
+   to action, and you can rewrite it. Renate, 4 September 2026. */
+function bildetekstStandard(){
+  const hk=String((state&&state.reelHook)||'').trim();
+  const cta=String((state&&state.cta)||'').trim();
+  const d=[]; if(hk) d.push(hk); if(cta) d.push(cta);
+  if(d.length) return d.join('\n\n');
+  return karusellForsteTekst();
+}
+function bildetekstNaa(){
+  const egen=String((state&&state.bildetekst)||'').trim();
+  return egen || bildetekstStandard();
+}
+var _btTimer=null;
+function settBildetekst(v){
+  state.bildetekst=String(v||'');
+  clearTimeout(_btTimer);
+  _btTimer=setTimeout(function(){
+    try{ const ov=document.getElementById('preview-overlay');
+         if(ov && ov.style.display!=='none') renderPreview(); }catch(e){}
+    try{ lagreArbeid(); }catch(e){}
+  },400);
+}
+function tegnBildetekstUI(){
+  const rad=document.getElementById('bildetekst-rad'); if(!rad) return;
+  rad.style.display=(state.format==='carousel')?'block':'none';
+  const t=document.getElementById('bildetekst'); if(!t) return;
+  if(t.value!==(state.bildetekst||'')) t.value=state.bildetekst||'';
+  t.placeholder=bildetekstStandard();
 }
 function tegnAvslutningUI(){
   const rad=document.getElementById('avslutning-rad'); if(!rad) return;

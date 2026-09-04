@@ -647,7 +647,7 @@ const SKRIVEREGLER_NO = "NORSKE SKRIVEREGLER (følg alltid): Bruk rette anførse
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Logg inn</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Logg ut</button>
-          <div class="nav-konto-ver">Versjon 20260904.1337</div>
+          <div class="nav-konto-ver">Versjon 20260904.1408</div>
           <div class="nav-konto-ver" id="ver-status" style="display:none;line-height:1.5;"></div>
           <button class="nav-konto-btn ut" onclick="seEtterNyVersjon()">Se etter ny versjon</button>
         </div>
@@ -750,7 +750,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    nye utgaven eller en mellomlagret gammel. Nå står den i Mer-menyen, under
    kontoen, sammen med en knapp som henter appen på nytt og tømmer
    mellomlageret. Renate 4. september 2026. */
-window.LME_VERSJON = '20260904.1337';
+window.LME_VERSJON = '20260904.1408';
 /* Den installerte appen har sitt eget mellomlager, adskilt fra nettleseren,
    og på iPhone tømmes det ikke av at du oppdaterer siden i Safari. Da kan du
    sitte med en gammel utgave uten å vite det, og feil jeg har rettet ser ut
@@ -1179,6 +1179,11 @@ function renderHookColors(){var tc=el("hook-textcolors"),bgc=el("hook-bgcolors")
           <label style="display:flex;align-items:center;gap:9px;cursor:pointer;"><input type="checkbox" id="avslutning-paa" checked onchange="settAvslutning(this.checked)" style="width:auto;"><span style="font-size:12.5px;font-weight:700;color:var(--text);">Avslutningsslide med bildet</span></label>
           <div style="font-size:11px;color:var(--text-s);line-height:1.6;margin:6px 0 6px;">Et siste bilde etter slidene, med forsidebildet og teksten under. Du kan flytte den dit du vil med pilene.</div>
           <input type="text" id="avslutning-tekst" placeholder="Folg for mer" oninput="settAvslutningTekst(this.value)"/>
+        </div>
+        <div id="bildetekst-rad" style="display:none;margin-top:10px;background:var(--rose-l);border-radius:12px;padding:11px 13px;">
+          <div style="font-size:11px;font-weight:700;color:var(--rose-d);margin-bottom:5px;">Bildetekst under innlegget</div>
+          <div style="font-size:11px;color:var(--text-s);line-height:1.6;margin-bottom:7px;">Instagram har en bildetekst for hele karusellen, den samme uansett hvilket bilde leseren sveiper til. Skriver du ingenting, brukes hooken og oppfordringen din.</div>
+          <textarea id="bildetekst" rows="4" oninput="settBildetekst(this.value)" style="width:100%;resize:vertical;"></textarea>
         </div>
         <button type="button" class="act-btn" id="forhaandsvis-knapp" style="width:100%;margin-top:10px;font-size:12px;" onclick="forhaandsvisAlt()">👁 Forhåndsvis før publisering</button>
         <div id="bilde-hook-rad" style="display:none;margin-top:10px;background:var(--rose-l);border-radius:12px;padding:11px 13px;">
@@ -2974,6 +2979,7 @@ function updateSlidesCard(){
   const f = FORMATS.find(x=>x.id===state.format);
   document.getElementById('slides-card').style.display = f?.slides ? 'block' : 'none';
   try{ tegnAvslutningUI(); }catch(e){}
+  try{ tegnBildetekstUI(); }catch(e){}
 }
 function updateReelSection(){
   try{ renderSchedPlatforms(); }catch(e){}
@@ -4626,7 +4632,7 @@ async function publiserMedBilde(){
      den første sliden. Før gikk hele karusellen som en tekstvegg. */
   const kar2=await karusellMedier();
   const ok=await sendToPublishingService(
-    kar2?medReklame(String((state.slides||[])[0]||'')):text,
+    kar2?medReklame(bildetekstNaa()):text,
     kar2||[exportImg],
     state.format, null);
   if(ok){
@@ -4921,7 +4927,7 @@ async function schedulePost(){
        den første sliden. Før gikk hele karusellen som en tekstvegg. */
     const kar=await karusellMedier();
     const medier=kar||(bildeMedHook()?[bildeMedHook()]:null);
-    const tekst=kar?medReklame(String((state.slides||[])[0]||'')):text;
+    const tekst=kar?medReklame(bildetekstNaa()):text;
     const success=await sendToPublishingService(tekst,medier,state.format,publishAt);
     if(success){
       ok.innerHTML=`Planlagt i publiseringstjenesten til ${date} kl. ${time}! Sjekk dashboardet ditt.`;
@@ -5176,7 +5182,7 @@ function karusellEkteHtml(url,idx,total){
     +'</div>'
     +'<div style="text-align:center;padding:7px 0;">'+dots+'</div>'
     +'<div style="padding:0 14px 14px;font-family:\'Sasson Montessori\';font-size:12.5px;line-height:1.6;color:#262626;white-space:pre-wrap;">'
-      +esc(String(medReklame(karusellForsteTekst())).slice(0,300))+'</div></div>';
+      +esc(String(medReklame(bildetekstNaa())).slice(0,300))+'</div></div>';
 }
 /* Forhåndsvisningen viste forsidebildet med sliden sin tekst lagt oppå,
    ikke de faktiske karusellbildene som blir publisert. Nå viser den bildet
@@ -6662,7 +6668,7 @@ const ARBEID_LS='lme_arbeid_v1';
 const ARBEID_FELT=['format','topic','customTopic','extra','cta','slideCount','ageGroup','targetGroup',
   'char','tone','goal','niche','timeLevel','platforms','result','slides','currentSlide',
   'reelHook','reelHookY','reelHookPos','hookStyle','imageUrl','imageUrlClean','imageUrlHook','hookBrent','imgAspect',
-  'slideStil','karusellOrden','karusellBilder','avslutningPaa','avslutningTekst','history'];
+  'slideStil','karusellOrden','karusellBilder','avslutningPaa','avslutningTekst','bildetekst','history'];
 
 function _erStortBilde(v){ return typeof v==='string' && v.slice(0,5)==='data:' && v.length>2000; }
 function _fangArbeid(){
@@ -8641,6 +8647,40 @@ function settAvslutningTekst(v){
     try{ oppdaterSlideStil(-1); }catch(e){}
     try{ lagreArbeid(); }catch(e){}
   },400);
+}
+/* BILDETEKSTEN VAR EN KOPI AV FORSTE SLIDE
+   Teksten fra slide 1 sto baade paa bildet og som bildetekst under, og
+   siden Instagram har en bildetekst for hele karusellen, saa det ut som om
+   den fulgte med paa hvert bilde. Naa er bildeteksten sin egen tekst,
+   hooken og oppfordringen din, og du kan skrive den om.
+   Renate 4. september 2026. */
+function bildetekstStandard(){
+  const hk=String((state&&state.reelHook)||'').trim();
+  const cta=String((state&&state.cta)||'').trim();
+  const d=[]; if(hk) d.push(hk); if(cta) d.push(cta);
+  if(d.length) return d.join('\n\n');
+  return karusellForsteTekst();
+}
+function bildetekstNaa(){
+  const egen=String((state&&state.bildetekst)||'').trim();
+  return egen || bildetekstStandard();
+}
+var _btTimer=null;
+function settBildetekst(v){
+  state.bildetekst=String(v||'');
+  clearTimeout(_btTimer);
+  _btTimer=setTimeout(function(){
+    try{ const ov=document.getElementById('preview-overlay');
+         if(ov && ov.style.display!=='none') renderPreview(); }catch(e){}
+    try{ lagreArbeid(); }catch(e){}
+  },400);
+}
+function tegnBildetekstUI(){
+  const rad=document.getElementById('bildetekst-rad'); if(!rad) return;
+  rad.style.display=(state.format==='carousel')?'block':'none';
+  const t=document.getElementById('bildetekst'); if(!t) return;
+  if(t.value!==(state.bildetekst||'')) t.value=state.bildetekst||'';
+  t.placeholder=bildetekstStandard();
 }
 function tegnAvslutningUI(){
   const rad=document.getElementById('avslutning-rad'); if(!rad) return;
