@@ -647,7 +647,7 @@ const WRITING_RULES_EN = "WRITING RULES (always follow): Use straight quotes, ne
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Log in</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Log out</button>
-          <div class="nav-konto-ver">Version 20260904.1615</div>
+          <div class="nav-konto-ver">Version 20260904.1623</div>
           <div class="nav-konto-ver" id="ver-status" style="display:none;line-height:1.5;"></div>
           <button class="nav-konto-btn ut" onclick="seEtterNyVersjon()">Check for a new version</button>
         </div>
@@ -750,7 +750,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    looking at the new build or a cached old one. It now sits in the More menu,
    under the account, with a button that refetches the app and clears the
    cache. */
-window.LME_VERSJON = '20260904.1615';
+window.LME_VERSJON = '20260904.1623';
 /* The installed app has its own cache, separate from the browser, and on
    iPhone it is not cleared by refreshing the page in Safari. So you can be
    sitting on an old build without knowing, and bugs I have fixed look like
@@ -4399,11 +4399,35 @@ function _syncBlotatoKey(){
   if(!cfg.blotatoKey){ const el=document.getElementById('s-blotato-key'); const k=(el&&el.value||'').trim(); if(k){ cfg.blotatoKey=k; try{ saveSettings(); }catch(e){} } }
   return cfg.blotatoKey;
 }
-async function blotatoPublish({text, mediaUrls, scheduledTime, mediaName, target, contentKind, accountIds}){
+/* IT POSTED TO EVERYTHING, WHATEVER YOU HAD PICKED
+   The platform buttons only changed how they looked. Publishing went to every
+   connected account, including the ones greyed out because they cannot take
+   the content. That is why YouTube showed up in the error list even though it
+   was switched off. It now goes only to the platforms you picked.
+   Renate, 4 September 2026. */
+function plattformId(navn){
+  const n=String(navn||'').toLowerCase().replace(/[^a-z]/g,'');
+  if(n==='xtwitter'||n==='x') return 'twitter';
+  return n;
+}
+function valgteKanalIder(){
+  return (typeof schedPlatforms!=='undefined' ? schedPlatforms : [])
+    .filter(function(p){ return !kanalHinder(p); })
+    .map(plattformId);
+}
+async function blotatoPublish({text, mediaUrls, scheduledTime, mediaName, target, contentKind, accountIds, platforms}){
   // Multi-select: post to every ticked account, or only the ones picked for this post (accountIds).
   // Falls back to a single account.
   let accounts=(cfg.blotatoAccounts||[]).filter(a=>a&&a.id).filter(a=>!accountIds||accountIds.includes(String(a.id))).map(a=>({id:String(a.id), platform:a.platform||cfg.blotatoPlatform||'instagram', name:a.name||'', src:a.src||undefined, pageId:a.pageId||undefined, boardId:a.boardId||undefined}));
   if(!accounts.length && cfg.blotatoAccount){ accounts=[{id:String(cfg.blotatoAccount), platform:cfg.blotatoPlatform||'instagram'}]; }
+  /* Only the platforms you picked. An empty list goes to all of them, the way
+     the story and reel routes have always worked. */
+  const valgte=(platforms||[]).map(plattformId).filter(Boolean);
+  if(valgte.length){
+    const passer=accounts.filter(function(a){ return valgte.indexOf(plattformId(a.platform))>=0; });
+    if(!passer.length) return {ok:false, error:'None of your accounts match the platforms you picked. Connect the account in Settings, or pick another platform.'};
+    accounts=passer;
+  }
 
 /* DOUBLE POSTING ON INSTAGRAM
    The account list is assembled from the accounts you connected through LME
@@ -4596,13 +4620,14 @@ function _medienavn(urls){
   if(e==='quicktime') e='mov';
   return (type==='video'?'lme-video.':'lme-bilde.')+e;
 }
-async function sendToPublishingService(text,mediaUrls,format,publishAt){
+async function sendToPublishingService(text,mediaUrls,format,publishAt,platforms){
   sisteUtgivelsesfeil='';
   const medier=(mediaUrls||[]).filter(Boolean);
   const r=await blotatoPublish({
     text,
     mediaUrls:medier,
     mediaName:_medienavn(medier),
+    platforms: platforms||valgteKanalIder(),
     scheduledTime: blotatoTime(publishAt),
     contentKind:(format==='reel'?'reel':format==='story'?'story':'post')
   });
@@ -4654,6 +4679,18 @@ async function schedulePost(){
   if(cfg.blotatoKey){
     ok.innerHTML='<span style="color:#0084E4;">Sending to the publishing service with scheduled time…</span>';
     const planDt=new Date(date+'T'+time+':00');
+    /* "Cannot schedule a post in the past" came from a time only a few
+       minutes ahead. The publishing service needs a head start. The app now
+       says so itself instead of sending something that gets rejected.
+       Renate, 4 September 2026. */
+    const minutterTil=(planDt.getTime()-Date.now())/60000;
+    if(minutterTil < 10){
+      ok.innerHTML='<b>That time is too close to now.</b> The publishing service needs at least 10 minutes head start. '
+        +'Pick a time further ahead, or press "Publish" to put it out right away. '
+        +'The post is saved in your calendar for '+date+' at '+time+'.';
+      ok.style.background='#FFF6D6'; ok.style.color='#856404';
+      return;
+    }
     const publishAt=planDt.getFullYear()+'-'+String(planDt.getMonth()+1).padStart(2,'0')+'-'+String(planDt.getDate()).padStart(2,'0')+' '+String(planDt.getHours()).padStart(2,'0')+':'+String(planDt.getMinutes()).padStart(2,'0')+':00';
     const text=medReklame(Array.isArray(state.result)?state.result.join('\n\n---\n\n'):state.result);
     /* Carousel: every slide as its own image, and the caption becomes just

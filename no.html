@@ -647,7 +647,7 @@ const SKRIVEREGLER_NO = "NORSKE SKRIVEREGLER (følg alltid): Bruk rette anførse
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Logg inn</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Logg ut</button>
-          <div class="nav-konto-ver">Versjon 20260904.1615</div>
+          <div class="nav-konto-ver">Versjon 20260904.1623</div>
           <div class="nav-konto-ver" id="ver-status" style="display:none;line-height:1.5;"></div>
           <button class="nav-konto-btn ut" onclick="seEtterNyVersjon()">Se etter ny versjon</button>
         </div>
@@ -750,7 +750,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    nye utgaven eller en mellomlagret gammel. Nå står den i Mer-menyen, under
    kontoen, sammen med en knapp som henter appen på nytt og tømmer
    mellomlageret. Renate 4. september 2026. */
-window.LME_VERSJON = '20260904.1615';
+window.LME_VERSJON = '20260904.1623';
 /* Den installerte appen har sitt eget mellomlager, adskilt fra nettleseren,
    og på iPhone tømmes det ikke av at du oppdaterer siden i Safari. Da kan du
    sitte med en gammel utgave uten å vite det, og feil jeg har rettet ser ut
@@ -4716,11 +4716,35 @@ function _syncBlotatoKey(){
 }
 // Sentral publisering via Blotato (Pages Function /api/publish).
 // mediaUrls maa vaere offentlige URL-er; Blotato laster dem ned og re-hoster.
-async function blotatoPublish({text, mediaUrls, scheduledTime, mediaName, target, contentKind, accountIds}){
+/* DEN POSTET TIL ALT, UANSETT HVA DU HADDE VALGT
+   Plattformknappene styrte bare hvordan de saa ut. Publiseringen gikk til
+   alle kontoene som var koblet til, ogsaa de som var graet ut fordi de ikke
+   kan ta innholdet. Derfor sto YouTube i feillisten selv om den var slaatt
+   av. Naa sendes det bare til plattformene du har valgt.
+   Renate 4. september 2026. */
+function plattformId(navn){
+  const n=String(navn||'').toLowerCase().replace(/[^a-z]/g,'');
+  if(n==='xtwitter'||n==='x') return 'twitter';
+  return n;
+}
+function valgteKanalIder(){
+  return (typeof schedPlatforms!=='undefined' ? schedPlatforms : [])
+    .filter(function(p){ return !kanalHinder(p); })
+    .map(plattformId);
+}
+async function blotatoPublish({text, mediaUrls, scheduledTime, mediaName, target, contentKind, accountIds, platforms}){
   // Flervalg: poster til alle avhukede kontoer, eller kun de valgt for dette innlegget (accountIds).
   // Faller tilbake til enkelt-konto.
   let accounts=(cfg.blotatoAccounts||[]).filter(a=>a&&a.id).filter(a=>!accountIds||accountIds.includes(String(a.id))).map(a=>({id:String(a.id), platform:a.platform||cfg.blotatoPlatform||'instagram', name:a.name||'', src:a.src||undefined, pageId:a.pageId||undefined, boardId:a.boardId||undefined}));
   if(!accounts.length && cfg.blotatoAccount){ accounts=[{id:String(cfg.blotatoAccount), platform:cfg.blotatoPlatform||'instagram'}]; }
+  /* Bare plattformene du har valgt. Er listen tom, gaar det til alle, slik
+     det alltid har gjort fra story- og reel-veiene. */
+  const valgte=(platforms||[]).map(plattformId).filter(Boolean);
+  if(valgte.length){
+    const passer=accounts.filter(function(a){ return valgte.indexOf(plattformId(a.platform))>=0; });
+    if(!passer.length) return {ok:false, error:'Ingen av kontoene dine passer plattformene du valgte. Koble kontoen i Innstillinger, eller velg en annen plattform.'};
+    accounts=passer;
+  }
 
 /* DOBBEL POSTING PÅ INSTAGRAM
    Kontolisten settes sammen av kontoene du har koblet gjennom LME og de du
@@ -4917,13 +4941,14 @@ function _medienavn(urls){
   if(e==='quicktime') e='mov';
   return (type==='video'?'lme-video.':'lme-bilde.')+e;
 }
-async function sendToPublishingService(text,mediaUrls,format,publishAt){
+async function sendToPublishingService(text,mediaUrls,format,publishAt,platforms){
   sisteUtgivelsesfeil='';
   const medier=(mediaUrls||[]).filter(Boolean);
   const r=await blotatoPublish({
     text,
     mediaUrls:medier,
     mediaName:_medienavn(medier),
+    platforms: platforms||valgteKanalIder(),
     scheduledTime: blotatoTime(publishAt),
     contentKind:(format==='reel'?'reel':format==='story'?'story':'post')
   });
@@ -4975,6 +5000,18 @@ async function schedulePost(){
   if(cfg.blotatoKey){
     ok.innerHTML='<span style="color:#0084E4;">Sender til publiseringstjenesten med planlagt tid…</span>';
     const planDt=new Date(date+'T'+time+':00');
+    /* "Cannot schedule a post in the past" kom fordi tidspunktet laa faa
+       minutter fram. Publiseringstjenesten trenger litt forsprang. Naa sier
+       appen fra selv, i stedet for aa sende noe som blir avvist.
+       Renate 4. september 2026. */
+    const minutterTil=(planDt.getTime()-Date.now())/60000;
+    if(minutterTil < 10){
+      ok.innerHTML='<b>Tidspunktet er for n\u00e6r n\u00e5.</b> Publiseringstjenesten trenger minst 10 minutter forsprang. '
+        +'Velg et tidspunkt lenger fram, eller trykk "Publiser" for \u00e5 legge det ut med en gang. '
+        +'Innlegget er lagret i kalenderen din for '+date+' kl. '+time+'.';
+      ok.style.background='#FFF6D6'; ok.style.color='#856404';
+      return;
+    }
     const publishAt=planDt.getFullYear()+'-'+String(planDt.getMonth()+1).padStart(2,'0')+'-'+String(planDt.getDate()).padStart(2,'0')+' '+String(planDt.getHours()).padStart(2,'0')+':'+String(planDt.getMinutes()).padStart(2,'0')+':00';
     const text=medReklame(Array.isArray(state.result)?state.result.join('\n\n---\n\n'):state.result);
     /* Karusell: alle slidene som egne bilder, og bildeteksten blir bare
