@@ -686,7 +686,7 @@ function renderAuth(acc){
       window.lmeApplyLock(!!acc || (window._lmeAuthFeil && !!lmeToken()));
     }
   }catch(e){}
-  if(acc){ lb.style.display='none'; us.style.display='flex'; document.getElementById('auth-email').textContent=acc.email; document.getElementById('auth-credits').textContent='🎬 '+(acc.credits.video||0)+' · 🖼 '+(acc.credits.image||0); }
+  if(acc){ lb.style.display='none'; us.style.display='flex'; document.getElementById('auth-email').textContent=acc.email; var kr=acc.credits||{}; document.getElementById('auth-credits').textContent='🎬 '+(kr.video||0)+' · 🖼 '+(kr.image||0); }
   else { lb.style.display='inline-block'; us.style.display='none'; }
   // Nar vi vet hvem som er innlogget: vis Mia & Teo-valget for eieren.
   try{ if(typeof updateCharAvailability==='function') updateCharAvailability(); }catch(e){}
@@ -792,6 +792,16 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
     <button type="button" class="act-btn sage-btn" style="font-size:12px;" onclick="lagreUtkast()">Lagre som utkast</button>
     <div style="font-size:11px;font-weight:700;color:var(--text-s);margin:12px 0 7px;">Utkast<span id="utkast-tall"></span></div>
     <div id="utkast-liste"></div>
+  </div>
+  <div class="card" id="installer-kort">
+    <div class="card-title">Last ned appen</div>
+    <div style="font-size:11px;color:var(--text-s);line-height:1.6;margin-bottom:10px;">Legg LME Autopilot på hjemskjermen eller skrivebordet, så åpner du den som en vanlig app, uten nettleserlinje.</div>
+    <div id="installert-melding" style="display:none;background:var(--rose-l);border-radius:12px;padding:10px 13px;font-size:12px;color:var(--rose-d);font-weight:700;">Appen er installert. Du kjører den nå.</div>
+    <div id="installer-boks">
+      <button type="button" class="act-btn" id="installer-knapp" style="display:none;width:100%;background:var(--rose);color:#fff;border-color:var(--rose);font-weight:700;" onclick="installerAppen()">Last ned appen</button>
+      <div id="installer-hjelp" style="font-size:11.5px;color:var(--text-s);line-height:1.75;margin-top:10px;"></div>
+      <div style="font-size:11px;color:var(--text-s);line-height:1.6;margin-top:10px;">Appen kommer også i App Store og Google Play etter hvert. Denne veien virker allerede i dag, på alt.</div>
+    </div>
   </div>
   <div class="card">
     <div class="card-title">Velg format</div>
@@ -2739,6 +2749,7 @@ function init(){
   loadStrategy();
   try{ ryddLanseringstekst(); }catch(e){}
   try{ gjenopprettArbeid(); }catch(e){ window._arbeidKlart=true; }
+  try{ tegnInstaller(); }catch(e){}
   try{ oppdaterFaktaVarsel(); }catch(e){}
   maybeAutoWizard();
 }
@@ -6018,6 +6029,7 @@ function lagreArbeid(){
     _sisteArbeid=n;
     try{ localStorage.setItem(ARBEID_LS,n); }catch(e){}
     try{ _arbeidPut(d).catch(function(){}); }catch(e){}
+    try{ pushArbeidToServer(); }catch(e){}
     visLagretTid(d.ts);
   },700);
 }
@@ -6090,6 +6102,7 @@ async function lagreUtkast(){
   u.navn=(navn||'').trim()||forslag;
   try{ await _utkastPut(u); }catch(e){ alert('Kunne ikke lagre utkastet.'); return; }
   tegnUtkast();
+  try{ pushUtkastToServer(); }catch(e){}
 }
 function _naar(ts){
   const d=new Date(ts||Date.now()), n=new Date();
@@ -6126,6 +6139,7 @@ async function slettUtkast(id){
   if(!confirm('Slette dette utkastet?')) return;
   try{ await _utkastSlett(id); }catch(e){}
   tegnUtkast();
+  try{ pushUtkastToServer(); }catch(e){}
 }
 /* Lagringen henges på funksjonene som faktisk endrer noe, i stedet for å
    spres utover hele filen. En sikkerhetslagring hvert femte sekund fanger
@@ -6146,6 +6160,55 @@ async function slettUtkast(id){
     if(t&&(t.id==='custom-topic'||t.id==='extra-input'||t.id==='cta-input'||t.id==='reel-hook-text'||t.id==='slide-range')) { try{ lagreArbeid(); }catch(_){} }
   }, true);
 })();
+/* Appen var en installerbar PWA hele tiden, men ingen kunne se det: det
+   fantes ingen knapp. Nå ligger installasjonen synlig, med ekte
+   installasjonsknapp der nettleseren støtter det, og en oppskrift for
+   iPhone, iPad og Mac der Apple ikke gir noen knapp.
+   Renate 3. september 2026. */
+var _installHendelse=null;
+window.addEventListener('beforeinstallprompt', function(e){
+  e.preventDefault();
+  _installHendelse=e;
+  const k=document.getElementById('installer-knapp');
+  if(k) k.style.display='block';
+});
+window.addEventListener('appinstalled', function(){ _installHendelse=null; tegnInstaller(); });
+async function installerAppen(){
+  if(!_installHendelse) return;
+  const e=_installHendelse; _installHendelse=null;
+  try{ e.prompt(); await e.userChoice; }catch(_){}
+  tegnInstaller();
+}
+function erInstallert(){
+  try{
+    return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone===true;
+  }catch(e){ return false; }
+}
+/* Apple gir ingen installasjonsknapp, verken på iPhone, iPad eller i Safari
+   på Mac. Der er oppskriften det eneste som hjelper, så vi viser den for den
+   maskinen du faktisk sitter på. */
+function tegnInstaller(){
+  const kort=document.getElementById('installer-kort'); if(!kort) return;
+  const inst=erInstallert();
+  const melding=document.getElementById('installert-melding');
+  const boks=document.getElementById('installer-boks');
+  if(melding) melding.style.display=inst?'block':'none';
+  if(boks) boks.style.display=inst?'none':'block';
+  if(inst) return;
+  const k=document.getElementById('installer-knapp');
+  if(k) k.style.display=_installHendelse?'block':'none';
+  const u=navigator.userAgent||'';
+  const berorer=(navigator.maxTouchPoints||0)>1;
+  const iOS=/iPhone|iPad|iPod/.test(u) || (/Macintosh/.test(u) && berorer);
+  const mac=/Macintosh/.test(u) && !berorer;
+  const android=/Android/.test(u);
+  const hjelp=document.getElementById('installer-hjelp');
+  if(!hjelp) return;
+  if(iOS) hjelp.innerHTML='<b>iPhone og iPad:</b> trykk Del-knappen nederst i Safari, bla ned og velg "Legg til på Hjem-skjerm".';
+  else if(mac) hjelp.innerHTML='<b>Mac:</b> åpne siden i Safari, trykk Del i verktøylinjen og velg "Legg til i Dock". I Chrome finner du det under de tre prikkene, "Cast, lagre og del", "Installer side som app".';
+  else if(android) hjelp.innerHTML='<b>Android:</b> trykk knappen over, eller velg "Installer app" i menyen med de tre prikkene.';
+  else hjelp.innerHTML='<b>Windows:</b> i Chrome eller Edge dukker et installasjonsikon opp helt til høyre i adressefeltet. Trykk på det, eller bruk knappen over.';
+}
 function _idb(){
   return new Promise(function(resolve,reject){
     try{ const req=indexedDB.open('lme_studio',4);
@@ -6206,6 +6269,65 @@ var _pushT={};
 function pushSettingsToServer(){ if(!lmeToken() || !window._serverPulled) return; clearTimeout(_pushT.s); _pushT.s=setTimeout(function(){ try{ lmeStoreSave('settings', JSON.parse(JSON.stringify(cfg))); }catch(e){} }, 800); }
 function pushProfilesToServer(){ if(!lmeToken() || !window._serverPulled) return; clearTimeout(_pushT.p); _pushT.p=setTimeout(function(){ try{ lmeStoreSave('profiles', loadProfiles()); }catch(e){} }, 900); }
 function pushStoriesToServer(){ if(!lmeToken() || !window._serverPulled) return; clearTimeout(_pushT.st); _pushT.st=setTimeout(function(){ _libAll().then(function(arr){ lmeStoreSave('stories', arr||[]); }).catch(function(){}); }, 1200); }
+/* Utkastene og arbeidet lå bare i nettleseren, så de fulgte ikke med fra
+   telefonen til PC-en. Nå lagres de også på kontoen din, i samme lager som
+   innstillingene, og hentes ned igjen når du logger inn et annet sted.
+
+   Bilder som er brent med hook er data-URL-er på mange megabyte. De blir
+   liggende på enheten, mens den rene bildelenken følger med, så du kan legge
+   hooken på igjen med ett trykk på den andre maskinen.
+   Renate 3. september 2026. */
+function pushArbeidToServer(){
+  if(!lmeToken() || !window._serverPulled) return;
+  clearTimeout(_pushT.a);
+  _pushT.a=setTimeout(function(){
+    try{ lmeStoreSave('arbeid', _utenBilder(_fangArbeid())); }catch(e){}
+  }, 1500);
+}
+function pushUtkastToServer(){
+  if(!lmeToken() || !window._serverPulled) return;
+  clearTimeout(_pushT.u);
+  _pushT.u=setTimeout(function(){
+    _utkastAlle().then(function(l){
+      try{ lmeStoreSave('utkast', (l||[]).map(_utenBilder)); }catch(e){}
+    }).catch(function(){});
+  }, 1500);
+}
+/* Kontoen og enheten kan begge ha noe. Vi tar det nyeste av hvert utkast, og
+   det nyeste arbeidet, i stedet for å la det ene slette det andre. */
+async function hentArbeidFraKonto(){
+  if(!lmeToken()) return;
+  try{
+    const fjern=await lmeStoreLoad('utkast');
+    if(Array.isArray(fjern) && fjern.length){
+      let mine=[]; try{ mine=await _utkastAlle(); }catch(e){}
+      const harNyere={};
+      mine.forEach(function(u){ harNyere[u.id]=u.ts||0; });
+      for(const u of fjern){
+        if(!u || !u.id) continue;
+        if(harNyere[u.id]!==undefined && harNyere[u.id]>=(u.ts||0)) continue;
+        try{ await _utkastPut(u); }catch(e){}
+      }
+      try{ tegnUtkast(); }catch(e){}
+    }
+  }catch(e){}
+  try{
+    const fjernA=await lmeStoreLoad('arbeid');
+    if(fjernA && fjernA.ts){
+      let lokal=null; try{ lokal=await _arbeidGet(); }catch(e){}
+      const lokalTs=(lokal&&lokal.ts)||0;
+      /* Bare hvis kontoen har noe klart nyere, og det faktisk er innhold i
+         det. Ellers ville en tom økt på én enhet tømt en annen. */
+      const harInnhold=fjernA.result||fjernA.customTopic||fjernA.reelHook||fjernA.imageUrl;
+      if(harInnhold && fjernA.ts>lokalTs+2000){
+        settArbeid(fjernA);
+        try{ _arbeidPut(fjernA); }catch(e){}
+        const b=document.getElementById('arbeid-banner'); if(b) b.style.display='flex';
+        visLagretTid(fjernA.ts);
+      }
+    }
+  }catch(e){}
+}
 // Hentes ved oppstart: gjenoppretter token, henter Blotato-innstillinger og story-lageret fra kontoen din.
 async function lmeServerSync(){
   try{
@@ -6248,6 +6370,7 @@ async function lmeServerSync(){
     }
   }catch(e){}
   window._serverPulled = true;   // forste henting ferdig: na er det trygt a sende endringer til serveren
+  try{ await hentArbeidFraKonto(); }catch(e){}
 }
 // ── Din egen musikk (Suno/opplastet), lagret permanent i IndexedDB ──
 var _userMusicCache=[], _userMusicUrls={};
