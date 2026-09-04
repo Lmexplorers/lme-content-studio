@@ -622,13 +622,31 @@ const WRITING_RULES_EN = "WRITING RULES (always follow): Use straight quotes, ne
         <button class="nav-dropdown-item" onclick="showTab('editor',this);closeNavMenu()">Editor</button>
         <button class="nav-dropdown-item" onclick="showTab('pricing',this);closeNavMenu()">How it works</button>
         <button class="nav-dropdown-item" onclick="showTab('settings',this);closeNavMenu()">Settings</button>
+        <div class="nav-konto" id="nav-konto">
+          <div class="nav-konto-lab">Account</div>
+          <div class="nav-konto-epost" id="nav-konto-epost"></div>
+          <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
+          <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Log in</button>
+          <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Log out</button>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
 <style>
-.auth-box{position:fixed;top:9px;right:12px;z-index:60;font-family:'Sasson Montessori';}
+/* The bubble floated over the title however small I made it, because it sat
+   fixed at the top right, on top of the header. The account now lives where
+   the rest of the navigation lives, in the "More" menu, and nothing covers
+   "LME Autopilot". */
+.auth-box{display:none;}
+.nav-konto{border-top:1px solid var(--border);margin-top:4px;padding:11px 16px 13px;}
+.nav-konto-lab{font-size:10px;font-weight:700;color:var(--text-s);text-transform:uppercase;margin-bottom:4px;}
+.nav-konto-epost{font-size:12px;color:var(--text);word-break:break-all;line-height:1.4;}
+.nav-konto-kred{font-size:12px;font-weight:700;color:var(--rose-d);margin-top:3px;}
+.nav-konto-btn{width:100%;margin-top:9px;background:var(--rose-l);border:none;color:var(--rose-d);border-radius:999px;padding:8px 12px;font-family:'Sasson Montessori',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
+.nav-konto-btn.ut{background:#fff;border:1.5px solid var(--border);color:var(--text-s);}
+
 .auth-btn{background:#fff;color:var(--rose-d);border:1.5px solid var(--rose);border-radius:999px;padding:7px 15px;font-size:12.5px;font-weight:700;cursor:pointer;}
 /* Boblen viste kreditter, hele e-postadressen og en Logg ut-knapp på én
    linje. På telefon ble den så bred at den la seg over tittelen. Nå er den
@@ -701,6 +719,28 @@ const LME_TOKEN_KEY='lme_cs_token';
 function lmeToken(){ return localStorage.getItem(LME_TOKEN_KEY)||''; }
 async function lmeAuthApi(payload){ const r=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}); return r.json(); }
 async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d=await lmeAuthApi({action:'me',token:t}); window._lmeAuthFeil=false; return d.account||null; }catch(e){ window._lmeAuthFeil=true; return null; } }
+/* Kontoen tegnes i "Mer"-menyen. Den kalles både når du er innlogget og når
+   du ikke er det, så menyen alltid viser riktig knapp. */
+function tegnNavKonto(acc){
+  const e=document.getElementById('nav-konto-epost');
+  const k=document.getElementById('nav-konto-kreditter');
+  const inn=document.getElementById('nav-logg-inn');
+  const ut=document.getElementById('nav-logg-ut');
+  if(!e) return;
+  if(acc){
+    const kr=acc.credits||{};
+    e.textContent=acc.email||'';
+    k.textContent='\uD83C\uDFAC '+(kr.video||0)+' \u00b7 \uD83D\uDDBC '+(kr.image||0);
+    k.style.display='block';
+    if(inn) inn.style.display='none';
+    if(ut) ut.style.display='block';
+  } else {
+    e.textContent='Not signed in';
+    k.textContent=''; k.style.display='none';
+    if(inn) inn.style.display='block';
+    if(ut) ut.style.display='none';
+  }
+}
 function renderAuth(acc){
   const lb=document.getElementById('auth-login-btn'), us=document.getElementById('auth-user');
   window.lmeAccount=acc||null;
@@ -715,8 +755,8 @@ function renderAuth(acc){
       window.lmeApplyLock(!!acc || (window._lmeAuthFeil && !!lmeToken()));
     }
   }catch(e){}
-  if(acc){ lb.style.display='none'; us.style.display='block'; document.getElementById('auth-email').textContent=acc.email; var me=document.getElementById('auth-meny-epost'); if(me) me.textContent=acc.email; var kr=acc.credits||{}; document.getElementById('auth-credits').textContent='🎬 '+(kr.video||0)+' · 🖼 '+(kr.image||0); }
-  else { lb.style.display='inline-block'; us.style.display='none'; }
+  if(acc){ lb.style.display='none'; us.style.display='block'; document.getElementById('auth-email').textContent=acc.email; var me=document.getElementById('auth-meny-epost'); if(me) me.textContent=acc.email; tegnNavKonto(acc); var kr=acc.credits||{}; document.getElementById('auth-credits').textContent='🎬 '+(kr.video||0)+' · 🖼 '+(kr.image||0); }
+  else { lb.style.display='inline-block'; us.style.display='none'; tegnNavKonto(null); }
   // Once we know who is logged in: show the Mia & Teo option for the owner.
   try{ if(typeof updateCharAvailability==='function') updateCharAvailability(); }catch(e){}
 }
