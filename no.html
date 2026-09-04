@@ -629,7 +629,7 @@ const SKRIVEREGLER_NO = "NORSKE SKRIVEREGLER (følg alltid): Bruk rette anførse
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Logg inn</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Logg ut</button>
-          <div class="nav-konto-ver">Versjon 20260904.0652</div>
+          <div class="nav-konto-ver">Versjon 20260904.0658</div>
           <button class="nav-konto-btn ut" onclick="closeNavMenu();hentAppenPaaNytt()">Se etter ny versjon</button>
         </div>
       </div>
@@ -730,7 +730,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    nye utgaven eller en mellomlagret gammel. Nå står den i Mer-menyen, under
    kontoen, sammen med en knapp som henter appen på nytt og tømmer
    mellomlageret. Renate 4. september 2026. */
-window.LME_VERSJON = '20260904.0652';
+window.LME_VERSJON = '20260904.0658';
 /* Den installerte appen har sitt eget mellomlager, adskilt fra nettleseren,
    og på iPhone tømmes det ikke av at du oppdaterer siden i Safari. Da kan du
    sitte med en gammel utgave uten å vite det, og feil jeg har rettet ser ut
@@ -1119,6 +1119,8 @@ window.setReelHookPos=function(p){var y=p==="top"?12:p==="bottom"?85:50;setHookY
           <button class="act-btn sage-btn" style="flex:1;font-size:12px;" onclick="brukIStoryEditor()">Åpne i Story-editor</button>
         </div>
         <button class="act-btn" style="width:100%;margin-top:8px;font-size:12px;" onclick="leggHookPaaBilde()">🔤 Legg hook på bildet</button>
+        <button class="act-btn" id="karusell-knapp" style="display:none;width:100%;margin-top:8px;font-size:12px;" onclick="byggKarusell()">🎠 Lag bildene til karusellen</button>
+        <div id="karusell-bilder" style="display:none;gap:8px;overflow-x:auto;margin-top:10px;padding-bottom:4px;"></div>
         <div id="bilde-hook-rad" style="display:none;margin-top:10px;background:var(--rose-l);border-radius:12px;padding:11px 13px;">
           <div style="font-size:11px;font-weight:700;color:var(--rose-d);margin-bottom:6px;">Flytt hooken opp eller ned</div>
           <input type="range" min="0" max="100" value="50" data-hooky oninput="setHookY(this.value)" style="width:100%;accent-color:var(--rose);">
@@ -2897,6 +2899,7 @@ function updateSlidesCard(){
   document.getElementById('slides-card').style.display = f?.slides ? 'block' : 'none';
 }
 function updateReelSection(){
+  try{ const kk=document.getElementById('karusell-knapp'); if(kk) kk.style.display=(state.format==='carousel')?'block':'none'; if(state.format!=='carousel'){ const kb=document.getElementById('karusell-bilder'); if(kb){ kb.style.display='none'; } } else { visKarusellbilder(); } }catch(e){}
   const isReel = state.format==='reel';
   const isStory = state.format==='story';
   // Reel: show video upload section
@@ -4281,7 +4284,13 @@ async function publiserMedBilde(){
   statusEl.innerHTML=`<div class="pub-status loading">Sender til publiseringstjenesten… <span class="loading-dots"><span></span><span></span><span></span></span></div>`;
   const text=medReklame(Array.isArray(state.result)?state.result.join('\n\n---\n\n'):state.result);
   const exportImg=await burnHookIntoImage(state.imageUrlClean||state.imageUrl);
-  const ok=await sendToPublishingService(text,[exportImg],state.format,null);
+  /* Karusell: alle slidene som egne bilder, og bildeteksten blir bare
+     den første sliden. Før gikk hele karusellen som en tekstvegg. */
+  const kar2=await karusellMedier();
+  const ok=await sendToPublishingService(
+    kar2?medReklame(String((state.slides||[])[0]||'')):text,
+    kar2||[exportImg],
+    state.format, null);
   if(ok){
     statusEl.innerHTML=`<div class="pub-status success">Publisert til publiseringstjenesten!</div>`;
   } else {
@@ -4312,8 +4321,32 @@ function _syncBlotatoKey(){
 async function blotatoPublish({text, mediaUrls, scheduledTime, mediaName, target, contentKind, accountIds}){
   // Flervalg: poster til alle avhukede kontoer, eller kun de valgt for dette innlegget (accountIds).
   // Faller tilbake til enkelt-konto.
-  let accounts=(cfg.blotatoAccounts||[]).filter(a=>a&&a.id).filter(a=>!accountIds||accountIds.includes(String(a.id))).map(a=>({id:String(a.id), platform:a.platform||cfg.blotatoPlatform||'instagram', src:a.src||undefined, pageId:a.pageId||undefined, boardId:a.boardId||undefined}));
+  let accounts=(cfg.blotatoAccounts||[]).filter(a=>a&&a.id).filter(a=>!accountIds||accountIds.includes(String(a.id))).map(a=>({id:String(a.id), platform:a.platform||cfg.blotatoPlatform||'instagram', name:a.name||'', src:a.src||undefined, pageId:a.pageId||undefined, boardId:a.boardId||undefined}));
   if(!accounts.length && cfg.blotatoAccount){ accounts=[{id:String(cfg.blotatoAccount), platform:cfg.blotatoPlatform||'instagram'}]; }
+
+/* DOBBEL POSTING PÅ INSTAGRAM
+   Kontolisten settes sammen av kontoene du har koblet gjennom LME og de du
+   har i Blotato. Har du samme Instagram begge steder, sto den to ganger, og
+   da gikk innlegget ut to ganger.
+
+   Nå lukes duplikater bort rett før publisering, på plattform pluss navn.
+   LME-veien vinner, for den går direkte til Meta og koster ingenting.
+   Renate 4. september 2026. */
+  /* LME-veien til Meta legger ut ett bilde per innlegg. En karusell må derfor
+     gå via Blotato, ellers ville bare den første sliden kommet ut. Har du
+     samme profil begge steder, velges Blotato når det er flere bilder, og LME
+     ellers, siden den er direkte og gratis. */
+  const flereBilder=(mediaUrls||[]).filter(Boolean).length>1;
+  const settM=new Map();
+  accounts.forEach(function(a){
+    const nokkel=(a.platform||'')+'|'+String(a.name||a.id||'').trim().toLowerCase();
+    const finnes=settM.get(nokkel);
+    if(!finnes){ settM.set(nokkel,a); return; }
+    const foretrekk = flereBilder ? (a.src!=='lme' && finnes.src==='lme')
+                                  : (a.src==='lme' && finnes.src!=='lme');
+    if(foretrekk) settM.set(nokkel,a);
+  });
+  accounts=Array.from(settM.values());
   if(!accounts.length) return {ok:false, error:'Mangler konto. Velg minst én konto i Innstillinger.'};
   // Blotato-nokkelen trengs bare for kontoer som IKKE gaar gjennom LME.
   if(accounts.some(a=>a.src!=='lme') && !_syncBlotatoKey()) return {ok:false, error:'Mangler Blotato-nøkkel. Legg den inn i Innstillinger.'};
@@ -4513,7 +4546,12 @@ async function schedulePost(){
     const planDt=new Date(date+'T'+time+':00');
     const publishAt=planDt.getFullYear()+'-'+String(planDt.getMonth()+1).padStart(2,'0')+'-'+String(planDt.getDate()).padStart(2,'0')+' '+String(planDt.getHours()).padStart(2,'0')+':'+String(planDt.getMinutes()).padStart(2,'0')+':00';
     const text=medReklame(Array.isArray(state.result)?state.result.join('\n\n---\n\n'):state.result);
-    const success=await sendToPublishingService(text,state.imageUrl?[state.imageUrl]:null,state.format,publishAt);
+    /* Karusell: alle slidene som egne bilder, og bildeteksten blir bare
+       den første sliden. Før gikk hele karusellen som en tekstvegg. */
+    const kar=await karusellMedier();
+    const medier=kar||(state.imageUrl?[state.imageUrl]:null);
+    const tekst=kar?medReklame(String((state.slides||[])[0]||'')):text;
+    const success=await sendToPublishingService(tekst,medier,state.format,publishAt);
     if(success){
       ok.innerHTML=`Planlagt i publiseringstjenesten til ${date} kl. ${time}! Sjekk dashboardet ditt.`;
     }else{
@@ -8042,6 +8080,111 @@ async function renderHookPngBlob(W,H,text){
 }
 
 // Brenn den stilede hooken inn i et bilde (for karusell/story/feed-eksport)
+
+/* KARUSELLEN BLE POSTET SOM ETT VANLIG INNLEGG
+   Karusellen sendte ett bilde og hele teksten fra alle slidene slått sammen
+   i bildeteksten. På Instagram og TikTok ble det ett bilde med en vegg av
+   tekst under, ikke en karusell.
+
+   En karusell trenger ett bilde per slide. Nå tegnes de her, på lerret, med
+   LMEs fonter: forsidebildet som bakgrunn med et mørkt slør over, sliden sin
+   egen tekst på toppen, sidetall nederst og reklamemerket der det skal være.
+   Det koster ingen kreditter og tar ingen tid.
+   Renate 4. september 2026. */
+function _tegnBakgrunn(ctx,W,H,img){
+  if(img){
+    /* Dekk hele flaten uten å strekke bildet. */
+    const s=Math.max(W/img.width, H/img.height);
+    const w=img.width*s, h=img.height*s;
+    ctx.drawImage(img,(W-w)/2,(H-h)/2,w,h);
+    const g=ctx.createLinearGradient(0,0,0,H);
+    g.addColorStop(0,'rgba(0,0,0,.55)'); g.addColorStop(.5,'rgba(0,0,0,.62)'); g.addColorStop(1,'rgba(0,0,0,.72)');
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  } else {
+    const g=ctx.createLinearGradient(0,0,W,H);
+    g.addColorStop(0,'#F02478'); g.addColorStop(1,'#C81860');
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  }
+}
+function _last(url){
+  return new Promise(function(res){
+    if(!url) return res(null);
+    const i=new Image(); i.crossOrigin='anonymous';
+    i.onload=function(){ res(i); }; i.onerror=function(){ res(null); };
+    i.src=url;
+  });
+}
+async function lagKarusellbilder(){
+  const slides=(state.slides||[]).filter(function(t){ return String(t||'').trim(); });
+  if(!slides.length) return [];
+  const W=1080, H=1350;
+  const fam="'Playpen Sans',sans-serif";
+  try{ await document.fonts.load('800 60px '+fam); }catch(e){}
+  const bg=await _last(state.imageUrlClean||state.imageUrl);
+  const ut=[];
+  for(let i=0;i<slides.length;i++){
+    const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+    const ctx=cv.getContext('2d');
+    _tegnBakgrunn(ctx,W,H,bg);
+    /* Teksten krymper til den får plass, i stedet for å renne ut av bildet. */
+    const maksB=W*0.80, maksH=H*0.62;
+    let fs=76, linjer=[];
+    for(let n=0;n<24;n++){
+      ctx.font='800 '+fs+'px '+fam;
+      const ord=String(slides[i]).replace(/\s+/g,' ').trim().split(' ');
+      linjer=[]; let cur='';
+      for(const w of ord){ const t=cur?cur+' '+w:w; if(ctx.measureText(t).width>maksB&&cur){ linjer.push(cur); cur=w; } else cur=t; }
+      if(cur) linjer.push(cur);
+      if(linjer.length*fs*1.34<=maksH || fs<=26) break;
+      fs=Math.round(fs*0.93);
+    }
+    ctx.textAlign='center'; ctx.textBaseline='top';
+    const lh=fs*1.34, blokk=linjer.length*lh;
+    let y=(H-blokk)/2;
+    ctx.fillStyle='#ffffff';
+    ctx.shadowColor='rgba(0,0,0,.55)'; ctx.shadowBlur=fs*0.32; ctx.shadowOffsetY=fs*0.06;
+    for(const l of linjer){ ctx.fillText(l,W/2,y); y+=lh; }
+    ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetY=0;
+    /* Sidetall, så leseren vet at det er mer å sveipe til. */
+    ctx.font="600 30px 'Sasson Montessori','Playpen Sans',sans-serif";
+    ctx.fillStyle='rgba(255,255,255,.9)';
+    ctx.fillText('Slide %s av %s'.replace('%s',String(i+1)).replace('%s',String(slides.length)), W/2, H-78);
+    await drawAdBadgeAsync(ctx,W,H);
+    ut.push(cv.toDataURL('image/jpeg',0.9));
+  }
+  state.karusellBilder=ut;
+  return ut;
+}
+async function byggKarusell(){
+  const st=document.getElementById('pub-bilde-status');
+  if(!(state.slides&&state.slides.length)){ if(st) st.innerHTML='<div class="pub-status error">Generer karusellteksten først.</div>'; return; }
+  if(st) st.innerHTML='<div class="pub-status loading">Lager karusellbildene…</div>';
+  const b=await lagKarusellbilder();
+  visKarusellbilder();
+  if(st) st.innerHTML='<div class="pub-status success">'+'%s karusellbilder klare. De publiseres som en ekte karusell.'.replace('%s',String(b.length))+'</div>';
+  try{ lagreArbeid(); }catch(e){}
+}
+function visKarusellbilder(){
+  const host=document.getElementById('karusell-bilder'); if(!host) return;
+  const b=state.karusellBilder||[];
+  if(!b.length){ host.innerHTML=''; host.style.display='none'; return; }
+  host.style.display='flex';
+  host.innerHTML=b.map(function(u,i){
+    return '<div style="flex:none;width:104px;"><img src="'+u+'" style="width:100%;border-radius:10px;border:1.5px solid var(--rose-m);display:block;">'
+      +'<div style="font-size:10px;color:var(--text-s);text-align:center;margin-top:3px;">'+(i+1)+'</div></div>';
+  }).join('');
+}
+/* Publiseringen bruker karusellbildene når formatet er karusell, og lager dem
+   først hvis de mangler, så du aldri sender en karusell som ett bilde. */
+async function karusellMedier(){
+  if(state.format!=='carousel') return null;
+  if(!(state.slides&&state.slides.length>1)) return null;
+  if(!(state.karusellBilder&&state.karusellBilder.length===state.slides.filter(function(t){return String(t||'').trim();}).length)){
+    await lagKarusellbilder();
+    try{ visKarusellbilder(); }catch(e){}
+  }
+  return (state.karusellBilder&&state.karusellBilder.length)?state.karusellBilder:null;
+}
 async function burnHookIntoImage(srcUrl){
   const hk=(typeof state!=='undefined'&&state.reelHook)?String(state.reelHook).trim():'';
   /* Reklamemerket skal på uansett, også når du ikke har skrevet noen hook.

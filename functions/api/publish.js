@@ -188,7 +188,14 @@ export async function onRequestPost(context) {
     for (const src of (b.mediaUrls || [])) {
       if (!src) continue;
       const mediaBody = { url: src };
-      if (/^data:/.test(src) && b.mediaName) mediaBody.filename = b.mediaName;
+      /* Hvert bilde i en karusell trenger sitt eget filnavn. Med samme navn
+         paa alle kan Blotato behandle dem som den samme filen. */
+      if (/^data:/.test(src) && b.mediaName) {
+        const n = mediaUrls.length + 1;
+        mediaBody.filename = (b.mediaUrls || []).length > 1
+          ? String(b.mediaName).replace(/(\.[^.]+)$/, "-" + n + "$1")
+          : b.mediaName;
+      }
       const up = await blotato("/media", key, mediaBody);
       if (!up.ok) {
         return json({ error: "Opplasting til Blotato feilet.", step: "media", status: up.status, detail: up.data }, 200);
