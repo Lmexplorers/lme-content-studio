@@ -29,3 +29,11 @@
   Cache-Control: no-store
 /installer.html
   Cache-Control: no-store
+
+# Service worker-en er selve motoren i oppdateringen. Blir den mellomlagret,
+# ser nettleseren en uendret fil, og den installerte appen blir staaende paa
+# den gamle utgaven uansett hvor mange ganger jeg publiserer.
+/sw.js
+  Cache-Control: no-store
+/manifest.json
+  Cache-Control: no-store

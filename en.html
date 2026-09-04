@@ -647,8 +647,9 @@ const WRITING_RULES_EN = "WRITING RULES (always follow): Use straight quotes, ne
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Log in</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Log out</button>
-          <div class="nav-konto-ver">Version 20260904.1028</div>
-          <button class="nav-konto-btn ut" onclick="closeNavMenu();hentAppenPaaNytt()">Check for a new version</button>
+          <div class="nav-konto-ver">Version 20260904.1120</div>
+          <div class="nav-konto-ver" id="ver-status" style="display:none;line-height:1.5;"></div>
+          <button class="nav-konto-btn ut" onclick="seEtterNyVersjon()">Check for a new version</button>
         </div>
       </div>
     </div>
@@ -720,7 +721,7 @@ document.addEventListener('click',function(e){
   if(m && m.classList.contains('apen') && !e.target.closest('.auth-user')) m.classList.remove('apen');
 });
 </script>
-<div id="ny-versjon" style="display:none;position:fixed;left:10px;right:10px;bottom:88px;z-index:99998;background:var(--rose);color:#fff;border-radius:14px;padding:12px 14px;box-shadow:0 10px 30px -10px rgba(200,24,96,.65);font-family:'Sasson Montessori',sans-serif;font-size:12.5px;align-items:center;gap:10px;flex-wrap:wrap;"><span style="flex:1;min-width:150px;">A newer build of the app is available.</span><button type="button" onclick="hentAppenPaaNytt()" style="background:#fff;color:var(--rose-d);border:none;border-radius:999px;padding:8px 14px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;">Get it now</button></div>
+<div id="ny-versjon" style="display:none;position:fixed;left:10px;right:10px;bottom:130px;z-index:100001;background:var(--rose);color:#fff;border-radius:14px;padding:12px 14px;box-shadow:0 10px 30px -10px rgba(200,24,96,.65);font-family:'Sasson Montessori',sans-serif;font-size:12.5px;align-items:center;gap:10px;flex-wrap:wrap;"><span id="ny-versjon-tekst" style="flex:1;min-width:150px;">A newer build of the app is available.</span><button type="button" onclick="hentAppenPaaNytt()" style="background:#fff;color:var(--rose-d);border:none;border-radius:999px;padding:8px 14px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;">Get it now</button></div>
 <div id="oppstart-linje" style="display:none;position:fixed;top:0;left:0;right:0;z-index:99997;background:var(--rose);color:#fff;font-family:'Sasson Montessori',sans-serif;font-size:12.5px;text-align:center;padding:7px 12px;box-shadow:0 4px 14px -8px rgba(90,56,37,.6);">Opening LME Autopilot…</div>
 <div class="auth-modal" id="auth-modal" onclick="if(event.target===this)closeAuthModal()">
   <div class="auth-card">
@@ -749,7 +750,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    looking at the new build or a cached old one. It now sits in the More menu,
    under the account, with a button that refetches the app and clears the
    cache. */
-window.LME_VERSJON = '20260904.1028';
+window.LME_VERSJON = '20260904.1120';
 /* The installed app has its own cache, separate from the browser, and on
    iPhone it is not cleared by refreshing the page in Safari. So you can be
    sitting on an old build without knowing, and bugs I have fixed look like
@@ -757,15 +758,42 @@ window.LME_VERSJON = '20260904.1028';
 
    The app now asks the server which version is live, every time it opens. If
    yours is older, it says so and offers to fetch the new one. */
+async function serverVersjon(){
+  const r=await fetch('/version.json?t='+Date.now(),{cache:'no-store'});
+  if(!r.ok) throw new Error('no');
+  const d=await r.json();
+  return (d&&d.versjon)?String(d.versjon):'';
+}
 async function sjekkVersjon(){
   try{
-    const r=await fetch('/version.json?t='+Date.now(),{cache:'no-store'});
-    if(!r.ok) return;
-    const d=await r.json();
-    if(d && d.versjon && String(d.versjon)!==String(window.LME_VERSJON||'')){
-      const b=document.getElementById('ny-versjon'); if(b) b.style.display='flex';
+    const ute=await serverVersjon();
+    if(ute && ute!==String(window.LME_VERSJON||'')){
+      const b=document.getElementById('ny-versjon');
+      if(b){
+        const t=document.getElementById('ny-versjon-tekst');
+        if(t) t.textContent='New build ready: '+ute+'. You have '+(window.LME_VERSJON||'?')+'.';
+        b.style.display='flex';
+      }
     }
   }catch(e){}
+}
+/* "Check for a new version" wiped everything and reloaded without saying
+   whether anything new existed. With nothing new, the button looked dead.
+   It now asks the server first and reports what it found.
+   Renate, 4 September 2026. */
+async function seEtterNyVersjon(){
+  const s=document.getElementById('ver-status');
+  if(s){ s.style.display='block'; s.textContent='Checking \u2026'; }
+  let ute='';
+  try{ ute=await serverVersjon(); }
+  catch(e){ if(s) s.textContent='Could not reach the server. Are you online?'; return; }
+  if(ute && ute!==String(window.LME_VERSJON||'')){
+    if(s) s.textContent='New build: '+ute+'. Fetching it now \u2026';
+    hentAppenPaaNytt();
+    return;
+  }
+  if(s) s.innerHTML='You are on the latest build ('+(window.LME_VERSJON||'?')+').'
+    +'<button type="button" onclick="hentAppenPaaNytt()" style="display:block;margin-top:6px;background:none;border:none;padding:0;color:var(--rose-d);font-family:inherit;font-size:11px;text-decoration:underline;cursor:pointer;">Fetch the app again anyway</button>';
 }
 async function hentAppenPaaNytt(){
   try{
@@ -8494,13 +8522,36 @@ if('serviceWorker' in navigator){
     });
   }
   window.addEventListener('load', ()=>{
-    navigator.serviceWorker.register('/sw.js').then((reg)=>{
+    /* updateViaCache:'none' stops the browser answering the update check
+       with a cached sw.js. */
+    navigator.serviceWorker.register('/sw.js',{updateViaCache:'none'}).then((reg)=>{
+      window._lmeSW=reg;
       try{ reg.update(); }catch(e){}
     }).catch((err)=>{
       console.log('SW registration failed:', err);
     });
   });
 }
+/* THE INSTALLED APP NEVER UPDATED
+   The check only ran on "load". An installed app on a phone is almost never
+   reloaded, it is woken from the app switcher, and no load fires then. So the
+   app could sit on an old build for days without noticing. It now checks
+   every time you come back to it.
+   Renate, 4 September 2026. */
+(function(){
+  var sist=0;
+  function sjekkIgjen(){
+    if(document.hidden) return;
+    var na=Date.now();
+    if(na-sist<45000) return;   /* do not nag on every little switch */
+    sist=na;
+    try{ if(typeof sjekkVersjon==='function') sjekkVersjon(); }catch(e){}
+    try{ if(window._lmeSW && window._lmeSW.update) window._lmeSW.update(); }catch(e){}
+  }
+  document.addEventListener('visibilitychange', sjekkIgjen);
+  window.addEventListener('focus', sjekkIgjen);
+  window.addEventListener('pageshow', sjekkIgjen);
+})();
 </script>
 <!-- Telefon-mockup i venstre marg: appen demonstreres steg for steg (Zeely-stil) -->
 <style>
