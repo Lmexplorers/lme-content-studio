@@ -101,6 +101,7 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 .utkast-btn{font-family:'Sasson Montessori',sans-serif;font-size:11.5px;font-weight:700;border:1.5px solid var(--rose);background:#fff;color:var(--rose-d);border-radius:999px;padding:6px 12px;cursor:pointer;flex-shrink:0;}
 .utkast-btn.slett{border-color:var(--border);color:var(--text-s);}
 .utkast-tom{font-size:11.5px;color:var(--text-s);padding:6px 0;}
+.chip.kanal-av{opacity:.42;cursor:not-allowed;text-decoration:line-through;}
 .sl-stil{margin:6px 0 4px;}
 .sl-rad{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:5px;}
 .sl-lab{font-size:10.5px;font-weight:700;color:var(--text-s);min-width:62px;}
@@ -637,7 +638,7 @@ const SKRIVEREGLER_NO = "NORSKE SKRIVEREGLER (følg alltid): Bruk rette anførse
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Logg inn</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Logg ut</button>
-          <div class="nav-konto-ver">Versjon 20260904.0732</div>
+          <div class="nav-konto-ver">Versjon 20260904.0735</div>
           <button class="nav-konto-btn ut" onclick="closeNavMenu();hentAppenPaaNytt()">Se etter ny versjon</button>
         </div>
       </div>
@@ -738,7 +739,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    nye utgaven eller en mellomlagret gammel. Nå står den i Mer-menyen, under
    kontoen, sammen med en knapp som henter appen på nytt og tømmer
    mellomlageret. Renate 4. september 2026. */
-window.LME_VERSJON = '20260904.0732';
+window.LME_VERSJON = '20260904.0735';
 /* Den installerte appen har sitt eget mellomlager, adskilt fra nettleseren,
    og på iPhone tømmes det ikke av at du oppdaterer siden i Safari. Da kan du
    sitte med en gammel utgave uten å vite det, og feil jeg har rettet ser ut
@@ -1156,6 +1157,7 @@ window.setReelHookPos=function(p){var y=p==="top"?12:p==="bottom"?85:50;setHookY
       <div style="margin-bottom:10px;">
         <div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Plattform</div>
         <div style="display:flex;flex-wrap:wrap;gap:6px;" id="sched-platforms"></div>
+        <div id="sched-platforms-note" style="display:none;font-size:11px;color:#856404;background:#FFF6D6;border-radius:10px;padding:8px 11px;margin-top:8px;line-height:1.55;"></div>
       </div>
       <button class="act-btn sage-btn" style="width:100%;padding:10px;font-size:13px;" onclick="schedulePost()">
         📅 Planlegg med dato og tid</button>
@@ -2920,6 +2922,7 @@ function updateSlidesCard(){
   document.getElementById('slides-card').style.display = f?.slides ? 'block' : 'none';
 }
 function updateReelSection(){
+  try{ renderSchedPlatforms(); }catch(e){}
   try{ const kk=document.getElementById('karusell-knapp'); if(kk) kk.style.display=(state.format==='carousel')?'block':'none'; if(state.format!=='carousel'){ const kb=document.getElementById('karusell-bilder'); if(kb){ kb.style.display='none'; } } else { visKarusellbilder(); } }catch(e){}
   const isReel = state.format==='reel';
   const isStory = state.format==='story';
@@ -3098,19 +3101,73 @@ function togglePlatform(p){
 }
 
 let schedPlatforms = [];
+/* Alle ni kanalene sto valgbare uansett hva du hadde laget, også de som
+   garantert ville feile. YouTube tar bare video, og fikk et bilde. Da ble
+   innlegget liggende igjen på kanalen som en feilet opplasting.
+
+   Nå slås en kanal av når vi VET at innholdet ikke kan publiseres der, med
+   grunnen skrevet på knappen. Kanaler vi ikke vet noe sikkert om, står åpne
+   som før: heller la deg prøve enn å stenge noe som virker.
+   Renate 4. september 2026. */
+function _harVideofil(){
+  const u=String(state.imageUrl||'');
+  return /^data:video\//i.test(u) || /\.(mp4|mov|m4v|webm)(\?|$)/i.test(u) || !!state.videoFile;
+}
+function _antallBilder(){
+  if(state.format==='carousel' && state.slides) return state.slides.filter(function(t){ return String(t||'').trim(); }).length;
+  return state.imageUrl?1:0;
+}
+/* Returnerer en grunn hvis kanalen ikke kan ta imot dette innholdet, ellers
+   tom streng. Bare det vi vet sikkert står her. */
+function kanalHinder(p){
+  const bilder=_antallBilder();
+  if(p==='YouTube' && !_harVideofil()) return 'Tar bare video';
+  if(bilder>4 && (p==='Bluesky' || p==='X (Twitter)')) return 'Tar maks 4 bilder, karusellen din er lengre';
+  return '';
+}
+/* Advarsel, ikke hinder: innlegget går ut, men ikke som karusell. */
+function kanalAdvarsel(p){
+  if(_antallBilder()>1 && p==='Pinterest') return 'Publiserer bare det første bildet av en karusell';
+  return '';
+}
 function renderSchedPlatforms(){
   const el = document.getElementById('sched-platforms'); if(!el) return;
   el.innerHTML = '';
+  const avslaatt = [];
   PLATFORMS.forEach(p => {
+    const hinder = kanalHinder(p);
+    const advarsel = hinder ? '' : kanalAdvarsel(p);
+    if (hinder && schedPlatforms.includes(p)) {
+      schedPlatforms = schedPlatforms.filter(x => x !== p);
+      avslaatt.push(p);
+    }
     const btn = document.createElement('button');
-    btn.className = 'chip' + (schedPlatforms.includes(p)?' active':'');
+    btn.className = 'chip' + (schedPlatforms.includes(p) ? ' active' : '') + (hinder ? ' kanal-av' : '');
     btn.textContent = p;
+    if (hinder) {
+      btn.title = hinder;
+      btn.disabled = true;
+    } else if (advarsel) {
+      btn.title = advarsel;
+      btn.textContent = p + ' *';
+    }
     btn.onclick = () => {
+      if (hinder) return;
       schedPlatforms = schedPlatforms.includes(p) ? schedPlatforms.filter(x=>x!==p) : [...schedPlatforms,p];
       renderSchedPlatforms();
     };
     el.appendChild(btn);
   });
+  /* Si hvorfor en kanal er av, i stedet for bare å gjøre den grå. */
+  const note = document.getElementById('sched-platforms-note');
+  if (note) {
+    const grunner = PLATFORMS.map(p => ({p:p, h:kanalHinder(p), a:kanalAdvarsel(p)}))
+      .filter(x => x.h || (x.a && schedPlatforms.includes(x.p)));
+    note.innerHTML = grunner.length
+      ? grunner.map(x => '<div>' + esc(x.p) + ': ' + esc(x.h || x.a) + '</div>').join('')
+      : '';
+    note.style.display = grunner.length ? 'block' : 'none';
+  }
 }
 
 function renderIdeas(){
@@ -8407,6 +8464,7 @@ async function lagKarusellbilder(){
     ut.push(cv.toDataURL('image/jpeg',0.9));
   }
   state.karusellBilder=ut;
+  try{ renderSchedPlatforms(); }catch(e){}
   return ut;
 }
 async function forhaandsvisAlt(){
