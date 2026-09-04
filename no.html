@@ -27,7 +27,11 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 html{overflow-x:hidden;}
-body{font-family:'Sasson Montessori';background:var(--cream);color:var(--text);min-height:100vh;max-width:100%;overflow-x:hidden;}
+/* Nathalie-knappen og etiketten hennes ligger fast nederst til høyre og
+   dekker de nederste hundre pikslene av skjermen. Sluttet siden der, lå den
+   siste knappen under henne, og var vanskelig å treffe. Nå har siden luft
+   nederst, så alt kan rulles klar. Renate 4. september 2026. */
+body{font-family:'Sasson Montessori';background:var(--cream);color:var(--text);min-height:100vh;max-width:100%;overflow-x:hidden;padding-bottom:calc(118px + env(safe-area-inset-bottom,0px));}
 button,input,select,textarea{font-family:inherit;}
 
 .app-header{background:linear-gradient(120deg,var(--rose) 0%,var(--rose-d) 100%);padding:14px 12px 0;box-shadow:0 4px 24px rgba(240,36,120,.35);}
@@ -639,7 +643,7 @@ const SKRIVEREGLER_NO = "NORSKE SKRIVEREGLER (følg alltid): Bruk rette anførse
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Logg inn</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Logg ut</button>
-          <div class="nav-konto-ver">Versjon 20260904.0753</div>
+          <div class="nav-konto-ver">Versjon 20260904.0755</div>
           <button class="nav-konto-btn ut" onclick="closeNavMenu();hentAppenPaaNytt()">Se etter ny versjon</button>
         </div>
       </div>
@@ -741,7 +745,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    nye utgaven eller en mellomlagret gammel. Nå står den i Mer-menyen, under
    kontoen, sammen med en knapp som henter appen på nytt og tømmer
    mellomlageret. Renate 4. september 2026. */
-window.LME_VERSJON = '20260904.0753';
+window.LME_VERSJON = '20260904.0755';
 /* Den installerte appen har sitt eget mellomlager, adskilt fra nettleseren,
    og på iPhone tømmes det ikke av at du oppdaterer siden i Safari. Da kan du
    sitte med en gammel utgave uten å vite det, og feil jeg har rettet ser ut

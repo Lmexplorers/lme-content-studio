@@ -27,7 +27,11 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 html{overflow-x:hidden;}
-body{font-family:'Sasson Montessori';background:var(--cream);color:var(--text);min-height:100vh;max-width:100%;overflow-x:hidden;}
+/* The Nathalie button and its label sit fixed at the bottom right and cover
+   the bottom hundred pixels of the screen. If the page ended there, the last
+   button sat underneath her and was hard to hit. The page now has room at the
+   bottom so everything can be scrolled clear. */
+body{font-family:'Sasson Montessori';background:var(--cream);color:var(--text);min-height:100vh;max-width:100%;overflow-x:hidden;padding-bottom:calc(118px + env(safe-area-inset-bottom,0px));}
 button,input,select,textarea{font-family:inherit;}
 
 .app-header{background:linear-gradient(120deg,var(--rose) 0%,var(--rose-d) 100%);padding:14px 12px 0;box-shadow:0 4px 24px rgba(240,36,120,.35);}
@@ -639,7 +643,7 @@ const WRITING_RULES_EN = "WRITING RULES (always follow): Use straight quotes, ne
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Log in</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Log out</button>
-          <div class="nav-konto-ver">Version 20260904.0753</div>
+          <div class="nav-konto-ver">Version 20260904.0755</div>
           <button class="nav-konto-btn ut" onclick="closeNavMenu();hentAppenPaaNytt()">Check for a new version</button>
         </div>
       </div>
@@ -741,7 +745,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    looking at the new build or a cached old one. It now sits in the More menu,
    under the account, with a button that refetches the app and clears the
    cache. */
-window.LME_VERSJON = '20260904.0753';
+window.LME_VERSJON = '20260904.0755';
 /* The installed app has its own cache, separate from the browser, and on
    iPhone it is not cleared by refreshing the page in Safari. So you can be
    sitting on an old build without knowing, and bugs I have fixed look like
