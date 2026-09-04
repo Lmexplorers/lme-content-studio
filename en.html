@@ -647,7 +647,7 @@ const WRITING_RULES_EN = "WRITING RULES (always follow): Use straight quotes, ne
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Log in</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Log out</button>
-          <div class="nav-konto-ver">Version 20260904.1330</div>
+          <div class="nav-konto-ver">Version 20260904.1337</div>
           <div class="nav-konto-ver" id="ver-status" style="display:none;line-height:1.5;"></div>
           <button class="nav-konto-btn ut" onclick="seEtterNyVersjon()">Check for a new version</button>
         </div>
@@ -750,7 +750,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    looking at the new build or a cached old one. It now sits in the More menu,
    under the account, with a button that refetches the app and clears the
    cache. */
-window.LME_VERSJON = '20260904.1330';
+window.LME_VERSJON = '20260904.1337';
 /* The installed app has its own cache, separate from the browser, and on
    iPhone it is not cleared by refreshing the page in Safari. So you can be
    sitting on an old build without knowing, and bugs I have fixed look like
@@ -4725,7 +4725,7 @@ function renderPreview(){
 
   if(fmt==='story') tel.innerHTML=storyHtml(slides?slides[idx]:'',idx,slides?slides.length:1,img);
   else if(fmt==='reel') tel.innerHTML=reelHtml(typeof res==='string'?res:'',videoUrl,img);
-  else if(fmt==='carousel') tel.innerHTML=carouselHtml(karusellTekst(idx),idx,karusellAntall()||1,img);
+  else if(fmt==='carousel') tel.innerHTML=carouselHtml(karusellTekst(idx),idx,karusellVistAntall()||1,img);
   else if(fmt==='pinterest') tel.innerHTML=pinHtml(typeof res==='string'?res:'',img);
   else {
     const t=typeof res==='string'?res:'';
@@ -4963,7 +4963,7 @@ function pinHtml(text,img){
 }
 
 function pvPrev(){ if(state.currentSlide>0){goSlide(state.currentSlide-1);renderPreview();} }
-function pvNext(){ if(state.currentSlide<karusellAntall()-1){goSlide(state.currentSlide+1);renderPreview();} }
+function pvNext(){ if(state.currentSlide<karusellVistAntall()-1){goSlide(state.currentSlide+1);renderPreview();} }
 
 // ══ SETTINGS ══
 function loadSettings(){
@@ -8232,6 +8232,11 @@ function karusellOrden(){
   return std.slice();
 }
 function karusellAntall(){ return karusellOrden().length; }
+/* Det forhaandsvisningen faktisk kan bla gjennom: bildene som er tegnet. */
+function karusellVistAntall(){
+  const b=(state.karusellBilder||[]).length;
+  return b || karusellAntall();
+}
 /* The text belonging to image number i. The cover carries the hook. */
 function karusellTekst(i){
   const o=karusellOrden(), s=karusellSlides();
@@ -8259,7 +8264,7 @@ async function flyttKarusellbilde(fra,steg){
   try{ visKarusellbilder(); }catch(e){}
   if(st) st.innerHTML='';
   try{ const ov=document.getElementById('preview-overlay');
-       if(ov && ov.style.display!=='none'){ state.currentSlide=Math.min(state.currentSlide||0,karusellAntall()-1); renderPreview(); } }catch(e){}
+       if(ov && ov.style.display!=='none'){ state.currentSlide=Math.min(state.currentSlide||0,karusellVistAntall()-1); renderPreview(); } }catch(e){}
   try{ lagreArbeid(); }catch(e){}
 }
 async function lagKarusellbilder(){
@@ -8296,10 +8301,10 @@ async function lagKarusellbilder(){
     const ctx=cv.getContext('2d');
     _tegnBakgrunn(ctx,W,H,bg);
     try{ await _drawHook(ctx,W,H,String(state.reelHook||'').trim()); }catch(e){}
-    ctx.textAlign='center'; ctx.textBaseline='top';
-    ctx.font="600 30px 'Sasson Montessori','Playpen Sans',sans-serif";
-    ctx.fillStyle='rgba(255,255,255,.9)';
-    ctx.fillText('Slide '+(forsidePlass+1)+' of '+antall, W/2, H-78);
+    /* THE PAGE NUMBER SAT ON EVERY IMAGE
+       Instagram shows its own counter (1 / 12) right above the image, so my
+       "Slide 1 of 11" was just noise at the bottom of every slide. It is
+       gone. Renate, 4 September 2026. */
     await drawAdBadgeAsync(ctx,W,H);
     if(merkePaaSlide(forsidePlass,antall,null)) await tegnMerke(ctx,W,H,merke);
     ut[forsidePlass]=cv.toDataURL('image/jpeg',0.9);
@@ -8309,10 +8314,6 @@ async function lagKarusellbilder(){
     const ctx=cv.getContext('2d');
     _tegnBakgrunn(ctx,W,H,bg);
     try{ await _drawHook(ctx,W,H,avslutningTekst()); }catch(e){}
-    ctx.textAlign='center'; ctx.textBaseline='top';
-    ctx.font="600 30px 'Sasson Montessori','Playpen Sans',sans-serif";
-    ctx.fillStyle='rgba(255,255,255,.9)';
-    ctx.fillText('Slide '+(avslPlass+1)+' of '+antall, W/2, H-78);
     await drawAdBadgeAsync(ctx,W,H);
     if(merkePaaSlide(avslPlass,antall,null)) await tegnMerke(ctx,W,H,merke);
     ut[avslPlass]=cv.toDataURL('image/jpeg',0.9);
@@ -8357,11 +8358,7 @@ async function lagKarusellbilder(){
     if(brukBilde){ ctx.shadowColor='rgba(0,0,0,.55)'; ctx.shadowBlur=fs*0.32; ctx.shadowOffsetY=fs*0.06; }
     for(const l of linjer){ ctx.fillText(l,W/2,y); y+=lh; }
     ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetY=0;
-    /* Sidetall, så leseren vet at det er mer å sveipe til. */
-    ctx.font="600 30px 'Sasson Montessori','Playpen Sans',sans-serif";
-    ctx.fillStyle=_lysStyrke(stil.tf||tekstFarge)>0.5?'rgba(255,255,255,.9)':'rgba(26,26,26,.75)';
     const nr=(plassen[i]||0)+1;
-    ctx.fillText('Slide %s of %s'.replace('%s',String(nr)).replace('%s',String(antall)), W/2, H-78);
     await drawAdBadgeAsync(ctx,W,H);
     if(merkePaaSlide(nr-1,antall,i)) await tegnMerke(ctx,W,H,merke);
     ut[nr-1]=cv.toDataURL('image/jpeg',0.9);
@@ -8372,8 +8369,13 @@ async function lagKarusellbilder(){
 }
 async function forhaandsvisAlt(){
   const st=document.getElementById('pub-bilde-status');
+  /* THE PREVIEW SHOWED 12 DOTS AND "OF 11"
+     It only built the images when none existed yet. Change the text, the
+     order or the closing slide afterwards and the count no longer matched
+     the images that were there, so the counter was wrong.
+     Renate, 4 September 2026. */
   if(state.format==='carousel' && state.slides && state.slides.length>1
-     && !(state.karusellBilder&&state.karusellBilder.length)){
+     && (state.karusellBilder||[]).length!==karusellAntall()){
     if(st) st.innerHTML='<div class="pub-status loading">Building the carousel images…</div>';
     await lagKarusellbilder();
     try{ visKarusellbilder(); }catch(e){}
