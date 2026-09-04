@@ -702,6 +702,7 @@ document.addEventListener('click',function(e){
   if(m && m.classList.contains('apen') && !e.target.closest('.auth-user')) m.classList.remove('apen');
 });
 </script>
+<div id="ny-versjon" style="display:none;position:fixed;left:10px;right:10px;bottom:88px;z-index:99998;background:var(--rose);color:#fff;border-radius:14px;padding:12px 14px;box-shadow:0 10px 30px -10px rgba(200,24,96,.65);font-family:'Sasson Montessori',sans-serif;font-size:12.5px;align-items:center;gap:10px;flex-wrap:wrap;"><span style="flex:1;min-width:150px;">Det finnes en nyere utgave av appen.</span><button type="button" onclick="hentAppenPaaNytt()" style="background:#fff;color:var(--rose-d);border:none;border-radius:999px;padding:8px 14px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;">Hent den nå</button></div>
 <div class="auth-modal" id="auth-modal" onclick="if(event.target===this)closeAuthModal()">
   <div class="auth-card">
     <button class="auth-x" onclick="closeAuthModal()">&times;</button>
@@ -730,6 +731,24 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    kontoen, sammen med en knapp som henter appen på nytt og tømmer
    mellomlageret. Renate 4. september 2026. */
 window.LME_VERSJON = '20260904.0440';
+/* Den installerte appen har sitt eget mellomlager, adskilt fra nettleseren,
+   og på iPhone tømmes det ikke av at du oppdaterer siden i Safari. Da kan du
+   sitte med en gammel utgave uten å vite det, og feil jeg har rettet ser ut
+   som om de fortsatt er der.
+
+   Appen spør nå serveren om hvilken versjon som er ute, hver gang den åpnes.
+   Er din eldre, sier den fra og tilbyr å hente den nye.
+   Renate 4. september 2026. */
+async function sjekkVersjon(){
+  try{
+    const r=await fetch('/version.json?t='+Date.now(),{cache:'no-store'});
+    if(!r.ok) return;
+    const d=await r.json();
+    if(d && d.versjon && String(d.versjon)!==String(window.LME_VERSJON||'')){
+      const b=document.getElementById('ny-versjon'); if(b) b.style.display='flex';
+    }
+  }catch(e){}
+}
 async function hentAppenPaaNytt(){
   try{
     if('caches' in window){ const n=await caches.keys(); await Promise.all(n.map(function(x){ return caches.delete(x); })); }
@@ -2849,6 +2868,7 @@ function init(){
   loadStrategy();
   try{ ryddLanseringstekst(); }catch(e){}
   try{ gjenopprettArbeid(); }catch(e){ window._arbeidKlart=true; }
+  try{ sjekkVersjon(); }catch(e){}
   try{ tegnInstaller(); }catch(e){}
   try{ oppdaterFaktaVarsel(); }catch(e){}
   maybeAutoWizard();

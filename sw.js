@@ -67,8 +67,11 @@ self.addEventListener('fetch', (event) => {
                               url.pathname === '/lme-bot-shell-content-studio.js';
 
   if (isHTML || isFrequentlyEdited) {
+    /* cache:'reload' gaar utenom nettleserens eget HTTP-mellomlager. Uten den
+       kan "nettverk foerst" likevel fa en gammel kopi derfra, og den
+       installerte appen blir staaende paa en utgave som ikke finnes lenger. */
     event.respondWith(
-      fetch(req)
+      fetch(req, { cache: 'reload' })
         .then((res) => {
           if (res && res.ok) { const copy = res.clone(); caches.open(CACHE_VERSION).then((c) => c.put(req, copy)); }
           return res;

@@ -22,3 +22,10 @@
   Cache-Control: no-store
 /index.html
   Cache-Control: no-store
+
+# Versjonsfilen appen sjekker mot. Blir den mellomlagret, ser en gammel app
+# seg selv som oppdatert, og hele poenget faller bort.
+/version.json
+  Cache-Control: no-store
+/installer.html
+  Cache-Control: no-store
