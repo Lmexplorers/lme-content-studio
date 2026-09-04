@@ -629,7 +629,7 @@ const SKRIVEREGLER_NO = "NORSKE SKRIVEREGLER (følg alltid): Bruk rette anførse
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Logg inn</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Logg ut</button>
-          <div class="nav-konto-ver">Versjon 20260904.0440</div>
+          <div class="nav-konto-ver">Versjon 20260904.0652</div>
           <button class="nav-konto-btn ut" onclick="closeNavMenu();hentAppenPaaNytt()">Se etter ny versjon</button>
         </div>
       </div>
@@ -730,7 +730,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    nye utgaven eller en mellomlagret gammel. Nå står den i Mer-menyen, under
    kontoen, sammen med en knapp som henter appen på nytt og tømmer
    mellomlageret. Renate 4. september 2026. */
-window.LME_VERSJON = '20260904.0440';
+window.LME_VERSJON = '20260904.0652';
 /* Den installerte appen har sitt eget mellomlager, adskilt fra nettleseren,
    og på iPhone tømmes det ikke av at du oppdaterer siden i Safari. Da kan du
    sitte med en gammel utgave uten å vite det, og feil jeg har rettet ser ut
@@ -1791,6 +1791,13 @@ Workshop "…" – halvdag – for …" oninput="saveSettings()"></textarea></di
     </div>
   </div>
 
+  <div class="card">
+    <div class="card-title">Reklamemerking</div>
+    <div style="font-size:11px;color:var(--text-s);line-height:1.6;margin-bottom:10px;">Markedsføringsloven krever at reklame er tydelig merket, også når du reklamerer for ditt eget. Teksten under legges øverst i bildeteksten og som et merke på bildet, i alt du lager.</div>
+    <label style="display:flex;align-items:center;gap:9px;cursor:pointer;margin-bottom:10px;"><input type="checkbox" id="s-reklame-paa" checked onchange="saveSettings()" style="width:auto;"><span style="font-size:12.5px;font-weight:700;">Merk innholdet som reklame</span></label>
+    <div><div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Teksten som skal stå</div><input type="text" id="s-reklame-tekst" placeholder="Reklame for eget produkt" oninput="saveSettings()"/></div>
+    <div style="font-size:11px;color:var(--text-s);line-height:1.6;margin-top:8px;">Skru den bare av for innlegg som ikke markedsfører noe.</div>
+  </div>
   <div class="card" style="border-color:var(--gold);">
     <div class="card-title" style="color:var(--gold);">Karakterer</div>
     <div style="font-size:11px;color:var(--text-s);margin-bottom:10px;line-height:1.6;">Velg hvilke karakterer som brukes i innholdet ditt</div>
@@ -3388,6 +3395,39 @@ function ryddLanseringstekst(){
   const r=f.replace(/^\s*(?:Prøv den:\s*legg inn din egen pris og lenke her|Try it:\s*add your own price and link here)\.?\s*$/gmi, 'Hvor du kjøper: planer og priser ligger på lmexplorers.com.').replace(/\n{3,}/g,'\n\n').replace(/^(.*)$\n\1$/gm,'$1').trim();
   if(r!==f){ cfg.launch=r; const b=document.getElementById('s-launch'); if(b) b.value=r; try{ persistCfg(); }catch(e){} }
 }
+/* Markedsføringsloven krever at reklame er tydelig merket, og det gjelder
+   også når du reklamerer for ditt eget produkt. Merkingen skal stå øverst,
+   der leseren ser den uten å trykke "mer".
+
+   Appen hadde et lite "Reklame"-merke, men bare i story- og reeleditoren, og
+   det var avslått som standard. Ingenting havnet i selve bildeteksten, som er
+   der Forbrukertilsynet vil ha den. Nå følger den med i alt: bildetekst,
+   bilde, forhåndsvisning, kopiering, planlegging og publisering.
+   Renate 4. september 2026. */
+const REKLAME_STD='Reklame for eget produkt';
+function reklameTekst(){
+  const t=((typeof cfg!=='undefined' && cfg.reklameTekst) || REKLAME_STD).trim();
+  return t || REKLAME_STD;
+}
+function reklamePaa(){
+  if(typeof cfg==='undefined') return true;
+  return cfg.reklamePaa!==false;   /* på med mindre du har skrudd den av */
+}
+/* Legger merkingen øverst, men bare én gang. Har du skrevet den inn selv,
+   eller er den der fra før, står den i fred. */
+function medReklame(tekst){
+  if(!reklamePaa()) return tekst;
+  const merke=reklameTekst();
+  if(Array.isArray(tekst)){
+    const kopi=tekst.slice();
+    kopi[0]=medReklame(kopi[0]);
+    return kopi;
+  }
+  const t=String(tekst==null?'':tekst);
+  const forste=t.split('\n').slice(0,3).join('\n').toLowerCase();
+  if(forste.indexOf(merke.toLowerCase())>=0) return t;
+  return merke+'\n\n'+t;
+}
 function produktFakta(){
   const d=[];
   if(cfg.brand) d.push('Merkevare: '+cfg.brand);
@@ -3631,7 +3671,7 @@ function buildPrompt(){
   const publikum = publikumDeler.join(', ') || cfg.audience || 'ingen bestemt målgruppe';
   const base=`You write social media content. THE TOPIC (what the content MUST be about): "${topic}". Write strictly and ONLY about this topic. Everything that follows describes WHO IS SPEAKING, never WHAT THE POST IS ABOUT: if any of it does not fit the topic, ignore it rather than bending the topic to fit it. The brand's usual niche is "${cfg.niche||'din nisje'}" and its usual audience is "${publikum}", but a post about something else must never be reframed, explained or justified through that niche or that audience. Do NOT introduce unrelated themes, audiences or angles that the topic does not imply, even if the brand normally covers other subjects. You post as the brand "${cfg.brand||'merkevaren din'}", so use its voice and identity, but never force the brand's usual subject matter onto an off-topic post. ${characters!=='no specific characters'&&characters!=='ingen spesifikke karakterer'?`Characters: ${characters}.`:''} Brand voice: ${cfg.voice||'vennlig, tydelig og profesjonell'}. Audience hint (ignore it completely when the topic implies someone else): ${publikum}. Tone: ${state.tone}. Language: Norwegian bokmål. ${personRuleEn()}${goalLine} ${state.extra?'Context: '+state.extra:''}
 
-${SKRIVEREGLER_NO}${produktFakta()}`;
+${SKRIVEREGLER_NO}${produktFakta()}\n\nIKKE skriv noen reklamemerking, ansvarsfraskrivelse eller "annonse"-tekst selv. Appen legger den på automatisk, og to merkinger ser rotete ut.`;
 
   if(state.format==='carousel'||state.format==='story'){
     const type=state.format==='story'?'Story set (9:16 vertical, short punchy headline + 1-2 lines per frame)':'Instagram carousel';
@@ -3642,7 +3682,9 @@ ${SKRIVEREGLER_NO}${produktFakta()}`;
     return `${base}\n\nWrite a Reel/TikTok script for 9:16 video.\nHOOK (0-2 sek): Én fengende, scrollstoppende setning.\nHOVED (3-25 sek): 3-5 tips eller historiebeats, nummerert.\nCTA: ${state.cta||'Lagre dette og følg for mer!'}\n\nMerk hvert avsnitt tydelig (HOOK:, HOVED:, CTA:). Return plain text only.`;
   }
   if(state.format==='post'){
-    return `${base}\n\nWrite an Instagram/Facebook post caption: 2-3 paragraphs, warm opening, strong CTA. End with 8-12 hashtags that fit ${cfgGet().niche||'the brand\'s own niche'} specifically — never hashtags from an unrelated industry${currentHashtags()?`. Similar in style to: ${currentHashtags()}`:''}.\n\nReturn plain text only.`;
+    /* cfgGet finnes bare inne i variantskriptet, ikke her. Et feed-innlegg
+       krasjet derfor med ReferenceError før prompten var ferdig. */
+    return `${base}\n\nWrite an Instagram/Facebook post caption: 2-3 paragraphs, warm opening, strong CTA. End with 8-12 hashtags that fit ${cfg.niche||'the brand\'s own niche'} specifically — never hashtags from an unrelated industry${currentHashtags()?`. Similar in style to: ${currentHashtags()}`:''}.\n\nReturn plain text only.`;
   }
   if(state.format==='caption'){
     return `${base}\n\nWrite a heartfelt Instagram caption (200-350 words). Personal hook, a key insight relevant to the niche, woven in naturally. ${ctaLine}\n\nReturn plain text only.`;
@@ -3865,7 +3907,7 @@ function goSlide(i){
 }
 
 function copyResult(){
-  const text=Array.isArray(state.result)?state.result.join('\n\n---\n\n'):state.result;
+  const text=medReklame(Array.isArray(state.result)?state.result.join('\n\n---\n\n'):state.result);
   navigator.clipboard.writeText(text);
   const btn=document.getElementById('copy-btn');
   btn.textContent='Kopiert!'; btn.classList.add('copied');
@@ -4237,7 +4279,7 @@ async function publiserMedBilde(){
   }
 
   statusEl.innerHTML=`<div class="pub-status loading">Sender til publiseringstjenesten… <span class="loading-dots"><span></span><span></span><span></span></span></div>`;
-  const text=Array.isArray(state.result)?state.result.join('\n\n---\n\n'):state.result;
+  const text=medReklame(Array.isArray(state.result)?state.result.join('\n\n---\n\n'):state.result);
   const exportImg=await burnHookIntoImage(state.imageUrlClean||state.imageUrl);
   const ok=await sendToPublishingService(text,[exportImg],state.format,null);
   if(ok){
@@ -4470,7 +4512,7 @@ async function schedulePost(){
     ok.innerHTML='<span style="color:#0084E4;">Sender til publiseringstjenesten med planlagt tid…</span>';
     const planDt=new Date(date+'T'+time+':00');
     const publishAt=planDt.getFullYear()+'-'+String(planDt.getMonth()+1).padStart(2,'0')+'-'+String(planDt.getDate()).padStart(2,'0')+' '+String(planDt.getHours()).padStart(2,'0')+':'+String(planDt.getMinutes()).padStart(2,'0')+':00';
-    const text=Array.isArray(state.result)?state.result.join('\n\n---\n\n'):state.result;
+    const text=medReklame(Array.isArray(state.result)?state.result.join('\n\n---\n\n'):state.result);
     const success=await sendToPublishingService(text,state.imageUrl?[state.imageUrl]:null,state.format,publishAt);
     if(success){
       ok.innerHTML=`Planlagt i publiseringstjenesten til ${date} kl. ${time}! Sjekk dashboardet ditt.`;
@@ -4583,8 +4625,10 @@ function closePreviewIfBg(e){if(e.target===document.getElementById('preview-over
 
 function renderPreview(){
   const tel=document.getElementById('preview-phone');
-  const fmt=state.format; const res=state.result;
-  const slides=state.slides; const idx=state.currentSlide||0;
+  /* Forhåndsvisningen skal vise det som faktisk går ut, reklamemerkingen
+     inkludert, ikke en penere utgave uten. */
+  const fmt=state.format; const res=medReklame(state.result);
+  const slides=Array.isArray(res)?res:state.slides; const idx=state.currentSlide||0;
   const img=state.imageUrl;
   const videoUrl=state.videoObjectUrl;
 
@@ -4809,6 +4853,8 @@ function applySettingsToUI(){
   const s=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
   s('s-brand',cfg.brand); s('s-niche',cfg.niche); s('s-voice',cfg.voice); s('s-audience',cfg.audience);
   s('s-website',cfg.website); s('s-offers',cfg.offers); s('s-launch',cfg.launch);
+  s('s-reklame-tekst',cfg.reklameTekst);
+  const rp=document.getElementById('s-reklame-paa'); if(rp) rp.checked=(cfg.reklamePaa!==false);
   { const el=document.getElementById('s-team-mode'); if(el) el.value=cfg.teamMode||'solo'; }
   s('s-email',cfg.email);
   s('s-greeting',cfg.greeting); s('s-signature',cfg.signature);
@@ -4829,6 +4875,8 @@ function saveSettings(){
   const g=id=>{const el=document.getElementById(id);return el?el.value:'';};
   cfg.brand=g('s-brand'); cfg.niche=g('s-niche'); cfg.voice=g('s-voice'); cfg.audience=g('s-audience');
   cfg.website=g('s-website'); cfg.offers=g('s-offers'); cfg.launch=g('s-launch');
+  cfg.reklameTekst=g('s-reklame-tekst');
+  const rp2=document.getElementById('s-reklame-paa'); cfg.reklamePaa=rp2?!!rp2.checked:true;
   try{ oppdaterFaktaVarsel(); }catch(e){}
   cfg.teamMode=g('s-team-mode')||'solo';
   cfg.email=g('s-email');
@@ -6916,10 +6964,21 @@ function drawStoryElements(ctx,W,H){
 // Bruker LME-fonten (Sasson Montessori) og merkefargen, i tråd med de låste fontreglene.
 // Størrelse skaleres etter bredden, så det passer story, reel og Ken Burns-video.
 function _adBadgeFont(fs){ return '700 ' + fs + "px 'Sasson Montessori','Playpen Sans',sans-serif"; }
+/* Merket sto bare på når du hadde huket av i story- eller reeleditoren. Nå
+   følger det innstillingen for reklamemerking, som er på som standard, og
+   bruker den samme teksten som bildeteksten. */
 function drawAdBadge(ctx, W, H){
-  if(!editorState.adLabel) return;
-  const txt = (document.documentElement.lang === 'en') ? 'Ads' : 'Reklame';
-  const fs = Math.max(20, Math.round(W * 0.033));
+  const paa = (typeof reklamePaa==='function' ? reklamePaa() : false) || editorState.adLabel;
+  if(!paa) return;
+  const txt = (typeof reklameTekst==='function') ? reklameTekst() : ((document.documentElement.lang === 'en') ? 'Ads' : 'Reklame');
+  /* "Reklame for eget produkt" er mye lengre enn "Reklame". Krymp heller enn
+     å la merket gå ut over bildekanten. */
+  let fs = Math.max(15, Math.round(W * 0.030));
+  ctx.font = _adBadgeFont(fs);
+  while (fs > 10 && ctx.measureText(txt).width + fs * 1.5 > W * 0.62) {
+    fs = Math.round(fs * 0.92);
+    ctx.font = _adBadgeFont(fs);
+  }
   // Sørg for at fonten er lastet; tegn på nytt i story-editoren når den er klar.
   if(!window._adFontReady){
     try{ document.fonts.load(_adBadgeFont(fs)).then(function(){ window._adFontReady = true; if(editorState.mode === 'story' && document.getElementById('story-canvas')) drawStoryCanvas(); }); }catch(e){}
@@ -6947,8 +7006,8 @@ function drawAdBadge(ctx, W, H){
 }
 // Variant som venter på at fonten er lastet (for reel-overlay som rendres til PNG én gang).
 async function drawAdBadgeAsync(ctx, W, H){
-  if(!editorState.adLabel) return;
-  const fs = Math.max(20, Math.round(W * 0.033));
+  if(!((typeof reklamePaa==='function' && reklamePaa()) || editorState.adLabel)) return;
+  const fs = Math.max(15, Math.round(W * 0.030));
   try{ await document.fonts.load(_adBadgeFont(fs)); window._adFontReady = true; }catch(e){}
   drawAdBadge(ctx, W, H);
 }
@@ -7985,7 +8044,11 @@ async function renderHookPngBlob(W,H,text){
 // Brenn den stilede hooken inn i et bilde (for karusell/story/feed-eksport)
 async function burnHookIntoImage(srcUrl){
   const hk=(typeof state!=='undefined'&&state.reelHook)?String(state.reelHook).trim():'';
-  if(!hk||!srcUrl) return srcUrl;
+  /* Reklamemerket skal på uansett, også når du ikke har skrevet noen hook.
+     Før returnerte denne bildet urørt med en gang hooken manglet. */
+  const merke=(typeof reklamePaa==='function') && reklamePaa();
+  if(!srcUrl) return srcUrl;
+  if(!hk && !merke) return srcUrl;
   return await new Promise(function(resolve){
     const img=new Image(); img.crossOrigin='anonymous';
     img.onload=async function(){
@@ -7994,7 +8057,8 @@ async function burnHookIntoImage(srcUrl){
         const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
         const ctx=cv.getContext('2d');
         ctx.drawImage(img,0,0,W,H);
-        await _drawHook(ctx,W,H,hk);
+        if(hk) await _drawHook(ctx,W,H,hk);
+        await drawAdBadgeAsync(ctx,W,H);
         resolve(cv.toDataURL('image/png'));
       }catch(e){ resolve(srcUrl); }
     };

@@ -629,7 +629,7 @@ const WRITING_RULES_EN = "WRITING RULES (always follow): Use straight quotes, ne
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Log in</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Log out</button>
-          <div class="nav-konto-ver">Version 20260904.0440</div>
+          <div class="nav-konto-ver">Version 20260904.0652</div>
           <button class="nav-konto-btn ut" onclick="closeNavMenu();hentAppenPaaNytt()">Check for a new version</button>
         </div>
       </div>
@@ -730,7 +730,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    looking at the new build or a cached old one. It now sits in the More menu,
    under the account, with a button that refetches the app and clears the
    cache. */
-window.LME_VERSJON = '20260904.0440';
+window.LME_VERSJON = '20260904.0652';
 /* The installed app has its own cache, separate from the browser, and on
    iPhone it is not cleared by refreshing the page in Safari. So you can be
    sitting on an old build without knowing, and bugs I have fixed look like
@@ -1504,6 +1504,13 @@ Workshop "…" – half day – for …" oninput="saveSettings()"></textarea></d
     </div>
   </div>
 
+  <div class="card">
+    <div class="card-title">Ad labelling</div>
+    <div style="font-size:11px;color:var(--text-s);line-height:1.6;margin-bottom:10px;">Marketing law requires advertising to be clearly labelled, including when you advertise your own. The text below goes at the top of the caption and as a badge on the image, in everything you make.</div>
+    <label style="display:flex;align-items:center;gap:9px;cursor:pointer;margin-bottom:10px;"><input type="checkbox" id="s-reklame-paa" checked onchange="saveSettings()" style="width:auto;"><span style="font-size:12.5px;font-weight:700;">Label the content as advertising</span></label>
+    <div><div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">The text to show</div><input type="text" id="s-reklame-tekst" placeholder="Ad for my own product" oninput="saveSettings()"/></div>
+    <div style="font-size:11px;color:var(--text-s);line-height:1.6;margin-top:8px;">Only switch it off for posts that market nothing.</div>
+  </div>
   <div class="card" style="border-color:var(--gold);">
     <div class="card-title" style="color:var(--gold);">Characters</div>
     <div style="font-size:11px;color:var(--text-s);margin-bottom:10px;line-height:1.6;">Choose which characters to use in your content</div>
@@ -3081,6 +3088,38 @@ function ryddLanseringstekst(){
   const r=f.replace(/^\s*(?:Prøv den:\s*legg inn din egen pris og lenke her|Try it:\s*add your own price and link here)\.?\s*$/gmi, 'Where to buy: plans and prices live on lmexplorers.com.').replace(/\n{3,}/g,'\n\n').replace(/^(.*)$\n\1$/gm,'$1').trim();
   if(r!==f){ cfg.launch=r; const b=document.getElementById('s-launch'); if(b) b.value=r; try{ persistCfg(); }catch(e){} }
 }
+/* Marketing law requires advertising to be clearly labelled, including when
+   you advertise your own product. The label must sit at the top, where the
+   reader sees it without tapping "more".
+
+   The app had a small "Ad" badge, but only in the story and reel editors, and
+   it was off by default. Nothing reached the caption itself, which is where
+   the regulator wants it. Now it travels with everything: caption, image,
+   preview, copy, scheduling and publishing. */
+const REKLAME_STD='Ad for my own product';
+function reklameTekst(){
+  const t=((typeof cfg!=='undefined' && cfg.reklameTekst) || REKLAME_STD).trim();
+  return t || REKLAME_STD;
+}
+function reklamePaa(){
+  if(typeof cfg==='undefined') return true;
+  return cfg.reklamePaa!==false;   /* på med mindre du har skrudd den av */
+}
+/* Legger merkingen øverst, men bare én gang. Har du skrevet den inn selv,
+   eller er den der fra før, står den i fred. */
+function medReklame(tekst){
+  if(!reklamePaa()) return tekst;
+  const merke=reklameTekst();
+  if(Array.isArray(tekst)){
+    const kopi=tekst.slice();
+    kopi[0]=medReklame(kopi[0]);
+    return kopi;
+  }
+  const t=String(tekst==null?'':tekst);
+  const forste=t.split('\n').slice(0,3).join('\n').toLowerCase();
+  if(forste.indexOf(merke.toLowerCase())>=0) return t;
+  return merke+'\n\n'+t;
+}
 function produktFakta(){
   const d=[];
   if(cfg.brand) d.push('Brand: '+cfg.brand);
@@ -3322,7 +3361,7 @@ function buildPrompt(){
   if (state.targetGroup && state.targetGroup !== 'Everyone') publikumDeler.push(state.targetGroup);
   if (state.ageGroup && state.ageGroup !== 'All age groups') publikumDeler.push(state.ageGroup);
   const publikum = publikumDeler.join(', ') || cfg.audience || 'no particular audience';
-  const base=`You write social media content. THE TOPIC (what the content MUST be about): "${topic}". Write strictly and ONLY about this topic. Everything that follows describes WHO IS SPEAKING, never WHAT THE POST IS ABOUT: if any of it does not fit the topic, ignore it rather than bending the topic to fit it. The brand's usual niche is "${cfg.niche||'your niche'}" and its usual audience is "${publikum}", but a post about something else must never be reframed, explained or justified through that niche or that audience. Do NOT introduce unrelated themes, audiences or angles that the topic does not imply, even if the brand normally covers other subjects. You post as the brand "${cfg.brand||'Your brand'}", so use its voice and identity, but never force the brand's usual subject matter onto an off-topic post. ${characters!=='no specific characters'?`Characters: ${characters}.`:''} Brand voice: ${cfg.voice||'Warm, clear and professional'}. Audience hint (ignore it completely when the topic implies someone else): ${publikum}. Tone: ${state.tone}. Language: English. ${personRule()}${goalLine} ${state.extra?'Context: '+state.extra:''}${produktFakta()}`;
+  const base=`You write social media content. THE TOPIC (what the content MUST be about): "${topic}". Write strictly and ONLY about this topic. Everything that follows describes WHO IS SPEAKING, never WHAT THE POST IS ABOUT: if any of it does not fit the topic, ignore it rather than bending the topic to fit it. The brand's usual niche is "${cfg.niche||'your niche'}" and its usual audience is "${publikum}", but a post about something else must never be reframed, explained or justified through that niche or that audience. Do NOT introduce unrelated themes, audiences or angles that the topic does not imply, even if the brand normally covers other subjects. You post as the brand "${cfg.brand||'Your brand'}", so use its voice and identity, but never force the brand's usual subject matter onto an off-topic post. ${characters!=='no specific characters'?`Characters: ${characters}.`:''} Brand voice: ${cfg.voice||'Warm, clear and professional'}. Audience hint (ignore it completely when the topic implies someone else): ${publikum}. Tone: ${state.tone}. Language: English. ${personRule()}${goalLine} ${state.extra?'Context: '+state.extra:''}${produktFakta()}\n\nDo NOT write any ad label, disclaimer or "sponsored" text yourself. The app adds it automatically, and two labels look messy.`;
 
   if(state.format==='carousel'||state.format==='story'){
     const type=state.format==='story'?'Story set (9:16 vertical, short punchy headline + 1-2 lines per frame)':'Instagram carousel';
@@ -3555,7 +3594,7 @@ function goSlide(i){
 }
 
 function copyResult(){
-  const text=Array.isArray(state.result)?state.result.join('\n\n---\n\n'):state.result;
+  const text=medReklame(Array.isArray(state.result)?state.result.join('\n\n---\n\n'):state.result);
   navigator.clipboard.writeText(text);
   const btn=document.getElementById('copy-btn');
   btn.textContent='Copied!'; btn.classList.add('copied');
@@ -3922,7 +3961,7 @@ async function publiserMedBilde(){
   }
 
   statusEl.innerHTML=`<div class="pub-status loading">Sending to the publishing service… <span class="loading-dots"><span></span><span></span><span></span></span></div>`;
-  const text=Array.isArray(state.result)?state.result.join('\n\n---\n\n'):state.result;
+  const text=medReklame(Array.isArray(state.result)?state.result.join('\n\n---\n\n'):state.result);
   const exportImg=await burnHookIntoImage(state.imageUrlClean||state.imageUrl);
   const ok=await sendToPublishingService(text,[exportImg],state.format,null);
   if(ok){
@@ -4151,7 +4190,7 @@ async function schedulePost(){
     ok.innerHTML='<span style="color:#0084E4;">Sending to the publishing service with scheduled time…</span>';
     const planDt=new Date(date+'T'+time+':00');
     const publishAt=planDt.getFullYear()+'-'+String(planDt.getMonth()+1).padStart(2,'0')+'-'+String(planDt.getDate()).padStart(2,'0')+' '+String(planDt.getHours()).padStart(2,'0')+':'+String(planDt.getMinutes()).padStart(2,'0')+':00';
-    const text=Array.isArray(state.result)?state.result.join('\n\n---\n\n'):state.result;
+    const text=medReklame(Array.isArray(state.result)?state.result.join('\n\n---\n\n'):state.result);
     const success=await sendToPublishingService(text,state.imageUrl?[state.imageUrl]:null,state.format,publishAt);
     if(success){
       ok.innerHTML=`Scheduled in the publishing service for ${date} at ${time}! Check your dashboard.`;
@@ -4264,8 +4303,10 @@ function closePreviewIfBg(e){if(e.target===document.getElementById('preview-over
 
 function renderPreview(){
   const tel=document.getElementById('preview-phone');
-  const fmt=state.format; const res=state.result;
-  const slides=state.slides; const idx=state.currentSlide||0;
+  /* Forhåndsvisningen skal vise det som faktisk går ut, reklamemerkingen
+     inkludert, ikke en penere utgave uten. */
+  const fmt=state.format; const res=medReklame(state.result);
+  const slides=Array.isArray(res)?res:state.slides; const idx=state.currentSlide||0;
   const img=state.imageUrl;
   const videoUrl=state.videoObjectUrl;
 
@@ -4490,6 +4531,8 @@ function applySettingsToUI(){
   const s=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
   s('s-brand',cfg.brand); s('s-niche',cfg.niche); s('s-voice',cfg.voice); s('s-audience',cfg.audience);
   s('s-website',cfg.website); s('s-offers',cfg.offers); s('s-launch',cfg.launch);
+  s('s-reklame-tekst',cfg.reklameTekst);
+  const rp=document.getElementById('s-reklame-paa'); if(rp) rp.checked=(cfg.reklamePaa!==false);
   { const el=document.getElementById('s-team-mode'); if(el) el.value=cfg.teamMode||'solo'; }
   s('s-email',cfg.email);
   s('s-greeting',cfg.greeting); s('s-signature',cfg.signature);
@@ -4510,6 +4553,8 @@ function saveSettings(){
   const g=id=>{const el=document.getElementById(id);return el?el.value:'';};
   cfg.brand=g('s-brand'); cfg.niche=g('s-niche'); cfg.voice=g('s-voice'); cfg.audience=g('s-audience');
   cfg.website=g('s-website'); cfg.offers=g('s-offers'); cfg.launch=g('s-launch');
+  cfg.reklameTekst=g('s-reklame-tekst');
+  const rp2=document.getElementById('s-reklame-paa'); cfg.reklamePaa=rp2?!!rp2.checked:true;
   try{ oppdaterFaktaVarsel(); }catch(e){}
   cfg.teamMode=g('s-team-mode')||'solo';
   cfg.email=g('s-email');
@@ -6487,10 +6532,21 @@ function drawStoryElements(ctx,W,H){
 // Uses the LME brand font (Sasson Montessori) and brand colour, per the locked font rules.
 // Size scales with width so it fits story, reel and Ken Burns video.
 function _adBadgeFont(fs){ return '700 ' + fs + "px 'Sasson Montessori','Playpen Sans',sans-serif"; }
+/* The badge only appeared when you ticked it in the story or reel editor. It
+   now follows the ad-labelling setting, which is on by default, and uses the
+   same wording as the caption. */
 function drawAdBadge(ctx, W, H){
-  if(!editorState.adLabel) return;
-  const txt = (document.documentElement.lang === 'no') ? 'Reklame' : 'Ads';
-  const fs = Math.max(20, Math.round(W * 0.033));
+  const paa = (typeof reklamePaa==='function' ? reklamePaa() : false) || editorState.adLabel;
+  if(!paa) return;
+  const txt = (typeof reklameTekst==='function') ? reklameTekst() : ((document.documentElement.lang === 'no') ? 'Reklame' : 'Ads');
+  /* "Ad for my own product" is far longer than "Ads". Shrink rather than let
+     the badge run off the edge of the image. */
+  let fs = Math.max(15, Math.round(W * 0.030));
+  ctx.font = _adBadgeFont(fs);
+  while (fs > 10 && ctx.measureText(txt).width + fs * 1.5 > W * 0.62) {
+    fs = Math.round(fs * 0.92);
+    ctx.font = _adBadgeFont(fs);
+  }
   if(!window._adFontReady){
     try{ document.fonts.load(_adBadgeFont(fs)).then(function(){ window._adFontReady = true; if(editorState.mode === 'story' && document.getElementById('story-canvas')) drawStoryCanvas(); }); }catch(e){}
   }
@@ -6516,8 +6572,8 @@ function drawAdBadge(ctx, W, H){
   ctx.restore();
 }
 async function drawAdBadgeAsync(ctx, W, H){
-  if(!editorState.adLabel) return;
-  const fs = Math.max(20, Math.round(W * 0.033));
+  if(!((typeof reklamePaa==='function' && reklamePaa()) || editorState.adLabel)) return;
+  const fs = Math.max(15, Math.round(W * 0.030));
   try{ await document.fonts.load(_adBadgeFont(fs)); window._adFontReady = true; }catch(e){}
   drawAdBadge(ctx, W, H);
 }
@@ -7549,7 +7605,11 @@ async function renderHookPngBlob(W,H,text){
 // Burn the styled hook into an image (for carousel/story/feed export)
 async function burnHookIntoImage(srcUrl){
   const hk=(typeof state!=='undefined'&&state.reelHook)?String(state.reelHook).trim():'';
-  if(!hk||!srcUrl) return srcUrl;
+  /* The ad badge goes on regardless, also when you have written no hook.
+     This used to return the image untouched the moment the hook was missing. */
+  const merke=(typeof reklamePaa==='function') && reklamePaa();
+  if(!srcUrl) return srcUrl;
+  if(!hk && !merke) return srcUrl;
   return await new Promise(function(resolve){
     const img=new Image(); img.crossOrigin='anonymous';
     img.onload=async function(){
@@ -7558,7 +7618,8 @@ async function burnHookIntoImage(srcUrl){
         const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
         const ctx=cv.getContext('2d');
         ctx.drawImage(img,0,0,W,H);
-        await _drawHook(ctx,W,H,hk);
+        if(hk) await _drawHook(ctx,W,H,hk);
+        await drawAdBadgeAsync(ctx,W,H);
         resolve(cv.toDataURL('image/png'));
       }catch(e){ resolve(srcUrl); }
     };
