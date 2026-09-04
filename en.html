@@ -647,7 +647,7 @@ const WRITING_RULES_EN = "WRITING RULES (always follow): Use straight quotes, ne
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Log in</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Log out</button>
-          <div class="nav-konto-ver">Version 20260904.1612</div>
+          <div class="nav-konto-ver">Version 20260904.1615</div>
           <div class="nav-konto-ver" id="ver-status" style="display:none;line-height:1.5;"></div>
           <button class="nav-konto-btn ut" onclick="seEtterNyVersjon()">Check for a new version</button>
         </div>
@@ -750,7 +750,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    looking at the new build or a cached old one. It now sits in the More menu,
    under the account, with a button that refetches the app and clears the
    cache. */
-window.LME_VERSJON = '20260904.1612';
+window.LME_VERSJON = '20260904.1615';
 /* The installed app has its own cache, separate from the browser, and on
    iPhone it is not cleared by refreshing the page in Safari. So you can be
    sitting on an old build without knowing, and bugs I have fixed look like
@@ -3607,7 +3607,29 @@ function buildPrompt(){
   if(state.format==='carousel'||state.format==='story'){
     const type=state.format==='story'?'Story set (9:16 vertical, short punchy headline + 1-2 lines per frame)':'Instagram carousel';
     const fl=state.format==='story'?'frame':'slide';
-    return `${base}\n\nCreate a ${type} with exactly ${state.slideCount} ${fl}s. Concise, each builds on previous. ${ctaLine} Last ${fl} = strong CTA.\n\nReturn ONLY valid JSON: {"slides":["${fl} 1 text","${fl} 2 text",...]}`;
+    /* THE AI REPEATED ITSELF
+       "each builds on previous" was all it had to go on, so two slides could
+       say the same thing in slightly different words. Each slide now gets its
+       own job, and the model must read the list back and replace anything
+       that overlaps before it answers. Renate, 4 September 2026. */
+    const hookLinje = String((state&&state.reelHook)||'').trim()
+      ? `The cover image already carries this hook: "${String(state.reelHook).trim()}". Do NOT repeat it, restate it or paraphrase it in any ${fl}.`
+      : '';
+    return `${base}
+
+Create a ${type} with exactly ${state.slideCount} ${fl}s.
+
+NO REPETITION. This is the most important rule after the topic:
+- Every ${fl} must deliver ONE point that no other ${fl} delivers. Give each ${fl} its own job, for example: the situation, why it happens, what to do, a concrete example, what changes, the call to action.
+- Never say the same thing twice in different words. Two ${fl}s that could be swapped for each other, or merged into one without losing anything, is a failure.
+- Do not reuse the same opening word, sentence shape or key phrase in more than one ${fl}.
+- No ${fl} may summarise or preview what another ${fl} says.
+- ${hookLinje}
+- Before you answer, read your ${fl}s back in order. If any two overlap in meaning, replace one of them with a genuinely new point. Repeat until every ${fl} stands on its own.
+
+Concise, and each ${fl} moves the reader one step further than the last. ${ctaLine} Last ${fl} = strong CTA.
+
+Return ONLY valid JSON: {"slides":["${fl} 1 text","${fl} 2 text",...]}`;
   }
   if(state.format==='reel'){
     return `${base}\n\nWrite a Reel/TikTok script for 9:16 video.\nHOOK (0-2 sec): One catchy, scroll-stopping sentence.\nMAIN (3-25 sec): 3-5 tips or story beats, numbered.\nCTA: ${state.cta||'Save this and follow for more!'}\n\nLabel each section clearly (HOOK:, MAIN:, CTA:). Return plain text only.`;
@@ -3907,6 +3929,36 @@ function tegnSlideKnapper(){
     if(v) v.innerHTML=slideKnapperHtml(i);
   }
 }
+/* The model can still slip. If two slides look alike, the app says so
+   instead of leaving you to spot it in the preview. */
+function _ordsett(t){
+  return new Set(String(t||'').toLowerCase().replace(/[^\wæøå\s]/g,' ').split(/\s+/).filter(function(w){ return w.length>3; }));
+}
+function _likhet(a,b){
+  const A=_ordsett(a), B=_ordsett(b);
+  if(!A.size || !B.size) return 0;
+  let felles=0; A.forEach(function(w){ if(B.has(w)) felles++; });
+  return felles/Math.min(A.size,B.size);
+}
+function finnGjentakelser(){
+  const s=(state.slides||[]).map(function(t){ return String(t||'').trim(); });
+  const par=[];
+  for(let i=0;i<s.length;i++){
+    for(let j=i+1;j<s.length;j++){
+      if(!s[i]||!s[j]) continue;
+      if(_likhet(s[i],s[j])>=0.62) par.push([i+1,j+1]);
+    }
+  }
+  return par;
+}
+function gjentakelseVarsel(){
+  const par=finnGjentakelser();
+  if(!par.length) return '';
+  const tekst=par.map(function(p){ return 'slide '+p[0]+' and '+p[1]; }).join(', ');
+  return '<div style="background:#FFF6D6;border:1.5px solid #F0D98A;border-radius:12px;padding:11px 13px;margin-top:10px;font-size:12px;line-height:1.6;color:#856404;">'
+    +'<b>Two slides say much the same thing:</b> '+tekst+'. Rewrite one, or delete it with the cross under the image.'
+    +'<button type="button" class="act-btn" style="margin-top:9px;font-size:12px;" onclick="generate()">Write new text</button></div>';
+}
 function renderSlides(){
   const slides=state.slides; const i=state.currentSlide;
   const label=state.format==='story'?'Frame':'Slide';
@@ -3918,6 +3970,7 @@ function renderSlides(){
         +'oninput="lagreRedigertSlide('+j+',this.value)" onfocus="goSlide('+j+')"></textarea>'
         +'<div id="slide-stil-'+j+'">'+slideKnapperHtml(j)+'</div></div>';
     }).join('')
+    + gjentakelseVarsel()
     + '<div class="edit-hint">You can type straight into each slide. Your edits travel to the preview, the images and publishing.</div>';
   slides.forEach(function(t,j){
     const el=document.getElementById('slide-edit-'+j);
