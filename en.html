@@ -647,7 +647,7 @@ const WRITING_RULES_EN = "WRITING RULES (always follow): Use straight quotes, ne
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Log in</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Log out</button>
-          <div class="nav-konto-ver">Version 20260904.1650</div>
+          <div class="nav-konto-ver">Version 20260904.1657</div>
           <div class="nav-konto-ver" id="ver-status" style="display:none;line-height:1.5;"></div>
           <button class="nav-konto-btn ut" onclick="seEtterNyVersjon()">Check for a new version</button>
         </div>
@@ -750,7 +750,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    looking at the new build or a cached old one. It now sits in the More menu,
    under the account, with a button that refetches the app and clears the
    cache. */
-window.LME_VERSJON = '20260904.1650';
+window.LME_VERSJON = '20260904.1657';
 /* The installed app has its own cache, separate from the browser, and on
    iPhone it is not cleared by refreshing the page in Safari. So you can be
    sitting on an old build without knowing, and bugs I have fixed look like
@@ -1215,6 +1215,8 @@ function renderHookColors(){var tc=el("hook-textcolors"),bgc=el("hook-bgcolors")
         <div style="display:flex;flex-wrap:wrap;gap:6px;" id="sched-platforms"></div>
         <div id="sched-platforms-note" style="display:none;font-size:11px;color:#856404;background:#FFF6D6;border-radius:10px;padding:8px 11px;margin-top:8px;line-height:1.55;"></div>
       </div>
+      <button class="gen-btn sage" style="width:100%;padding:11px;font-size:13px;margin-bottom:8px;" onclick="publiserMedBilde('sched-ok')">
+        Publish now</button>
       <button class="act-btn sage-btn" style="width:100%;padding:10px;font-size:13px;" onclick="schedulePost()">
         📅 Schedule with date & time</button>
       <div id="sched-ok" style="display:none;margin-top:10px;"></div>
@@ -4363,9 +4365,21 @@ async function imageToReel(){
   }
 }
 
-async function publiserMedBilde(){
+/* "PUBLISH NOW" ONLY EXISTED FAR UP THE PAGE
+   The button sat up by the image, while the platform picker and the date sit
+   at the bottom. Standing there you only had "Schedule with date & time", and
+   had to schedule something you wanted out now. Both are in the same place
+   now, and the receipt appears where you pressed.
+   Renate, 4 September 2026. */
+async function publiserMedBilde(statusId){
   if(!state.imageUrl){alert('Generate an image first!');return;}
-  const statusEl=document.getElementById('pub-bilde-status');
+  const statusEl=document.getElementById(statusId||'pub-bilde-status');
+  if(!statusEl) return;
+  statusEl.style.display='block';
+  if(typeof schedPlatforms!=='undefined' && schedPlatforms.length===0){
+    statusEl.innerHTML='<div class="pub-status error">Pick at least one platform first.</div>';
+    return;
+  }
 
   if(!_syncBlotatoKey()){
     statusEl.innerHTML=`<div class="pub-status error">the publishing service not configured. Enter your Blotato key in Settings.</div>`;

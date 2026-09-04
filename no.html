@@ -647,7 +647,7 @@ const SKRIVEREGLER_NO = "NORSKE SKRIVEREGLER (følg alltid): Bruk rette anførse
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Logg inn</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Logg ut</button>
-          <div class="nav-konto-ver">Versjon 20260904.1650</div>
+          <div class="nav-konto-ver">Versjon 20260904.1657</div>
           <div class="nav-konto-ver" id="ver-status" style="display:none;line-height:1.5;"></div>
           <button class="nav-konto-btn ut" onclick="seEtterNyVersjon()">Se etter ny versjon</button>
         </div>
@@ -750,7 +750,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    nye utgaven eller en mellomlagret gammel. Nå står den i Mer-menyen, under
    kontoen, sammen med en knapp som henter appen på nytt og tømmer
    mellomlageret. Renate 4. september 2026. */
-window.LME_VERSJON = '20260904.1650';
+window.LME_VERSJON = '20260904.1657';
 /* Den installerte appen har sitt eget mellomlager, adskilt fra nettleseren,
    og på iPhone tømmes det ikke av at du oppdaterer siden i Safari. Da kan du
    sitte med en gammel utgave uten å vite det, og feil jeg har rettet ser ut
@@ -1216,6 +1216,8 @@ function renderHookColors(){var tc=el("hook-textcolors"),bgc=el("hook-bgcolors")
         <div style="display:flex;flex-wrap:wrap;gap:6px;" id="sched-platforms"></div>
         <div id="sched-platforms-note" style="display:none;font-size:11px;color:#856404;background:#FFF6D6;border-radius:10px;padding:8px 11px;margin-top:8px;line-height:1.55;"></div>
       </div>
+      <button class="gen-btn sage" style="width:100%;padding:11px;font-size:13px;margin-bottom:8px;" onclick="publiserMedBilde('sched-ok')">
+        Publiser nå</button>
       <button class="act-btn sage-btn" style="width:100%;padding:10px;font-size:13px;" onclick="schedulePost()">
         📅 Planlegg med dato og tid</button>
       <div id="sched-ok" style="display:none;margin-top:10px;"></div>
@@ -4680,9 +4682,20 @@ async function imageToReel(){
   }
 }
 
-async function publiserMedBilde(){
+/* "PUBLISER NÅ" FANTES BARE LANGT OPPE PÅ SIDEN
+   Knappen lå oppe ved bildet, mens plattformvalget og datoen ligger nederst.
+   Sto du der, hadde du bare "Planlegg med dato og tid", og måtte planlegge
+   noe du ville ut med nå. Nå ligger begge to samme sted, og kvitteringen
+   kommer der du trykket. Renate 4. september 2026. */
+async function publiserMedBilde(statusId){
   if(!state.imageUrl){alert('Generer et bilde først!');return;}
-  const statusEl=document.getElementById('pub-bilde-status');
+  const statusEl=document.getElementById(statusId||'pub-bilde-status');
+  if(!statusEl) return;
+  statusEl.style.display='block';
+  if(typeof schedPlatforms!=='undefined' && schedPlatforms.length===0){
+    statusEl.innerHTML='<div class="pub-status error">Velg minst én plattform først.</div>';
+    return;
+  }
 
   if(!_syncBlotatoKey()){
     statusEl.innerHTML=`<div class="pub-status error">publiseringstjenesten ikke konfigurert. Legg inn Blotato-nøkkel i Innstillinger.</div>`;
