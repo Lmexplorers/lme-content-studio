@@ -1095,20 +1095,20 @@ window.setReelHookPos=function(p){var y=p==="top"?12:p==="bottom"?85:50;setHookY
       <div class="card-title">Planlegg innlegg</div>
       <div style="display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
         <div style="flex:1;min-width:140px;">
-          <div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Date</div>
+          <div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Dato</div>
           <input type="date" id="sched-date"/>
         </div>
         <div style="flex:1;min-width:120px;">
-          <div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Time</div>
+          <div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Tidspunkt</div>
           <input type="time" id="sched-time" value="09:00"/>
         </div>
       </div>
       <div style="margin-bottom:10px;">
-        <div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Platform</div>
+        <div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Plattform</div>
         <div style="display:flex;flex-wrap:wrap;gap:6px;" id="sched-platforms"></div>
       </div>
       <button class="act-btn sage-btn" style="width:100%;padding:10px;font-size:13px;" onclick="schedulePost()">
-        📅 Schedule with date & time</button>
+        📅 Planlegg med dato og tid</button>
       <div id="sched-ok" style="display:none;margin-top:10px;"></div>
     </div>
   </div>
@@ -4203,7 +4203,7 @@ async function publiserMedBilde(){
   if(ok){
     statusEl.innerHTML=`<div class="pub-status success">Publisert til publiseringstjenesten!</div>`;
   } else {
-    statusEl.innerHTML=`<div class="pub-status error">Publisering feilet. Sjekk Innstillinger.</div>`;
+    statusEl.innerHTML=`<div class="pub-status error"><b>Publiseringen gikk ikke gjennom.</b>${utgivelsesfeilHtml()}</div>`;
   }
 }
 
@@ -4345,10 +4345,23 @@ function blotatoPickAccount(sel){
   saveSettings();
 }
 
+/* "Kunne ikke nå publiseringstjenesten" sa ingenting om hva som var galt.
+   Feilen fantes hele veien fra serveren, men ble kastet bort i
+   sendToPublishingService, som bare returnerte ja eller nei. Nå følger
+   grunnen med helt fram, sammen med en knapp til Innstillinger.
+   Renate 4. september 2026. */
+var sisteUtgivelsesfeil='';
 async function sendToPublishingService(text,mediaUrls,format,publishAt){
-  if(!_syncBlotatoKey()) return false;
+  sisteUtgivelsesfeil='';
   const r=await blotatoPublish({text, mediaUrls:mediaUrls||[], scheduledTime: blotatoTime(publishAt), contentKind:(format==='reel'?'reel':format==='story'?'story':'post')});
+  if(!r.ok) sisteUtgivelsesfeil=String(r.error||'');
   return r.ok;
+}
+function _esc(x){ return String(x||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function utgivelsesfeilHtml(){
+  return sisteUtgivelsesfeil
+    ? '<div style="margin-top:6px;font-size:12px;"><b>Grunn:</b> '+_esc(sisteUtgivelsesfeil)+'</div>'
+    : '';
 }
 
 // ══ SCHEDULE ══
@@ -4387,7 +4400,7 @@ async function schedulePost(){
   const platStr=schedPlatforms.join(', ');
 
   if(cfg.blotatoKey){
-    ok.innerHTML='<span style="color:#0084E4;">Sending to publiseringstjenesten with scheduled time…</span>';
+    ok.innerHTML='<span style="color:#0084E4;">Sender til publiseringstjenesten med planlagt tid…</span>';
     const planDt=new Date(date+'T'+time+':00');
     const publishAt=planDt.getFullYear()+'-'+String(planDt.getMonth()+1).padStart(2,'0')+'-'+String(planDt.getDate()).padStart(2,'0')+' '+String(planDt.getHours()).padStart(2,'0')+':'+String(planDt.getMinutes()).padStart(2,'0')+':00';
     const text=Array.isArray(state.result)?state.result.join('\n\n---\n\n'):state.result;
@@ -4395,7 +4408,7 @@ async function schedulePost(){
     if(success){
       ok.innerHTML=`Planlagt i publiseringstjenesten til ${date} kl. ${time}! Sjekk dashboardet ditt.`;
     }else{
-      ok.innerHTML=`Kunne ikke nå publiseringstjenesten. Lagret lokalt for ${date} kl. ${time} → ${platStr}.`;
+      ok.innerHTML=`<b>Publiseringen gikk ikke gjennom.</b> `+`Innlegget er lagret i kalenderen din for %s kl. %s, så ingenting er tapt.`.replace('%s',date).replace('%s',time)+utgivelsesfeilHtml()+'<button type="button" class="act-btn sage-btn" style="margin-top:9px;font-size:12px;" onclick="showTab(\'settings\',null);window.scrollTo({top:0,behavior:\'smooth\'});">Åpne Innstillinger</button>';
       ok.style.background='#FFF6D6'; ok.style.color='#856404';
     }
   }else{

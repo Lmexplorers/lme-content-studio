@@ -3869,7 +3869,7 @@ async function imageToReel(){
     statusEl.innerHTML='<div class="pub-status success">Reel created from the image! Add hook and music below, then publish.</div>';
     if(rs) rs.scrollIntoView({behavior:'smooth',block:'start'});
   }catch(e){
-    statusEl.innerHTML=`<div class="pub-status error">Could not create reel: ${e.message}</div>`;
+    statusEl.innerHTML=`<div class="pub-status error"><b>The post did not go through.</b>${utgivelsesfeilHtml()}</div>`;
   }
 }
 
@@ -4029,10 +4029,22 @@ function blotatoPickAccount(sel){
   saveSettings();
 }
 
+/* "Could not reach the publishing service" said nothing about what was
+   wrong. The error existed all the way from the server, but was thrown away
+   in sendToPublishingService, which only returned yes or no. Now the reason
+   travels all the way through, with a button to Settings. */
+var sisteUtgivelsesfeil='';
 async function sendToPublishingService(text,mediaUrls,format,publishAt){
-  if(!_syncBlotatoKey()) return false;
+  sisteUtgivelsesfeil='';
   const r=await blotatoPublish({text, mediaUrls:mediaUrls||[], scheduledTime: blotatoTime(publishAt), contentKind:(format==='reel'?'reel':format==='story'?'story':'post')});
+  if(!r.ok) sisteUtgivelsesfeil=String(r.error||'');
   return r.ok;
+}
+function _esc(x){ return String(x||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function utgivelsesfeilHtml(){
+  return sisteUtgivelsesfeil
+    ? '<div style="margin-top:6px;font-size:12px;"><b>Reason:</b> '+_esc(sisteUtgivelsesfeil)+'</div>'
+    : '';
 }
 
 // ══ SCHEDULE ══
@@ -4079,7 +4091,7 @@ async function schedulePost(){
     if(success){
       ok.innerHTML=`Scheduled in the publishing service for ${date} at ${time}! Check your dashboard.`;
     }else{
-      ok.innerHTML=`Could not reach the publishing service. Saved locally for ${date} at ${time} → ${platStr}.`;
+      ok.innerHTML=`<b>The post did not go through.</b> `+`The post is saved in your calendar for %s at %s, so nothing is lost.`.replace('%s',date).replace('%s',time)+utgivelsesfeilHtml()+'<button type="button" class="act-btn sage-btn" style="margin-top:9px;font-size:12px;" onclick="showTab(\'settings\',null);window.scrollTo({top:0,behavior:\'smooth\'});">Open Settings</button>';
       ok.style.background='#FFF6D6'; ok.style.color='#856404';
     }
   }else{
@@ -5929,7 +5941,7 @@ function tegnInstaller(){
   if(safariKnapp) safariKnapp.style.display=iosAnnenNettleser?'block':'none';
   const hjelp=document.getElementById('installer-hjelp');
   if(!hjelp) return;
-  if(iosAnnenNettleser) hjelp.innerHTML='<b>You are in Chrome on iPhone.</b> On iPhone only Safari is allowed to put an app on the home screen, that is Apple's rule, not mine. Tap "Open in Safari" above, then the Share button at the bottom, and "Add to Home Screen".';
+  if(iosAnnenNettleser) hjelp.innerHTML='<b>You are in Chrome on iPhone.</b> On iPhone only Safari is allowed to put an app on the home screen, that is Apple\'s rule, not mine. Tap "Open in Safari" above, then the Share button at the bottom, and "Add to Home Screen".';
   else if(iOS) hjelp.innerHTML='<b>You are in Safari.</b> Tap the Share button at the bottom of the screen, the one with the arrow pointing up, scroll down the list and choose "Add to Home Screen". LME Autopilot then sits as an icon with your other apps.';
   else if(mac) hjelp.innerHTML='<b>Mac:</b> in Safari click Share in the toolbar and choose "Add to Dock". In Chrome it is under the three dots, "Cast, save and share", "Install page as app".';
   else if(android) hjelp.innerHTML='<b>Android:</b> tap "Download the app" above. If the button is gone, choose "Install app" in the three-dot menu.';
