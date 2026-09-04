@@ -1014,6 +1014,11 @@ window.setReelHookPos=function(p){var y=p==="top"?12:p==="bottom"?85:50;setHookY
       <button class="gen-btn purple" id="pub-btn" style="margin-bottom:0;font-size:13px;padding:13px;" onclick="genererBilde()">
         🎨 Generate cover image</button>
       <div id="pub-status"></div>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+        <div style="font-size:11px;font-weight:700;color:var(--text-s);margin-bottom:6px;">Or use your own image</div>
+        <label class="act-btn sage-btn" style="display:block;text-align:center;font-size:12px;cursor:pointer;position:relative;overflow:hidden;">📁 Choose an image from this device<input type="file" accept="image/*" onchange="brukEgetBilde(this)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;"></label>
+        <div style="font-size:11px;color:var(--text-s);line-height:1.6;margin-top:7px;">Got an image from OpenArt, Canva or your camera? Drop it in here and put the hook on it in the LME font. The image stays on your device.</div>
+      </div>
 
       <!-- Preview + publish shown after image generated -->
       <div id="bilde-preview-seksjon" style="display:none;margin-top:14px;">
@@ -7344,6 +7349,31 @@ async function burnHookIntoImage(srcUrl){
 /* After the hook is burned into the image it must still be movable, so we
    keep the original image and re-burn from it instead of stacking text on
    top of text. Renate 3 September 2026. */
+/* The font on an AI-generated image is the model's own, never Playpen Sans.
+   The LME fonts are locked, so text that should look like LME has to be added
+   here, in the app. That means you must be able to bring an outside image in,
+   not only images the app made itself. */
+function brukEgetBilde(input){
+  const f=input&&input.files&&input.files[0];
+  if(!f) return;
+  input.value='';
+  if(!/^image\//.test(f.type||'')){ alert('Pick an image file.'); return; }
+  if(f.size>12*1024*1024){ alert('That file is too large. Pick an image under 12 MB.'); return; }
+  const r=new FileReader();
+  r.onload=function(){
+    const url=String(r.result||'');
+    state.imageUrl=url; state.imageUrlClean=url; state.hookBrent=false;
+    const sek=document.getElementById('bilde-preview-seksjon'); if(sek) sek.style.display='block';
+    const img=document.getElementById('bilde-preview-img'); if(img) img.src=url;
+    const dl=document.getElementById('bilde-last-ned'); if(dl) dl.href=url;
+    const rad=document.getElementById('bilde-hook-rad'); if(rad) rad.style.display='none';
+    const va=document.getElementById('bilde-varianter'); if(va) va.innerHTML='';
+    const st=document.getElementById('pub-bilde-status'); if(st) st.innerHTML='<div class="pub-status success">Image loaded. Add the hook to it below.</div>';
+    try{ lagreArbeid(); }catch(e){}
+    if(sek) sek.scrollIntoView({behavior:'smooth',block:'nearest'});
+  };
+  r.readAsDataURL(f);
+}
 async function leggHookPaaBilde(stille){
   const src=state.imageUrlClean||state.imageUrl;
   if(!src){ if(!stille) alert('Generate an image first!'); return; }
