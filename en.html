@@ -647,7 +647,7 @@ const WRITING_RULES_EN = "WRITING RULES (always follow): Use straight quotes, ne
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Log in</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Log out</button>
-          <div class="nav-konto-ver">Version 20260904.1702</div>
+          <div class="nav-konto-ver">Version 20260904.1724</div>
           <div class="nav-konto-ver" id="ver-status" style="display:none;line-height:1.5;"></div>
           <button class="nav-konto-btn ut" onclick="seEtterNyVersjon()">Check for a new version</button>
         </div>
@@ -750,7 +750,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    looking at the new build or a cached old one. It now sits in the More menu,
    under the account, with a button that refetches the app and clears the
    cache. */
-window.LME_VERSJON = '20260904.1702';
+window.LME_VERSJON = '20260904.1724';
 /* The installed app has its own cache, separate from the browser, and on
    iPhone it is not cleared by refreshing the page in Safari. So you can be
    sitting on an old build without knowing, and bugs I have fixed look like
@@ -4573,11 +4573,39 @@ function renderBlotatoAccountChecks(accts){
     accts.map(function(a){
       const on=sel.has(String(a.id));
       const label=(emoji[a.platform]?emoji[a.platform]+' ':'')+(a.platform?a.platform+': ':'')+(a.name||a.id)+(a.src==='lme'?' (via LME)':'');
-      return '<label style="display:flex;align-items:center;gap:8px;padding:5px 2px;font-size:13px;cursor:pointer;"><input type="checkbox" value="'+esc(a.id)+'" data-plat="'+esc(a.platform)+'" data-name="'+esc(a.name)+'" data-src="'+esc(a.src||'')+'" data-pageid="'+esc(a.pageId||'')+'" data-boardid="'+esc(a.boardId||'')+'" '+(on?'checked':'')+' onchange="blotatoToggleAccount(this)" style="width:18px;height:18px;accent-color:var(--rose);"> '+esc(label)+'</label>';
+      /* FACEBOOK AND PINTEREST NEVER HAD A PAGE OR A BOARD
+         Blotato does not report the Facebook page or the Pinterest board in
+         its account listing, and the app had nowhere to type them in. So
+         Facebook failed however many times the accounts were fetched again,
+         and the error asked for something that did not exist.
+         Renate, 4 September 2026. */
+      const lagret=(cfg.blotatoAccounts||[]).find(function(x){ return String(x.id)===String(a.id); })||{};
+      let ekstra='';
+      if(a.platform==='facebook'){
+        ekstra='<div style="padding:0 0 6px 26px;"><input type="text" placeholder="Facebook page ID" value="'+esc(lagret.pageId||a.pageId||'')
+          +'" oninput="settKontoFelt(\''+esc(a.id)+'\',\'pageId\',this.value)" style="width:100%;font-size:12px;padding:7px 9px;">'
+          +'<div style="font-size:10.5px;color:var(--text-s);margin-top:3px;line-height:1.5;">The number under About, Page transparency, on your Facebook page. Without it Facebook rejects the post.</div></div>';
+      }
+      if(a.platform==='pinterest'){
+        ekstra='<div style="padding:0 0 6px 26px;"><input type="text" placeholder="Pinterest board ID" value="'+esc(lagret.boardId||a.boardId||'')
+          +'" oninput="settKontoFelt(\''+esc(a.id)+'\',\'boardId\',this.value)" style="width:100%;font-size:12px;padding:7px 9px;">'
+          +'<div style="font-size:10.5px;color:var(--text-s);margin-top:3px;line-height:1.5;">The number in the address of your board on Pinterest. Without it Pinterest rejects the post.</div></div>';
+      }
+      return '<label style="display:flex;align-items:center;gap:8px;padding:5px 2px;font-size:13px;cursor:pointer;"><input type="checkbox" value="'+esc(a.id)+'" data-plat="'+esc(a.platform)+'" data-name="'+esc(a.name)+'" data-src="'+esc(a.src||'')+'" data-pageid="'+esc(a.pageId||'')+'" data-boardid="'+esc(a.boardId||'')+'" '+(on?'checked':'')+' onchange="blotatoToggleAccount(this)" style="width:18px;height:18px;accent-color:var(--rose);"> '+esc(label)+'</label>'+ekstra;
     }).join('');
   host.style.display='block';
   const all=document.getElementById('s-blotato-all'); if(all) all.checked = accts.length>0 && accts.every(a=>sel.has(String(a.id)));
   updateBlotatoPostToSummary();
+}
+/* Writes the page or board id straight onto the account, and saves it. */
+function settKontoFelt(id,felt,verdi){
+  if(!Array.isArray(cfg.blotatoAccounts)) cfg.blotatoAccounts=[];
+  const v=String(verdi||'').trim();
+  const i=cfg.blotatoAccounts.findIndex(function(a){ return String(a.id)===String(id); });
+  if(i<0) return;                       /* ikke huket av enda */
+  cfg.blotatoAccounts[i][felt]=v||undefined;
+  clearTimeout(window._kontoFeltT);
+  window._kontoFeltT=setTimeout(function(){ try{ saveSettings(); }catch(e){} },400);
 }
 function blotatoToggleAccount(cb){
   if(!Array.isArray(cfg.blotatoAccounts)) cfg.blotatoAccounts=[];

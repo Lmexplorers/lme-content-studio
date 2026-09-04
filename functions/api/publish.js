@@ -239,11 +239,11 @@ export async function onRequestPost(context) {
       // innlegget med en kryptisk feil, sa vi hopper over med en forstaelig beskjed i stedet
       // for a bruke opp et forsok pa et innlegg som uansett aldri kan lykkes.
       if (plat === "facebook" && !acc.pageId) {
-        results.push({ accountId: acc.id, platform: plat, ok: false, error: "mangler Facebook-side (pageId). Velg riktig side pa nytt i Innstillinger, sa hent kontoer pa nytt." });
+        results.push({ accountId: acc.id, platform: plat, ok: false, error: "mangler Facebook-side-ID. Skriv den inn under Facebook-kontoen i Innstillinger, i feltet Facebook-side-ID. Du finner tallet under Om, Sideoversikt, paa Facebook-siden din." });
         continue;
       }
       if (plat === "pinterest" && !acc.boardId) {
-        results.push({ accountId: acc.id, platform: plat, ok: false, error: "mangler Pinterest-tavle (boardId). Velg riktig tavle pa nytt i Innstillinger, sa hent kontoer pa nytt." });
+        results.push({ accountId: acc.id, platform: plat, ok: false, error: "mangler Pinterest-tavle-ID. Skriv den inn under Pinterest-kontoen i Innstillinger, i feltet Pinterest-tavle-ID." });
         continue;
       }
 

@@ -647,7 +647,7 @@ const SKRIVEREGLER_NO = "NORSKE SKRIVEREGLER (følg alltid): Bruk rette anførse
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Logg inn</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Logg ut</button>
-          <div class="nav-konto-ver">Versjon 20260904.1702</div>
+          <div class="nav-konto-ver">Versjon 20260904.1724</div>
           <div class="nav-konto-ver" id="ver-status" style="display:none;line-height:1.5;"></div>
           <button class="nav-konto-btn ut" onclick="seEtterNyVersjon()">Se etter ny versjon</button>
         </div>
@@ -750,7 +750,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    nye utgaven eller en mellomlagret gammel. Nå står den i Mer-menyen, under
    kontoen, sammen med en knapp som henter appen på nytt og tømmer
    mellomlageret. Renate 4. september 2026. */
-window.LME_VERSJON = '20260904.1702';
+window.LME_VERSJON = '20260904.1724';
 /* Den installerte appen har sitt eget mellomlager, adskilt fra nettleseren,
    og på iPhone tømmes det ikke av at du oppdaterer siden i Safari. Da kan du
    sitte med en gammel utgave uten å vite det, og feil jeg har rettet ser ut
@@ -4891,11 +4891,39 @@ function renderBlotatoAccountChecks(accts){
     accts.map(function(a){
       const on=sel.has(String(a.id));
       const label=(emoji[a.platform]?emoji[a.platform]+' ':'')+(a.platform?a.platform+': ':'')+(a.name||a.id)+(a.src==='lme'?' (via LME)':'');
-      return '<label style="display:flex;align-items:center;gap:8px;padding:5px 2px;font-size:13px;cursor:pointer;"><input type="checkbox" value="'+esc(a.id)+'" data-plat="'+esc(a.platform)+'" data-name="'+esc(a.name)+'" data-src="'+esc(a.src||'')+'" data-pageid="'+esc(a.pageId||'')+'" data-boardid="'+esc(a.boardId||'')+'" '+(on?'checked':'')+' onchange="blotatoToggleAccount(this)" style="width:18px;height:18px;accent-color:var(--rose);"> '+esc(label)+'</label>';
+      /* FACEBOOK OG PINTEREST MANGLET ALLTID SIDE OG TAVLE
+         Blotato oppgir ikke Facebook-siden eller Pinterest-tavlen i
+         kontolisten, og appen hadde ingen plass aa skrive dem inn. Derfor
+         feilet Facebook uansett hvor mange ganger kontoene ble hentet paa
+         nytt, og feilmeldingen ba om noe som ikke fantes.
+         Renate 4. september 2026. */
+      const lagret=(cfg.blotatoAccounts||[]).find(function(x){ return String(x.id)===String(a.id); })||{};
+      let ekstra='';
+      if(a.platform==='facebook'){
+        ekstra='<div style="padding:0 0 6px 26px;"><input type="text" placeholder="Facebook-side-ID" value="'+esc(lagret.pageId||a.pageId||'')
+          +'" oninput="settKontoFelt(\''+esc(a.id)+'\',\'pageId\',this.value)" style="width:100%;font-size:12px;padding:7px 9px;">'
+          +'<div style="font-size:10.5px;color:var(--text-s);margin-top:3px;line-height:1.5;">Tallet du finner under Om, Sideoversikt, paa Facebook-siden din. Uten det avviser Facebook innlegget.</div></div>';
+      }
+      if(a.platform==='pinterest'){
+        ekstra='<div style="padding:0 0 6px 26px;"><input type="text" placeholder="Pinterest-tavle-ID" value="'+esc(lagret.boardId||a.boardId||'')
+          +'" oninput="settKontoFelt(\''+esc(a.id)+'\',\'boardId\',this.value)" style="width:100%;font-size:12px;padding:7px 9px;">'
+          +'<div style="font-size:10.5px;color:var(--text-s);margin-top:3px;line-height:1.5;">Tallet i adressen til tavlen din paa Pinterest. Uten det avviser Pinterest innlegget.</div></div>';
+      }
+      return '<label style="display:flex;align-items:center;gap:8px;padding:5px 2px;font-size:13px;cursor:pointer;"><input type="checkbox" value="'+esc(a.id)+'" data-plat="'+esc(a.platform)+'" data-name="'+esc(a.name)+'" data-src="'+esc(a.src||'')+'" data-pageid="'+esc(a.pageId||'')+'" data-boardid="'+esc(a.boardId||'')+'" '+(on?'checked':'')+' onchange="blotatoToggleAccount(this)" style="width:18px;height:18px;accent-color:var(--rose);"> '+esc(label)+'</label>'+ekstra;
     }).join('');
   host.style.display='block';
   const all=document.getElementById('s-blotato-all'); if(all) all.checked = accts.length>0 && accts.every(a=>sel.has(String(a.id)));
   updateBlotatoPostToSummary();
+}
+/* Skriver side- eller tavle-ID rett paa kontoen, og lagrer den. */
+function settKontoFelt(id,felt,verdi){
+  if(!Array.isArray(cfg.blotatoAccounts)) cfg.blotatoAccounts=[];
+  const v=String(verdi||'').trim();
+  const i=cfg.blotatoAccounts.findIndex(function(a){ return String(a.id)===String(id); });
+  if(i<0) return;                       /* ikke huket av enda */
+  cfg.blotatoAccounts[i][felt]=v||undefined;
+  clearTimeout(window._kontoFeltT);
+  window._kontoFeltT=setTimeout(function(){ try{ saveSettings(); }catch(e){} },400);
 }
 function blotatoToggleAccount(cb){
   if(!Array.isArray(cfg.blotatoAccounts)) cfg.blotatoAccounts=[];
