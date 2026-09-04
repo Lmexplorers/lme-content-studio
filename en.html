@@ -630,10 +630,21 @@ const WRITING_RULES_EN = "WRITING RULES (always follow): Use straight quotes, ne
 <style>
 .auth-box{position:fixed;top:9px;right:12px;z-index:60;font-family:'Sasson Montessori';}
 .auth-btn{background:#fff;color:var(--rose-d);border:1.5px solid var(--rose);border-radius:999px;padding:7px 15px;font-size:12.5px;font-weight:700;cursor:pointer;}
-.auth-user{display:none;align-items:center;gap:8px;background:rgba(255,255,255,.94);border:1px solid var(--border);border-radius:999px;padding:5px 6px 5px 12px;font-size:12px;box-shadow:0 4px 14px -8px rgba(90,56,37,.5);}
-.auth-user .auth-credits{font-weight:700;color:var(--rose-d);white-space:nowrap;}
-.auth-user .auth-email{color:var(--text-s);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.auth-user .auth-logout{background:var(--rose-l);border:none;color:var(--rose-d);border-radius:999px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;}
+/* Boblen viste kreditter, hele e-postadressen og en Logg ut-knapp på én
+   linje. På telefon ble den så bred at den la seg over tittelen. Nå er den
+   en smal pille med kredittene, og resten ligger i en meny du åpner ved å
+   trykke på den. Renate 3. september 2026. */
+.auth-user{display:none;position:relative;}
+.auth-pill{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.94);border:1px solid var(--border);border-radius:999px;padding:6px 11px;font-family:'Sasson Montessori',sans-serif;font-size:12px;cursor:pointer;box-shadow:0 4px 14px -8px rgba(90,56,37,.5);max-width:46vw;}
+.auth-pill .auth-credits{font-weight:700;color:var(--rose-d);white-space:nowrap;}
+.auth-pill .auth-email{display:none;color:var(--text-s);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.auth-pill .auth-kile{color:var(--text-s);font-size:10px;line-height:1;}
+@media(min-width:720px){.auth-pill .auth-email{display:inline;}}
+.auth-meny{display:none;position:absolute;right:0;top:calc(100% + 7px);background:#fff;border:1px solid var(--border);border-radius:14px;box-shadow:0 10px 30px -12px rgba(90,56,37,.55);padding:12px 14px;min-width:190px;max-width:min(78vw,280px);}
+.auth-meny.apen{display:block;}
+.auth-meny .auth-meny-lab{font-size:10px;font-weight:700;color:var(--text-s);text-transform:uppercase;margin-bottom:3px;}
+.auth-meny .auth-meny-epost{font-size:12px;color:var(--text);word-break:break-all;line-height:1.45;margin-bottom:10px;}
+.auth-logout{width:100%;background:var(--rose-l);border:none;color:var(--rose-d);border-radius:999px;padding:8px 12px;font-family:'Sasson Montessori',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
 .auth-modal{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100001;display:none;align-items:center;justify-content:center;padding:18px;}
 .auth-card{background:#fff;border-radius:20px;padding:24px;max-width:360px;width:100%;}
 .auth-card h3{font-family:'Playpen Sans';font-weight:900;font-size:20px;color:var(--rose-d);margin-bottom:6px;}
@@ -646,11 +657,29 @@ const WRITING_RULES_EN = "WRITING RULES (always follow): Use straight quotes, ne
 <div class="auth-box">
   <button class="auth-btn" id="auth-login-btn" onclick="openAuthModal()">Log in</button>
   <div class="auth-user" id="auth-user">
-    <span class="auth-credits" id="auth-credits"></span>
-    <span class="auth-email" id="auth-email"></span>
-    <button class="auth-logout" onclick="lmeAuthLogout()">Log out</button>
+    <button type="button" class="auth-pill" onclick="toggleAuthMeny(event)">
+      <span class="auth-credits" id="auth-credits"></span>
+      <span class="auth-email" id="auth-email"></span>
+      <span class="auth-kile">▾</span>
+    </button>
+    <div class="auth-meny" id="auth-meny">
+      <div class="auth-meny-lab">Signed in as</div>
+      <div class="auth-meny-epost" id="auth-meny-epost"></div>
+      <button class="auth-logout" onclick="lmeAuthLogout()">Log out</button>
+    </div>
   </div>
 </div>
+<script>
+window.toggleAuthMeny=function(e){
+  if(e) e.stopPropagation();
+  var m=document.getElementById('auth-meny'); if(!m) return;
+  m.classList.toggle('apen');
+};
+document.addEventListener('click',function(e){
+  var m=document.getElementById('auth-meny');
+  if(m && m.classList.contains('apen') && !e.target.closest('.auth-user')) m.classList.remove('apen');
+});
+</script>
 <div class="auth-modal" id="auth-modal" onclick="if(event.target===this)closeAuthModal()">
   <div class="auth-card">
     <button class="auth-x" onclick="closeAuthModal()">&times;</button>
@@ -686,7 +715,7 @@ function renderAuth(acc){
       window.lmeApplyLock(!!acc || (window._lmeAuthFeil && !!lmeToken()));
     }
   }catch(e){}
-  if(acc){ lb.style.display='none'; us.style.display='flex'; document.getElementById('auth-email').textContent=acc.email; var kr=acc.credits||{}; document.getElementById('auth-credits').textContent='🎬 '+(kr.video||0)+' · 🖼 '+(kr.image||0); }
+  if(acc){ lb.style.display='none'; us.style.display='block'; document.getElementById('auth-email').textContent=acc.email; var me=document.getElementById('auth-meny-epost'); if(me) me.textContent=acc.email; var kr=acc.credits||{}; document.getElementById('auth-credits').textContent='🎬 '+(kr.video||0)+' · 🖼 '+(kr.image||0); }
   else { lb.style.display='inline-block'; us.style.display='none'; }
   // Once we know who is logged in: show the Mia & Teo option for the owner.
   try{ if(typeof updateCharAvailability==='function') updateCharAvailability(); }catch(e){}
