@@ -227,6 +227,10 @@ textarea.text-result{border:1.5px solid transparent;}
 .preview-tabs{display:flex;background:#111;padding:4px;}
 .preview-tab{flex:1;padding:8px 4px;border:none;background:transparent;color:rgba(255,255,255,.5);font-size:10px;cursor:pointer;border-radius:8px;}
 .preview-tab.active{background:rgba(255,255,255,.15);color:white;}
+.preview-merking{background:#111;padding:9px 12px;font-size:11px;line-height:1.55;color:rgba(255,255,255,.85);border-top:1px solid rgba(255,255,255,.13);}
+.preview-merking b{color:#fff;}
+.preview-merking.av{color:#FFD7D7;}
+.pm-lenke{background:none;border:none;color:#F9A8C8;font-family:inherit;font-size:11px;text-decoration:underline;cursor:pointer;padding:0;margin-left:6px;}
 
 /* ── SETTINGS ── */
 .profile-row{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--border);}
@@ -643,7 +647,7 @@ const SKRIVEREGLER_NO = "NORSKE SKRIVEREGLER (følg alltid): Bruk rette anførse
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Logg inn</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Logg ut</button>
-          <div class="nav-konto-ver">Versjon 20260904.0858</div>
+          <div class="nav-konto-ver">Versjon 20260904.1028</div>
           <button class="nav-konto-btn ut" onclick="closeNavMenu();hentAppenPaaNytt()">Se etter ny versjon</button>
         </div>
       </div>
@@ -745,7 +749,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    nye utgaven eller en mellomlagret gammel. Nå står den i Mer-menyen, under
    kontoen, sammen med en knapp som henter appen på nytt og tømmer
    mellomlageret. Renate 4. september 2026. */
-window.LME_VERSJON = '20260904.0858';
+window.LME_VERSJON = '20260904.1028';
 /* Den installerte appen har sitt eget mellomlager, adskilt fra nettleseren,
    og på iPhone tømmes det ikke av at du oppdaterer siden i Safari. Da kan du
    sitte med en gammel utgave uten å vite det, og feil jeg har rettet ser ut
@@ -2591,6 +2595,7 @@ Workshop "…" – halvdag – for …" oninput="saveSettings()"></textarea></di
     <button class="preview-close" onclick="document.getElementById('preview-overlay').style.display='none'"></button>
     <div class="preview-tabs" id="preview-tabs"></div>
     <div class="preview-phone" id="preview-phone"></div>
+    <div class="preview-merking" id="preview-merking"></div>
   </div>
 </div>
 
@@ -4995,7 +5000,32 @@ function renderPreview(){
     else if(pvTab==='linkedin') tel.innerHTML=linkedinHtml(t,img);
     else tel.innerHTML=postHtml(t,img);
   }
+  tegnMerkingLinje();
 }
+
+/* Reklamemerkingen ligger i Innstillinger, og det gikk ikke an å se om den
+   faktisk ble med før du hadde publisert. Nå står den nederst i
+   forhåndsvisningen, med en snarvei rett til innstillingen.
+   Renate 4. september 2026. */
+function tegnMerkingLinje(){
+  const el=document.getElementById('preview-merking'); if(!el) return;
+  const paa=(typeof reklamePaa==='function') && reklamePaa();
+  const txt=(typeof reklameTekst==='function') ? reklameTekst() : '';
+  el.className='preview-merking'+(paa?'':' av');
+  el.innerHTML = paa
+    ? '\u2713 Merket som reklame: <b>'+esc(txt)+'</b><button type="button" class="pm-lenke" onclick="aapneReklameInnstilling()">Endre</button>'
+    : '\u26A0 Dette blir ikke merket som reklame.<button type="button" class="pm-lenke" onclick="aapneReklameInnstilling()">Skru p\u00e5</button>';
+}
+function aapneReklameInnstilling(){
+  const ov=document.getElementById('preview-overlay'); if(ov) ov.style.display='none';
+  try{ goTab('settings'); }catch(e){}
+  setTimeout(function(){
+    const f=document.getElementById('s-reklame-paa'); if(!f) return;
+    const k=(f.closest&&f.closest('.card'))||f;
+    try{ k.scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){}
+  },320);
+}
+
 
 // Felles: stilet hook-overlegg for forhåndsvisninger (karusell/story/feed)
 function hookOverlayHtml(){

@@ -227,6 +227,10 @@ textarea.text-result{border:1.5px solid transparent;}
 .preview-tabs{display:flex;background:#111;padding:4px;}
 .preview-tab{flex:1;padding:8px 4px;border:none;background:transparent;color:rgba(255,255,255,.5);font-size:10px;cursor:pointer;border-radius:8px;}
 .preview-tab.active{background:rgba(255,255,255,.15);color:white;}
+.preview-merking{background:#111;padding:9px 12px;font-size:11px;line-height:1.55;color:rgba(255,255,255,.85);border-top:1px solid rgba(255,255,255,.13);}
+.preview-merking b{color:#fff;}
+.preview-merking.av{color:#FFD7D7;}
+.pm-lenke{background:none;border:none;color:#F9A8C8;font-family:inherit;font-size:11px;text-decoration:underline;cursor:pointer;padding:0;margin-left:6px;}
 
 /* ── SETTINGS ── */
 .profile-row{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--border);}
@@ -643,7 +647,7 @@ const WRITING_RULES_EN = "WRITING RULES (always follow): Use straight quotes, ne
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Log in</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Log out</button>
-          <div class="nav-konto-ver">Version 20260904.0858</div>
+          <div class="nav-konto-ver">Version 20260904.1028</div>
           <button class="nav-konto-btn ut" onclick="closeNavMenu();hentAppenPaaNytt()">Check for a new version</button>
         </div>
       </div>
@@ -745,7 +749,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    looking at the new build or a cached old one. It now sits in the More menu,
    under the account, with a button that refetches the app and clears the
    cache. */
-window.LME_VERSJON = '20260904.0858';
+window.LME_VERSJON = '20260904.1028';
 /* The installed app has its own cache, separate from the browser, and on
    iPhone it is not cleared by refreshing the page in Safari. So you can be
    sitting on an old build without knowing, and bugs I have fixed look like
@@ -2297,6 +2301,7 @@ Workshop "…" – half day – for …" oninput="saveSettings()"></textarea></d
     <button class="preview-close" onclick="document.getElementById('preview-overlay').style.display='none'"></button>
     <div class="preview-tabs" id="preview-tabs"></div>
     <div class="preview-phone" id="preview-phone"></div>
+    <div class="preview-merking" id="preview-merking"></div>
   </div>
 </div>
 
@@ -4674,7 +4679,32 @@ function renderPreview(){
     else if(pvTab==='linkedin') tel.innerHTML=linkedinHtml(t,img);
     else tel.innerHTML=postHtml(t,img);
   }
+  tegnMerkingLinje();
 }
+
+/* The ad label lives in Settings, and there was no way to see whether it
+   actually made it into the post before publishing. Now it sits at the
+   bottom of the preview, with a shortcut straight to the setting.
+   Renate, 4 September 2026. */
+function tegnMerkingLinje(){
+  const el=document.getElementById('preview-merking'); if(!el) return;
+  const paa=(typeof reklamePaa==='function') && reklamePaa();
+  const txt=(typeof reklameTekst==='function') ? reklameTekst() : '';
+  el.className='preview-merking'+(paa?'':' av');
+  el.innerHTML = paa
+    ? '\u2713 Labelled as an ad: <b>'+esc(txt)+'</b><button type="button" class="pm-lenke" onclick="aapneReklameInnstilling()">Change</button>'
+    : '\u26A0 This will not be labelled as an ad.<button type="button" class="pm-lenke" onclick="aapneReklameInnstilling()">Turn on</button>';
+}
+function aapneReklameInnstilling(){
+  const ov=document.getElementById('preview-overlay'); if(ov) ov.style.display='none';
+  try{ goTab('settings'); }catch(e){}
+  setTimeout(function(){
+    const f=document.getElementById('s-reklame-paa'); if(!f) return;
+    const k=(f.closest&&f.closest('.card'))||f;
+    try{ k.scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){}
+  },320);
+}
+
 
 // Shared: styled hook overlay for previews (carousel/story/feed)
 function hookOverlayHtml(){
