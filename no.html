@@ -4351,9 +4351,36 @@ function blotatoPickAccount(sel){
    grunnen med helt fram, sammen med en knapp til Innstillinger.
    Renate 4. september 2026. */
 var sisteUtgivelsesfeil='';
+/* Blotato krever et filnavn når mediet sendes som data-URI, altså et bilde
+   som ligger på maskinen din og ikke på en offentlig adresse. Alle de andre
+   stedene i appen oppgir navnet, story, reel og video. Planlegging og
+   publisering gjorde det ikke, og det gikk bra så lenge bildet alltid kom fra
+   bildegeneratoren med en https-adresse.
+
+   I dag ble lokale bilder normalen: "bruk ditt eget bilde", og hooken som
+   brennes inn og gir en ny data-URI hver gang du drar i glideren. Da traff
+   publiseringen en vei som aldri hadde vært brukt, og feilet.
+   Renate 4. september 2026. */
+function _medienavn(urls){
+  const u=(urls||[]).filter(Boolean)[0]||'';
+  if(!/^data:/.test(u)) return undefined;
+  const m=/^data:([a-z]+)\/([a-z0-9.+-]+)/i.exec(u);
+  const type=m?m[1].toLowerCase():'image';
+  let e=m?m[2].toLowerCase():'png';
+  if(e==='jpeg') e='jpg';
+  if(e==='quicktime') e='mov';
+  return (type==='video'?'lme-video.':'lme-bilde.')+e;
+}
 async function sendToPublishingService(text,mediaUrls,format,publishAt){
   sisteUtgivelsesfeil='';
-  const r=await blotatoPublish({text, mediaUrls:mediaUrls||[], scheduledTime: blotatoTime(publishAt), contentKind:(format==='reel'?'reel':format==='story'?'story':'post')});
+  const medier=(mediaUrls||[]).filter(Boolean);
+  const r=await blotatoPublish({
+    text,
+    mediaUrls:medier,
+    mediaName:_medienavn(medier),
+    scheduledTime: blotatoTime(publishAt),
+    contentKind:(format==='reel'?'reel':format==='story'?'story':'post')
+  });
   if(!r.ok) sisteUtgivelsesfeil=String(r.error||'');
   return r.ok;
 }

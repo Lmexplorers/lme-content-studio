@@ -4034,9 +4034,35 @@ function blotatoPickAccount(sel){
    in sendToPublishingService, which only returned yes or no. Now the reason
    travels all the way through, with a button to Settings. */
 var sisteUtgivelsesfeil='';
+/* Blotato requires a filename when the media is sent as a data URI, that is,
+   an image that lives on your machine rather than at a public address. Every
+   other place in the app supplies the name: story, reel and video. Scheduling
+   and publishing did not, and that was fine as long as the image always came
+   from the image generator with an https address.
+
+   Today local images became the norm: "use your own image", and the hook
+   burned in, which produces a new data URI every time you drag the slider. So
+   publishing hit a path that had never been used, and failed. */
+function _medienavn(urls){
+  const u=(urls||[]).filter(Boolean)[0]||'';
+  if(!/^data:/.test(u)) return undefined;
+  const m=/^data:([a-z]+)\/([a-z0-9.+-]+)/i.exec(u);
+  const type=m?m[1].toLowerCase():'image';
+  let e=m?m[2].toLowerCase():'png';
+  if(e==='jpeg') e='jpg';
+  if(e==='quicktime') e='mov';
+  return (type==='video'?'lme-video.':'lme-bilde.')+e;
+}
 async function sendToPublishingService(text,mediaUrls,format,publishAt){
   sisteUtgivelsesfeil='';
-  const r=await blotatoPublish({text, mediaUrls:mediaUrls||[], scheduledTime: blotatoTime(publishAt), contentKind:(format==='reel'?'reel':format==='story'?'story':'post')});
+  const medier=(mediaUrls||[]).filter(Boolean);
+  const r=await blotatoPublish({
+    text,
+    mediaUrls:medier,
+    mediaName:_medienavn(medier),
+    scheduledTime: blotatoTime(publishAt),
+    contentKind:(format==='reel'?'reel':format==='story'?'story':'post')
+  });
   if(!r.ok) sisteUtgivelsesfeil=String(r.error||'');
   return r.ok;
 }
