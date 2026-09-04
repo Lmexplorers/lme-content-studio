@@ -647,7 +647,7 @@ const WRITING_RULES_EN = "WRITING RULES (always follow): Use straight quotes, ne
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Log in</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Log out</button>
-          <div class="nav-konto-ver">Version 20260904.1120</div>
+          <div class="nav-konto-ver">Version 20260904.1222</div>
           <div class="nav-konto-ver" id="ver-status" style="display:none;line-height:1.5;"></div>
           <button class="nav-konto-btn ut" onclick="seEtterNyVersjon()">Check for a new version</button>
         </div>
@@ -750,7 +750,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    looking at the new build or a cached old one. It now sits in the More menu,
    under the account, with a button that refetches the app and clears the
    cache. */
-window.LME_VERSJON = '20260904.1120';
+window.LME_VERSJON = '20260904.1222';
 /* The installed app has its own cache, separate from the browser, and on
    iPhone it is not cleared by refreshing the page in Safari. So you can be
    sitting on an old build without knowing, and bugs I have fixed look like
@@ -1567,6 +1567,7 @@ Workshop "…" – half day – for …" oninput="saveSettings()"></textarea></d
     <div style="font-size:11px;color:var(--text-s);line-height:1.6;margin-bottom:10px;">Upload your logo or mark once. It then stays here, and you just choose where it goes.</div>
     <div id="merke-forhaand" style="display:none;align-items:center;gap:12px;margin-bottom:10px;"><img id="merke-bilde" alt="" style="width:64px;height:64px;object-fit:contain;background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:5px;"><button type="button" class="act-btn sage-btn" style="font-size:12px;" onclick="document.getElementById('merke-fil').click()">Replace</button><button type="button" class="act-btn" style="font-size:12px;" onclick="fjernMerke()">Remove</button></div>
     <button type="button" class="act-btn sage-btn" id="merke-last" style="width:100%;font-size:12px;" onclick="document.getElementById('merke-fil').click()">📷 Upload your mark</button>
+    <button type="button" class="act-btn" id="merke-lme" style="width:100%;font-size:12px;margin-top:8px;" onclick="brukLmeLogo()">Use the LME logo</button>
     <input type="file" id="merke-fil" accept="image/*" style="display:none;" onchange="lastOppMerke(this)">
     <div class="hk-row"><div class="hk-lab">Where it goes</div><div style="display:flex;gap:6px;flex-wrap:wrap;"><button type="button" class="sl-pos" data-merkehvor="av" onclick="settMerkeHvor('av')">Off</button><button type="button" class="sl-pos" data-merkehvor="alle" onclick="settMerkeHvor('alle')">All slides</button><button type="button" class="sl-pos" data-merkehvor="forste" onclick="settMerkeHvor('forste')">First only</button><button type="button" class="sl-pos" data-merkehvor="siste" onclick="settMerkeHvor('siste')">Last only</button></div></div>
     <div class="hk-row"><div class="hk-lab">Position</div><div style="display:flex;gap:6px;flex-wrap:wrap;"><button type="button" class="sl-pos" data-merkeplass="ov" onclick="settMerkePlass('ov')">Top left</button><button type="button" class="sl-pos" data-merkeplass="oh" onclick="settMerkePlass('oh')">Top right</button><button type="button" class="sl-pos" data-merkeplass="nv" onclick="settMerkePlass('nv')">Bottom left</button><button type="button" class="sl-pos" data-merkeplass="nh" onclick="settMerkePlass('nh')">Bottom right</button></div></div>
@@ -3269,7 +3270,7 @@ function lastOppMerke(input){
   if(!/^image\//.test(f.type||'')) return;
   const r=new FileReader();
   r.onload=function(){
-    cfg.logoImage=String(r.result||'');
+    cfg.logoImage=String(r.result||''); cfg.logoFjernet=false;
     if(!cfg.merkeHvor||cfg.merkeHvor==='av') cfg.merkeHvor='alle';
     try{ persistCfg(); }catch(e){}
     try{ syncActiveProfile(); }catch(e){}
@@ -3278,10 +3279,27 @@ function lastOppMerke(input){
   };
   r.readAsDataURL(f);
 }
+/* THE MARK CAME BACK AFTER BEING REMOVED
+   The account fills in anything empty locally. A removed mark is empty, so
+   the old image was pulled back down on the next start, and there was no way
+   to get rid of it. It now remembers that you removed it.
+   Renate, 4 September 2026. */
 function fjernMerke(){
-  cfg.logoImage=''; cfg.merkeHvor='av';
+  cfg.logoImage=''; cfg.merkeHvor='av'; cfg.logoFjernet=true;
   try{ persistCfg(); syncActiveProfile(); }catch(e){}
   tegnMerkeUI();
+  try{ refreshLogoUI(); }catch(e){}
+  try{ oppdaterSlideStil(-1); }catch(e){}
+}
+/* The LME logo ships with the app. One tap and the right logo is everywhere,
+   with no hunting for the file and uploading it again. */
+function brukLmeLogo(){
+  cfg.logoImage=location.origin+'/images/lme-logo.png';
+  cfg.logoFjernet=false;
+  if(!cfg.merkeHvor||cfg.merkeHvor==='av') cfg.merkeHvor='alle';
+  try{ persistCfg(); syncActiveProfile(); }catch(e){}
+  tegnMerkeUI();
+  try{ refreshLogoUI(); }catch(e){}
   try{ oppdaterSlideStil(-1); }catch(e){}
 }
 function settMerkeHvor(v){ cfg.merkeHvor=v; try{ persistCfg(); }catch(e){} tegnMerkeUI(); try{ oppdaterSlideStil(-1); }catch(e){} }
@@ -6046,7 +6064,7 @@ function loadLogoImage(input){
   const f=input.files&&input.files[0]; if(!f) return;
   const r=new FileReader();
   r.onload=function(e){
-    cfg.logoImage=e.target.result;
+    cfg.logoImage=e.target.result; cfg.logoFjernet=false;
     try{ persistCfg(); }catch(_){}
     try{ syncActiveProfile(); }catch(_){}
     refreshLogoUI();
@@ -6054,7 +6072,7 @@ function loadLogoImage(input){
   };
   r.readAsDataURL(f);
 }
-function removeLogo(){ cfg.logoImage=''; try{ persistCfg(); syncActiveProfile(); }catch(_){}; refreshLogoUI(); setLogo('name'); }
+function removeLogo(){ cfg.logoImage=''; cfg.logoFjernet=true; try{ persistCfg(); syncActiveProfile(); }catch(_){}; refreshLogoUI(); setLogo('name'); }
 function refreshLogoUI(){
   const wrap=document.getElementById('logo-preview'); const img=document.getElementById('logo-preview-img');
   if(cfg.logoImage){ if(img) img.src=cfg.logoImage; if(wrap) wrap.style.display='flex'; }
@@ -6705,6 +6723,7 @@ async function lmeServerSync(){
         const cur=cfg[k], sv=s[k];
         const curEmpty=(cur===undefined||cur===null||cur===''||(Array.isArray(cur)&&cur.length===0));
         const svHas=(sv!==undefined&&sv!==null&&sv!==''&&!(Array.isArray(sv)&&sv.length===0));
+        if(k==='logoImage' && cfg.logoFjernet) return;   /* du fjernet det med vilje */
         if(curEmpty && svHas){ cfg[k]=sv; changed=true; }
       });
       if(changed){ try{ persistCfg(); }catch(e){} }
@@ -6714,7 +6733,8 @@ async function lmeServerSync(){
     if(pr && pr.list && pr.list.length){
       const local=loadProfiles();
       const localHasLogo = local && local.list && local.list.some(function(x){return x.logoImage;});
-      if(!local || !local.list || !local.list.length || (!localHasLogo && pr.list.some(function(x){return x.logoImage;}))){ try{ saveProfiles(pr); }catch(e){} }
+      const hentLogoFraKonto = !localHasLogo && !cfg.logoFjernet && pr.list.some(function(x){return x.logoImage;});
+      if(!local || !local.list || !local.list.length || hentLogoFraKonto){ try{ saveProfiles(pr); }catch(e){} }
     }
     // Refresh the UI with what was restored (logo, settings, profiles)
     try{ syncActiveProfile(); }catch(e){}

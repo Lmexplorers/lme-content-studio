@@ -647,7 +647,7 @@ const SKRIVEREGLER_NO = "NORSKE SKRIVEREGLER (følg alltid): Bruk rette anførse
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Logg inn</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Logg ut</button>
-          <div class="nav-konto-ver">Versjon 20260904.1120</div>
+          <div class="nav-konto-ver">Versjon 20260904.1222</div>
           <div class="nav-konto-ver" id="ver-status" style="display:none;line-height:1.5;"></div>
           <button class="nav-konto-btn ut" onclick="seEtterNyVersjon()">Se etter ny versjon</button>
         </div>
@@ -750,7 +750,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    nye utgaven eller en mellomlagret gammel. Nå står den i Mer-menyen, under
    kontoen, sammen med en knapp som henter appen på nytt og tømmer
    mellomlageret. Renate 4. september 2026. */
-window.LME_VERSJON = '20260904.1120';
+window.LME_VERSJON = '20260904.1222';
 /* Den installerte appen har sitt eget mellomlager, adskilt fra nettleseren,
    og på iPhone tømmes det ikke av at du oppdaterer siden i Safari. Da kan du
    sitte med en gammel utgave uten å vite det, og feil jeg har rettet ser ut
@@ -1854,6 +1854,7 @@ Workshop "…" – halvdag – for …" oninput="saveSettings()"></textarea></di
     <div style="font-size:11px;color:var(--text-s);line-height:1.6;margin-bottom:10px;">Last opp logoen eller merket ditt én gang. Da ligger det fast her, og du velger bare hvor det skal stå.</div>
     <div id="merke-forhaand" style="display:none;align-items:center;gap:12px;margin-bottom:10px;"><img id="merke-bilde" alt="" style="width:64px;height:64px;object-fit:contain;background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:5px;"><button type="button" class="act-btn sage-btn" style="font-size:12px;" onclick="document.getElementById('merke-fil').click()">Bytt merke</button><button type="button" class="act-btn" style="font-size:12px;" onclick="fjernMerke()">Fjern</button></div>
     <button type="button" class="act-btn sage-btn" id="merke-last" style="width:100%;font-size:12px;" onclick="document.getElementById('merke-fil').click()">📷 Last opp merket</button>
+    <button type="button" class="act-btn" id="merke-lme" style="width:100%;font-size:12px;margin-top:8px;" onclick="brukLmeLogo()">Bruk LME-logoen</button>
     <input type="file" id="merke-fil" accept="image/*" style="display:none;" onchange="lastOppMerke(this)">
     <div class="hk-row"><div class="hk-lab">Hvor det skal stå</div><div style="display:flex;gap:6px;flex-wrap:wrap;"><button type="button" class="sl-pos" data-merkehvor="av" onclick="settMerkeHvor('av')">Av</button><button type="button" class="sl-pos" data-merkehvor="alle" onclick="settMerkeHvor('alle')">Alle slides</button><button type="button" class="sl-pos" data-merkehvor="forste" onclick="settMerkeHvor('forste')">Kun første</button><button type="button" class="sl-pos" data-merkehvor="siste" onclick="settMerkeHvor('siste')">Kun siste</button></div></div>
     <div class="hk-row"><div class="hk-lab">Plassering</div><div style="display:flex;gap:6px;flex-wrap:wrap;"><button type="button" class="sl-pos" data-merkeplass="ov" onclick="settMerkePlass('ov')">Øverst venstre</button><button type="button" class="sl-pos" data-merkeplass="oh" onclick="settMerkePlass('oh')">Øverst høyre</button><button type="button" class="sl-pos" data-merkeplass="nv" onclick="settMerkePlass('nv')">Nederst venstre</button><button type="button" class="sl-pos" data-merkeplass="nh" onclick="settMerkePlass('nh')">Nederst høyre</button></div></div>
@@ -3577,7 +3578,7 @@ function lastOppMerke(input){
   if(!/^image\//.test(f.type||'')) return;
   const r=new FileReader();
   r.onload=function(){
-    cfg.logoImage=String(r.result||'');
+    cfg.logoImage=String(r.result||''); cfg.logoFjernet=false;
     if(!cfg.merkeHvor||cfg.merkeHvor==='av') cfg.merkeHvor='alle';
     try{ persistCfg(); }catch(e){}
     try{ syncActiveProfile(); }catch(e){}
@@ -3586,10 +3587,27 @@ function lastOppMerke(input){
   };
   r.readAsDataURL(f);
 }
+/* MERKET KOM TILBAKE ETTER AT DET VAR FJERNET
+   Kontoen fyller inn alt som er tomt lokalt. Et fjernet merke er tomt, saa
+   det gamle bildet ble hentet ned igjen ved neste oppstart, og det gikk
+   ikke an aa bli kvitt det. Naa huskes det at du fjernet det.
+   Renate 4. september 2026. */
 function fjernMerke(){
-  cfg.logoImage=''; cfg.merkeHvor='av';
+  cfg.logoImage=''; cfg.merkeHvor='av'; cfg.logoFjernet=true;
   try{ persistCfg(); syncActiveProfile(); }catch(e){}
   tegnMerkeUI();
+  try{ refreshLogoUI(); }catch(e){}
+  try{ oppdaterSlideStil(-1); }catch(e){}
+}
+/* LME-logoen ligger i appen. Ett trykk, saa staar riktig logo overalt, uten
+   at du maa lete den fram og laste den opp paa nytt. */
+function brukLmeLogo(){
+  cfg.logoImage=location.origin+'/images/lme-logo.png';
+  cfg.logoFjernet=false;
+  if(!cfg.merkeHvor||cfg.merkeHvor==='av') cfg.merkeHvor='alle';
+  try{ persistCfg(); syncActiveProfile(); }catch(e){}
+  tegnMerkeUI();
+  try{ refreshLogoUI(); }catch(e){}
   try{ oppdaterSlideStil(-1); }catch(e){}
 }
 function settMerkeHvor(v){ cfg.merkeHvor=v; try{ persistCfg(); }catch(e){} tegnMerkeUI(); try{ oppdaterSlideStil(-1); }catch(e){} }
@@ -6469,7 +6487,7 @@ function loadLogoImage(input){
   const f=input.files&&input.files[0]; if(!f) return;
   const r=new FileReader();
   r.onload=function(e){
-    cfg.logoImage=e.target.result;
+    cfg.logoImage=e.target.result; cfg.logoFjernet=false;
     try{ persistCfg(); }catch(_){}
     try{ syncActiveProfile(); }catch(_){}
     refreshLogoUI();
@@ -6477,7 +6495,7 @@ function loadLogoImage(input){
   };
   r.readAsDataURL(f);
 }
-function removeLogo(){ cfg.logoImage=''; try{ persistCfg(); syncActiveProfile(); }catch(_){}; refreshLogoUI(); setLogo('name'); }
+function removeLogo(){ cfg.logoImage=''; cfg.logoFjernet=true; try{ persistCfg(); syncActiveProfile(); }catch(_){}; refreshLogoUI(); setLogo('name'); }
 function refreshLogoUI(){
   const wrap=document.getElementById('logo-preview'); const img=document.getElementById('logo-preview-img');
   if(cfg.logoImage){ if(img) img.src=cfg.logoImage; if(wrap) wrap.style.display='flex'; }
@@ -7134,6 +7152,7 @@ async function lmeServerSync(){
         const cur=cfg[k], sv=s[k];
         const curEmpty=(cur===undefined||cur===null||cur===''||(Array.isArray(cur)&&cur.length===0));
         const svHas=(sv!==undefined&&sv!==null&&sv!==''&&!(Array.isArray(sv)&&sv.length===0));
+        if(k==='logoImage' && cfg.logoFjernet) return;   /* du fjernet det med vilje */
         if(curEmpty && svHas){ cfg[k]=sv; changed=true; }
       });
       if(changed){ try{ persistCfg(); }catch(e){} }
@@ -7143,7 +7162,8 @@ async function lmeServerSync(){
     if(pr && pr.list && pr.list.length){
       const local=loadProfiles();
       const localHasLogo = local && local.list && local.list.some(function(x){return x.logoImage;});
-      if(!local || !local.list || !local.list.length || (!localHasLogo && pr.list.some(function(x){return x.logoImage;}))){ try{ saveProfiles(pr); }catch(e){} }
+      const hentLogoFraKonto = !localHasLogo && !cfg.logoFjernet && pr.list.some(function(x){return x.logoImage;});
+      if(!local || !local.list || !local.list.length || hentLogoFraKonto){ try{ saveProfiles(pr); }catch(e){} }
     }
     // Oppdater grensesnittet med det gjenopprettede (logo, innstillinger, profiler)
     try{ syncActiveProfile(); }catch(e){}
