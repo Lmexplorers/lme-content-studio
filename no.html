@@ -629,7 +629,7 @@ const SKRIVEREGLER_NO = "NORSKE SKRIVEREGLER (følg alltid): Bruk rette anførse
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Logg inn</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Logg ut</button>
-          <div class="nav-konto-ver">Versjon 20260904.0709</div>
+          <div class="nav-konto-ver">Versjon 20260904.0712</div>
           <button class="nav-konto-btn ut" onclick="closeNavMenu();hentAppenPaaNytt()">Se etter ny versjon</button>
         </div>
       </div>
@@ -730,7 +730,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    nye utgaven eller en mellomlagret gammel. Nå står den i Mer-menyen, under
    kontoen, sammen med en knapp som henter appen på nytt og tømmer
    mellomlageret. Renate 4. september 2026. */
-window.LME_VERSJON = '20260904.0709';
+window.LME_VERSJON = '20260904.0712';
 /* Den installerte appen har sitt eget mellomlager, adskilt fra nettleseren,
    og på iPhone tømmes det ikke av at du oppdaterer siden i Safari. Da kan du
    sitte med en gammel utgave uten å vite det, og feil jeg har rettet ser ut
@@ -1121,6 +1121,7 @@ window.setReelHookPos=function(p){var y=p==="top"?12:p==="bottom"?85:50;setHookY
         <button class="act-btn" style="width:100%;margin-top:8px;font-size:12px;" onclick="leggHookPaaBilde()">🔤 Legg hook på bildet</button>
         <button class="act-btn" id="karusell-knapp" style="display:none;width:100%;margin-top:8px;font-size:12px;" onclick="byggKarusell()">🎠 Lag bildene til karusellen</button>
         <div id="karusell-bilder" style="display:none;gap:8px;overflow-x:auto;margin-top:10px;padding-bottom:4px;"></div>
+        <button type="button" class="act-btn" id="forhaandsvis-knapp" style="width:100%;margin-top:10px;font-size:12px;" onclick="forhaandsvisAlt()">👁 Forhåndsvis før publisering</button>
         <div id="bilde-hook-rad" style="display:none;margin-top:10px;background:var(--rose-l);border-radius:12px;padding:11px 13px;">
           <div style="font-size:11px;font-weight:700;color:var(--rose-d);margin-bottom:6px;">Flytt hooken opp eller ned</div>
           <input type="range" min="0" max="100" value="50" data-hooky oninput="setHookY(this.value)" style="width:100%;accent-color:var(--rose);">
@@ -4799,7 +4800,29 @@ function reelHtml(text,videoUrl,coverImg){
   </div></div>`;
 }
 
+function karusellEkteHtml(url,idx,total){
+  const dots=Array.from({length:total},function(_,i){ return '<div style="width:6px;height:6px;border-radius:50%;background:'+(i===idx?'#F02478':'#d0d0d0')+';display:inline-block;margin:0 2px;"></div>'; }).join('');
+  return '<div style="background:white;font-family:-apple-system,sans-serif;overflow:hidden;">'
+    +'<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid #efefef;">'
+      +'<div style="width:36px;height:36px;border-radius:50%;padding:2px;background:linear-gradient(135deg,#f09433,#dc2743,#bc1888);"><div style="width:32px;height:32px;border-radius:50%;background:#fff;"></div></div>'
+      +'<div style="font-size:12px;font-weight:700;color:#262626;">dinmerkevare</div>'
+      +'<div style="margin-left:auto;font-size:20px;">\u22ef</div></div>'
+    +'<div style="position:relative;background:#000;">'
+      +'<img src="'+url+'" style="display:block;width:100%;">'
+      +'<div style="position:absolute;bottom:10px;left:12px;background:rgba(0,0,0,.45);color:white;border-radius:20px;padding:2px 10px;font-size:10px;">'+(idx+1)+' / '+total+'</div>'
+      +(idx>0?'<button style="position:absolute;left:8px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.9);border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:16px;" onclick="pvPrev()">\u2039</button>':'')
+      +(idx<total-1?'<button style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.9);border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:16px;" onclick="pvNext()">\u203a</button>':'')
+    +'</div>'
+    +'<div style="text-align:center;padding:7px 0;">'+dots+'</div>'
+    +'<div style="padding:0 14px 14px;font-family:\'Sasson Montessori\';font-size:12.5px;line-height:1.6;color:#262626;white-space:pre-wrap;">'
+      +esc(String(medReklame((state.slides||[])[0]||'')).slice(0,300))+'</div></div>';
+}
+/* Forhåndsvisningen viste forsidebildet med sliden sin tekst lagt oppå,
+   ikke de faktiske karusellbildene som blir publisert. Nå viser den bildet
+   som går ut, slide for slide, med sveipepilene. */
 function carouselHtml(text,idx,total,img){
+  const ekte=(state.karusellBilder&&state.karusellBilder[idx])||null;
+  if(ekte) return karusellEkteHtml(ekte,idx,total);
   const dots=Array.from({length:total},(_,i)=>`<div style="width:6px;height:6px;border-radius:50%;background:${i===idx?'#F02478':'#d0d0d0'};display:inline-block;margin:0 2px;"></div>`).join('');
   const lines=text.split('\n').filter(Boolean);
   const title=lines[0]||''; const body=lines.slice(1).join('\n');
@@ -8188,6 +8211,18 @@ async function lagKarusellbilder(){
   }
   state.karusellBilder=ut;
   return ut;
+}
+async function forhaandsvisAlt(){
+  const st=document.getElementById('pub-bilde-status');
+  if(state.format==='carousel' && state.slides && state.slides.length>1
+     && !(state.karusellBilder&&state.karusellBilder.length)){
+    if(st) st.innerHTML='<div class="pub-status loading">Lager karusellbildene…</div>';
+    await lagKarusellbilder();
+    try{ visKarusellbilder(); }catch(e){}
+    if(st) st.innerHTML='';
+  }
+  state.currentSlide=0;
+  openPreview();
 }
 async function byggKarusell(){
   const st=document.getElementById('pub-bilde-status');
