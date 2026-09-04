@@ -629,7 +629,7 @@ const SKRIVEREGLER_NO = "NORSKE SKRIVEREGLER (følg alltid): Bruk rette anførse
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Logg inn</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Logg ut</button>
-          <div class="nav-konto-ver">Versjon 20260904.0700</div>
+          <div class="nav-konto-ver">Versjon 20260904.0709</div>
           <button class="nav-konto-btn ut" onclick="closeNavMenu();hentAppenPaaNytt()">Se etter ny versjon</button>
         </div>
       </div>
@@ -730,7 +730,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    nye utgaven eller en mellomlagret gammel. Nå står den i Mer-menyen, under
    kontoen, sammen med en knapp som henter appen på nytt og tømmer
    mellomlageret. Renate 4. september 2026. */
-window.LME_VERSJON = '20260904.0700';
+window.LME_VERSJON = '20260904.0709';
 /* Den installerte appen har sitt eget mellomlager, adskilt fra nettleseren,
    og på iPhone tømmes det ikke av at du oppdaterer siden i Safari. Da kan du
    sitte med en gammel utgave uten å vite det, og feil jeg har rettet ser ut
@@ -1882,6 +1882,7 @@ Workshop "…" – halvdag – for …" oninput="saveSettings()"></textarea></di
     <div id="s-blotato-note" style="font-size:11px;color:var(--text-s);margin-bottom:8px;line-height:1.5;"></div>
     <div id="s-blotato-accounts-checks" style="display:none;border:1px solid var(--line);border-radius:10px;padding:6px 10px;margin-bottom:8px;"></div>
     <div id="s-blotato-postto" style="font-size:12px;color:var(--rose-d);font-weight:700;margin-bottom:12px;line-height:1.5;"></div>
+      <div id="s-dobbel-varsel" style="display:none;background:#FFF6D6;color:#856404;border-radius:10px;padding:9px 12px;font-size:11.5px;line-height:1.55;margin-top:8px;"></div>
     <details style="margin-bottom:12px;">
       <summary style="font-size:11px;color:var(--text-s);cursor:pointer;">Eller legg inn én konto manuelt</summary>
       <label style="font-size:12px;color:var(--text);font-weight:600;display:block;margin-top:8px;">Konto-ID</label>
@@ -4337,16 +4338,30 @@ async function blotatoPublish({text, mediaUrls, scheduledTime, mediaName, target
      samme profil begge steder, velges Blotato når det er flere bilder, og LME
      ellers, siden den er direkte og gratis. */
   const flereBilder=(mediaUrls||[]).filter(Boolean).length>1;
-  const settM=new Map();
+  /* Samme profil kan hete ulikt i LME og i Blotato, for eksempel
+     "lmexplorers" det ene stedet og "Little Montessori Explorers" det andre.
+     Derfor sammenlignes navnene strippet for alt annet enn bokstaver og tall,
+     og et navn som inneholder det andre regnes som samme konto. Mangler
+     navnet ett sted, regnes de også som samme. */
+  const rensNavn=function(n){ return String(n||'').toLowerCase().replace(/[^a-z0-9æøå]/g,''); };
+  const samme=function(a,b){
+    if(a.platform!==b.platform) return false;
+    const x=rensNavn(a.name), y=rensNavn(b.name);
+    if(!x||!y) return true;
+    return x===y || x.indexOf(y)>=0 || y.indexOf(x)>=0;
+  };
+  const beholdt=[];
   accounts.forEach(function(a){
-    const nokkel=(a.platform||'')+'|'+String(a.name||a.id||'').trim().toLowerCase();
-    const finnes=settM.get(nokkel);
-    if(!finnes){ settM.set(nokkel,a); return; }
+    const i=beholdt.findIndex(function(b){ return samme(a,b); });
+    if(i<0){ beholdt.push(a); return; }
+    const finnes=beholdt[i];
+    /* Ett bilde: LME-veien vinner, den er direkte og gratis. Flere bilder:
+       Blotato vinner, for LME-veien til Meta legger ut bare ett bilde. */
     const foretrekk = flereBilder ? (a.src!=='lme' && finnes.src==='lme')
                                   : (a.src==='lme' && finnes.src!=='lme');
-    if(foretrekk) settM.set(nokkel,a);
+    if(foretrekk) beholdt[i]=a;
   });
-  accounts=Array.from(settM.values());
+  accounts=beholdt;
   if(!accounts.length) return {ok:false, error:'Mangler konto. Velg minst én konto i Innstillinger.'};
   // Blotato-nokkelen trengs bare for kontoer som IKKE gaar gjennom LME.
   if(accounts.some(a=>a.src!=='lme') && !_syncBlotatoKey()) return {ok:false, error:'Mangler Blotato-nøkkel. Legg den inn i Innstillinger.'};
@@ -4443,12 +4458,31 @@ function blotatoToggleAll(cb){
     if(x.checked!==cb.checked){ x.checked=cb.checked; blotatoToggleAccount(x); }
   });
 }
+/* Samme profil kan hete ulikt i LME og i Blotato, og da kan ikke appen vite
+   sikkert om det er én eller to kontoer. I stedet for å gjette, sier den fra
+   når du har valgt samme plattform fra begge steder, og lar deg bestemme.
+   Renate 4. september 2026. */
+function dobbelKontoVarsel(){
+  const el=document.getElementById('s-dobbel-varsel'); if(!el) return;
+  const list=(cfg.blotatoAccounts||[]);
+  const perPlattform={};
+  list.forEach(function(a){
+    const p=a.platform||''; if(!p) return;
+    if(!perPlattform[p]) perPlattform[p]={lme:0,bl:0};
+    if(a.src==='lme') perPlattform[p].lme++; else perPlattform[p].bl++;
+  });
+  const doble=Object.keys(perPlattform).filter(function(p){ return perPlattform[p].lme>0 && perPlattform[p].bl>0; });
+  if(!doble.length){ el.style.display='none'; el.textContent=''; return; }
+  el.style.display='block';
+  el.textContent=doble.map(function(p){ return '⚠️ Du har valgt to profiler på %s, én via LME og én via Blotato. Er det samme profil, blir innlegget publisert to ganger. Huk av bare én av dem.'.replace('%s', p); }).join(' ');
+}
 function updateBlotatoPostToSummary(){
   const el=document.getElementById('s-blotato-postto'); if(!el) return;
   const list=(cfg.blotatoAccounts||[]);
   if(!list.length){ el.textContent = cfg.blotatoAccount ? '' : 'Ingen konto valgt ennå.'; return; }
   const names=list.map(a=>a.platform||a.name||a.id);
   el.textContent='Poster til: '+names.join(', ');
+  try{ dobbelKontoVarsel(); }catch(e){}
 }
 // Har vi minst én konto (flervalg eller manuell)?
 function blotatoNoAccount(){ return !((cfg.blotatoAccounts||[]).length || cfg.blotatoAccount); }

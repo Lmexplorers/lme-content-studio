@@ -159,6 +159,16 @@ export async function onRequestPost(context) {
   if (!accounts.length && b.accountId) accounts = [{ id: String(b.accountId), platform: b.targetType || "instagram" }];
   if (!accounts.length) return json({ error: "Mangler konto. Velg minst en profil du vil poste til." }, 200);
 
+  /* Siste skanse: samme konto to ganger i listen skal aldri gi to innlegg,
+     uansett hva klienten sender. */
+  const settIder = new Set();
+  accounts = accounts.filter((a) => {
+    const n = (a.platform || "") + "|" + String(a.id);
+    if (settIder.has(n)) return false;
+    settIder.add(n);
+    return true;
+  });
+
   const contentKind = b.contentKind || ""; // 'story' | 'reel' | 'post'
 
   /* To veier ut.
@@ -214,9 +224,15 @@ export async function onRequestPost(context) {
       /^data:video\//i.test(String(u)) || /\.(mp4|mov|m4v|webm|avi)(\?|$)/i.test(String(u));
     const harVideo = kilder.length > 0 && kilder.every(erVideoFil);
 
-    // 2) Publiser til hver valgt konto.
+    /* DOBBEL POSTING PAA INSTAGRAM
+       Kontoene deles i to over: de som gaar via LMEs egen Metakobling, og de
+       som gaar via Blotato. LME-kontoene publiseres foerst, i publiserViaLME.
+       Denne loekka gikk deretter gjennom ALLE kontoer, ogsaa LME-kontoene, og
+       la dem ut en gang til gjennom Blotato. Ett innlegg ble til to.
+       Renate 4. september 2026. */
+    // 2) Publiser til hver Blotato-konto.
     const results = [];
-    for (const acc of accounts) {
+    for (const acc of blKontoer) {
       const plat = acc.platform || "instagram";
 
       // Facebook krever pageId, Pinterest krever boardId. Uten dem avviser Blotato hele

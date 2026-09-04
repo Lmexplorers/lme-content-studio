@@ -629,7 +629,7 @@ const WRITING_RULES_EN = "WRITING RULES (always follow): Use straight quotes, ne
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Log in</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Log out</button>
-          <div class="nav-konto-ver">Version 20260904.0700</div>
+          <div class="nav-konto-ver">Version 20260904.0709</div>
           <button class="nav-konto-btn ut" onclick="closeNavMenu();hentAppenPaaNytt()">Check for a new version</button>
         </div>
       </div>
@@ -730,7 +730,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    looking at the new build or a cached old one. It now sits in the More menu,
    under the account, with a button that refetches the app and clears the
    cache. */
-window.LME_VERSJON = '20260904.0700';
+window.LME_VERSJON = '20260904.0709';
 /* The installed app has its own cache, separate from the browser, and on
    iPhone it is not cleared by refreshing the page in Safari. So you can be
    sitting on an old build without knowing, and bugs I have fixed look like
@@ -1595,6 +1595,7 @@ Workshop "…" – half day – for …" oninput="saveSettings()"></textarea></d
     <div id="s-blotato-note" style="font-size:11px;color:var(--text-s);margin-bottom:8px;line-height:1.5;"></div>
     <div id="s-blotato-accounts-checks" style="display:none;border:1px solid var(--line);border-radius:10px;padding:6px 10px;margin-bottom:8px;"></div>
     <div id="s-blotato-postto" style="font-size:12px;color:var(--rose-d);font-weight:700;margin-bottom:12px;line-height:1.5;"></div>
+      <div id="s-dobbel-varsel" style="display:none;background:#FFF6D6;color:#856404;border-radius:10px;padding:9px 12px;font-size:11.5px;line-height:1.55;margin-top:8px;"></div>
     <details style="margin-bottom:12px;">
       <summary style="font-size:11px;color:var(--text-s);cursor:pointer;">Or add one account manually</summary>
       <label style="font-size:12px;color:var(--text);font-weight:600;display:block;margin-top:8px;">Account ID</label>
@@ -4019,16 +4020,30 @@ async function blotatoPublish({text, mediaUrls, scheduledTime, mediaName, target
      the same profile in both places, Blotato wins when there are several
      images, and LME otherwise, since it is direct and free. */
   const flereBilder=(mediaUrls||[]).filter(Boolean).length>1;
-  const settM=new Map();
+  /* The same profile can be named differently in LME and in Blotato, for
+     example "lmexplorers" in one place and "Little Montessori Explorers" in
+     the other. So names are compared stripped of everything but letters and
+     digits, and a name that contains the other counts as the same account. If
+     the name is missing in one place, they also count as the same. */
+  const rensNavn=function(n){ return String(n||'').toLowerCase().replace(/[^a-z0-9æøå]/g,''); };
+  const samme=function(a,b){
+    if(a.platform!==b.platform) return false;
+    const x=rensNavn(a.name), y=rensNavn(b.name);
+    if(!x||!y) return true;
+    return x===y || x.indexOf(y)>=0 || y.indexOf(x)>=0;
+  };
+  const beholdt=[];
   accounts.forEach(function(a){
-    const nokkel=(a.platform||'')+'|'+String(a.name||a.id||'').trim().toLowerCase();
-    const finnes=settM.get(nokkel);
-    if(!finnes){ settM.set(nokkel,a); return; }
+    const i=beholdt.findIndex(function(b){ return samme(a,b); });
+    if(i<0){ beholdt.push(a); return; }
+    const finnes=beholdt[i];
+    /* One image: the LME route wins, it is direct and free. Several images:
+       Blotato wins, because the LME route to Meta posts only one image. */
     const foretrekk = flereBilder ? (a.src!=='lme' && finnes.src==='lme')
                                   : (a.src==='lme' && finnes.src!=='lme');
-    if(foretrekk) settM.set(nokkel,a);
+    if(foretrekk) beholdt[i]=a;
   });
-  accounts=Array.from(settM.values());
+  accounts=beholdt;
   if(!accounts.length) return {ok:false, error:'Missing account. Pick at least one account in Settings.'};
   // Blotato-nokkelen trengs bare for kontoer som IKKE gaar gjennom LME.
   if(accounts.some(a=>a.src!=='lme') && !_syncBlotatoKey()) return {ok:false, error:'Missing Blotato key. Add it in Settings.'};
@@ -4123,12 +4138,31 @@ function blotatoToggleAll(cb){
     if(x.checked!==cb.checked){ x.checked=cb.checked; blotatoToggleAccount(x); }
   });
 }
+/* The same profile can be named differently in LME and in Blotato, so the app
+   cannot know for sure whether it is one account or two. Rather than guess, it
+   says so when you have picked the same platform from both places, and lets
+   you decide. */
+function dobbelKontoVarsel(){
+  const el=document.getElementById('s-dobbel-varsel'); if(!el) return;
+  const list=(cfg.blotatoAccounts||[]);
+  const perPlattform={};
+  list.forEach(function(a){
+    const p=a.platform||''; if(!p) return;
+    if(!perPlattform[p]) perPlattform[p]={lme:0,bl:0};
+    if(a.src==='lme') perPlattform[p].lme++; else perPlattform[p].bl++;
+  });
+  const doble=Object.keys(perPlattform).filter(function(p){ return perPlattform[p].lme>0 && perPlattform[p].bl>0; });
+  if(!doble.length){ el.style.display='none'; el.textContent=''; return; }
+  el.style.display='block';
+  el.textContent=doble.map(function(p){ return '⚠️ You have picked two profiles on %s, one via LME and one via Blotato. If it is the same profile, the post goes out twice. Tick only one of them.'.replace('%s', p); }).join(' ');
+}
 function updateBlotatoPostToSummary(){
   const el=document.getElementById('s-blotato-postto'); if(!el) return;
   const list=(cfg.blotatoAccounts||[]);
   if(!list.length){ el.textContent = cfg.blotatoAccount ? '' : 'No account selected yet.'; return; }
   const names=list.map(a=>a.platform||a.name||a.id);
   el.textContent='Posting to: '+names.join(', ');
+  try{ dobbelKontoVarsel(); }catch(e){}
 }
 // Do we have at least one account (multi-select or manual)?
 function blotatoNoAccount(){ return !((cfg.blotatoAccounts||[]).length || cfg.blotatoAccount); }
