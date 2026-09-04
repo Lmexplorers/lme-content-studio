@@ -83,11 +83,11 @@
     
     <p class="choose">Choose your language · Velg språk</p>
     
-    <a href="/en.html" class="lang-btn">
+    <a href="/en.html" class="lang-btn" onclick="huskSprak('en')">
       <span class="flag">🇬🇧</span> English
     </a>
     
-    <a href="/no.html" class="lang-btn">
+    <a href="/no.html" class="lang-btn" onclick="huskSprak('no')">
       <span class="flag">🇳🇴</span> Norsk
     </a>
     
@@ -96,6 +96,23 @@
     </p>
   </div>
   <script>
+/* Språkvalget sto som et steg hver eneste gang appen ble åpnet, uten at det
+   ble husket. Nå huskes det, og du sendes rett inn. Vil du velge på nytt,
+   åpner du /?sprak=1, eller trykker "Språk" i Mer-menyen.
+   Renate 4. september 2026. */
+function huskSprak(l){ try{ localStorage.setItem('lme_lang', l); }catch(e){} }
+(function(){
+  try{
+    var q = new URLSearchParams(location.search);
+    if(q.get('sprak')==='1'){ try{ localStorage.removeItem('lme_lang'); }catch(e){} return; }
+    var l = localStorage.getItem('lme_lang');
+    if(l==='no' || l==='en'){
+      location.replace('/'+l+'.html'+(location.search||''));
+    }
+  }catch(e){}
+})();
+</script>
+<script>
   // Auto-tilgang: åpnes Studio fra Dashboard med ?key=..., lås opp for hele enheten.
   // localStorage deles på tvers av index/no/en (samme origin), så språksidene er opplåst.
   (function(){

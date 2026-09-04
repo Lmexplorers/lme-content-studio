@@ -632,13 +632,14 @@ const SKRIVEREGLER_NO = "NORSKE SKRIVEREGLER (følg alltid): Bruk rette anførse
         <button class="nav-dropdown-item" onclick="showTab('pricing',this);closeNavMenu()">Slik virker det</button>
         <button class="nav-dropdown-item" onclick="showTab('settings',this);closeNavMenu()">Innstillinger</button>
         <button class="nav-dropdown-item" onclick="closeNavMenu();gaaTilInstaller()">Last ned appen</button>
+        <button class="nav-dropdown-item" onclick="location.href='/?sprak=1'">Språk / Language</button>
         <div class="nav-konto" id="nav-konto">
           <div class="nav-konto-lab">Konto</div>
           <div class="nav-konto-epost" id="nav-konto-epost"></div>
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Logg inn</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Logg ut</button>
-          <div class="nav-konto-ver">Versjon 20260904.0748</div>
+          <div class="nav-konto-ver">Versjon 20260904.0753</div>
           <button class="nav-konto-btn ut" onclick="closeNavMenu();hentAppenPaaNytt()">Se etter ny versjon</button>
         </div>
       </div>
@@ -712,6 +713,7 @@ document.addEventListener('click',function(e){
 });
 </script>
 <div id="ny-versjon" style="display:none;position:fixed;left:10px;right:10px;bottom:88px;z-index:99998;background:var(--rose);color:#fff;border-radius:14px;padding:12px 14px;box-shadow:0 10px 30px -10px rgba(200,24,96,.65);font-family:'Sasson Montessori',sans-serif;font-size:12.5px;align-items:center;gap:10px;flex-wrap:wrap;"><span style="flex:1;min-width:150px;">Det finnes en nyere utgave av appen.</span><button type="button" onclick="hentAppenPaaNytt()" style="background:#fff;color:var(--rose-d);border:none;border-radius:999px;padding:8px 14px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;">Hent den nå</button></div>
+<div id="oppstart-linje" style="display:none;position:fixed;top:0;left:0;right:0;z-index:99997;background:var(--rose);color:#fff;font-family:'Sasson Montessori',sans-serif;font-size:12.5px;text-align:center;padding:7px 12px;box-shadow:0 4px 14px -8px rgba(90,56,37,.6);">Åpner LME Autopilot…</div>
 <div class="auth-modal" id="auth-modal" onclick="if(event.target===this)closeAuthModal()">
   <div class="auth-card">
     <button class="auth-x" onclick="closeAuthModal()">&times;</button>
@@ -739,7 +741,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    nye utgaven eller en mellomlagret gammel. Nå står den i Mer-menyen, under
    kontoen, sammen med en knapp som henter appen på nytt og tømmer
    mellomlageret. Renate 4. september 2026. */
-window.LME_VERSJON = '20260904.0748';
+window.LME_VERSJON = '20260904.0753';
 /* Den installerte appen har sitt eget mellomlager, adskilt fra nettleseren,
    og på iPhone tømmes det ikke av at du oppdaterer siden i Safari. Da kan du
    sitte med en gammel utgave uten å vite det, og feil jeg har rettet ser ut
@@ -2906,6 +2908,7 @@ function init(){
   updateSlidesCard(); updateReelSection();
   loadStrategy();
   try{ ryddLanseringstekst(); }catch(e){}
+  try{ localStorage.setItem('lme_lang','no'); }catch(e){}
   try{ gjenopprettArbeid(); }catch(e){ window._arbeidKlart=true; }
   try{ sjekkVersjon(); }catch(e){}
   try{ tegnInstaller(); }catch(e){}
@@ -6644,16 +6647,55 @@ function settArbeid(d){
   try{ renderHistory(); }catch(e){}
   return true;
 }
+/* Veien inn var taus: språkvalg, så innlogging, så appen, uten et ord om
+   hva som skjedde. Sto det og lastet, visste du ikke om det hang eller
+   jobbet.
+
+   Nå står det en linje øverst som forteller hvor den er: åpner, henter
+   arbeidet, sjekker kontoen, klar. Den forsvinner av seg selv når alt er
+   på plass. Renate 4. september 2026. */
+/* Går oppstarten fort, skal du ikke se en rosa stripe blafre forbi. Linjen
+   dukker bare opp når det faktisk tar tid, etter et halvt sekund. */
+var _oppstartSkjult=false, _oppstartVist=false, _oppstartTekst='';
+setTimeout(function(){
+  if(_oppstartSkjult) return;
+  const e=document.getElementById('oppstart-linje');
+  if(!e) return;
+  _oppstartVist=true;
+  if(_oppstartTekst) e.textContent=_oppstartTekst;
+  e.style.display='block';
+}, 500);
+function oppstartSier(tekst){
+  _oppstartTekst=tekst;
+  const e=document.getElementById('oppstart-linje');
+  if(!e || _oppstartSkjult || !_oppstartVist) return;
+  e.textContent=tekst;
+}
+function oppstartFerdig(tekst){
+  const e=document.getElementById('oppstart-linje');
+  if(!e || _oppstartSkjult) return;
+  _oppstartSkjult=true;
+  /* Rakk den aldri å vises, fjernes den bare, uten blaff. */
+  if(!_oppstartVist){ e.remove(); return; }
+  e.textContent=tekst||'Klar.';
+  setTimeout(function(){
+    e.style.transition='opacity .35s';
+    e.style.opacity='0';
+    setTimeout(function(){ e.remove(); }, 400);
+  }, 900);
+}
 async function gjenopprettArbeid(){
   /* Lagringen må vente til det som lå der er hentet fram, ellers rekker
      autolagringen å skrive et tomt arbeid over det gode. Failsafen sørger
      for at den slås på uansett, om noe skulle henge. */
+  oppstartSier('Henter arbeidet ditt…');
   const failsafe=setTimeout(function(){ window._arbeidKlart=true; }, 6000);
   let d=null;
   try{ d=await _arbeidGet(); }catch(e){}
   if(!d){ try{ d=JSON.parse(localStorage.getItem(ARBEID_LS)||'null'); }catch(e){} }
   clearTimeout(failsafe);
   window._arbeidKlart=true;
+  oppstartFerdig(d?'Klar. Fortsetter der du slapp.':'Klar.');
   if(!d || (!d.result && !d.customTopic && !d.reelHook && !d.imageUrl)) { tegnUtkast(); return; }
   settArbeid(d);
   const b=document.getElementById('arbeid-banner'); if(b) b.style.display='flex';
@@ -7004,6 +7046,7 @@ async function hentArbeidFraKonto(){
 }
 // Hentes ved oppstart: gjenoppretter token, henter Blotato-innstillinger og story-lageret fra kontoen din.
 async function lmeServerSync(){
+  try{ if(lmeToken()) oppstartSier('Sjekker kontoen din…'); }catch(e){}
   try{
     let t=lmeToken();
     if(!t){ try{ t=await _tokenGet(); if(t){ localStorage.setItem(LME_TOKEN_KEY,t); } }catch(e){} }
