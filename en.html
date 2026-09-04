@@ -629,6 +629,8 @@ const WRITING_RULES_EN = "WRITING RULES (always follow): Use straight quotes, ne
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Log in</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Log out</button>
+          <div class="nav-konto-ver">Version 20260904.0440</div>
+          <button class="nav-konto-btn ut" onclick="closeNavMenu();hentAppenPaaNytt()">Check for a new version</button>
         </div>
       </div>
     </div>
@@ -646,6 +648,7 @@ const WRITING_RULES_EN = "WRITING RULES (always follow): Use straight quotes, ne
 .nav-konto-epost{font-size:12px;color:var(--text);word-break:break-all;line-height:1.4;}
 .nav-konto-kred{font-size:12px;font-weight:700;color:var(--rose-d);margin-top:3px;}
 .nav-konto-btn{width:100%;margin-top:9px;background:var(--rose-l);border:none;color:var(--rose-d);border-radius:999px;padding:8px 12px;font-family:'Sasson Montessori',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
+.nav-konto-ver{font-size:10.5px;color:var(--text-s);margin-top:9px;padding-top:9px;border-top:1px solid var(--border);}
 .nav-konto-btn.ut{background:#fff;border:1.5px solid var(--border);color:var(--text-s);}
 
 .auth-btn{background:#fff;color:var(--rose-d);border:1.5px solid var(--rose);border-radius:999px;padding:7px 15px;font-size:12.5px;font-weight:700;cursor:pointer;}
@@ -722,6 +725,23 @@ async function lmeAuthApi(payload){ const r=await fetch('/api/auth',{method:'POS
 async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d=await lmeAuthApi({action:'me',token:t}); window._lmeAuthFeil=false; return d.account||null; }catch(e){ window._lmeAuthFeil=true; return null; } }
 /* Kontoen tegnes i "Mer"-menyen. Den kalles både når du er innlogget og når
    du ikke er det, så menyen alltid viser riktig knapp. */
+/* Without a version on screen it is impossible to tell whether you are
+   looking at the new build or a cached old one. It now sits in the More menu,
+   under the account, with a button that refetches the app and clears the
+   cache. */
+window.LME_VERSJON = '20260904.0440';
+async function hentAppenPaaNytt(){
+  try{
+    if('caches' in window){ const n=await caches.keys(); await Promise.all(n.map(function(x){ return caches.delete(x); })); }
+  }catch(e){}
+  try{
+    if(navigator.serviceWorker && navigator.serviceWorker.getRegistrations){
+      const r=await navigator.serviceWorker.getRegistrations();
+      await Promise.all(r.map(function(x){ return x.unregister(); }));
+    }
+  }catch(e){}
+  location.replace(location.pathname+'?v='+Date.now());
+}
 function tegnNavKonto(acc){
   const e=document.getElementById('nav-konto-epost');
   const k=document.getElementById('nav-konto-kreditter');
@@ -1149,12 +1169,12 @@ window.setReelHookPos=function(p){var y=p==="top"?12:p==="bottom"?85:50;setHookY
 <div id="tab-calendar" style="display:none;">
   <div class="card">
     <div class="cal-nav">
-      <button class="cal-nav-btn" onclick="changeWeek(-4)" title="4 weeks back">«</button>
+      <button class="cal-nav-btn" onclick="changeWeek(-4)" title="4 weeks back">"</button>
       <button class="cal-nav-btn" onclick="changeWeek(-1)">← Previous</button>
       <button class="cal-nav-btn" onclick="goToday()">Today</button>
       <span class="cal-week-label" id="cal-week-label">This week</span>
       <button class="cal-nav-btn" onclick="changeWeek(1)">Next →</button>
-      <button class="cal-nav-btn" onclick="changeWeek(4)" title="4 weeks ahead">»</button>
+      <button class="cal-nav-btn" onclick="changeWeek(4)" title="4 weeks ahead">"</button>
     </div>
     <p style="font-size:11px;color:var(--text-s);margin:8px 2px 0;line-height:1.5;">Plan content up to 90 days ahead. Everything you schedule from “Create content” shows here on the right date and is saved, even after you close the app.</p>
     <div id="cal-days"></div>
@@ -4163,7 +4183,7 @@ async function generateHook(){
     });
     const data=await res.json();
     const raw=(data.content?.map(b=>b.text||'').join('')||'');
-    const hooks=raw.split('\n').map(function(l){return l.replace(/^\s*\d+[\.\)]\s*/,'').replace(/^[-•]\s*/,'').replace(/^["'«»\s]+|["'«»\s]+$/g,'').trim();}).filter(Boolean).slice(0,5);
+    const hooks=raw.split('\n').map(function(l){return l.replace(/^\s*\d+[\.\)]\s*/,'').replace(/^[-•]\s*/,'').replace(/^["'""\s]+|["'""\s]+$/g,'').trim();}).filter(Boolean).slice(0,5);
     if(!hooks.length) throw new Error('empty');
     if(host) host.innerHTML=hooks.map(function(h){return '<button type="button" class="hk-sug" onclick="velgHook(this)">'+esc(h)+'</button>';}).join('');
   }catch(e){
@@ -5118,7 +5138,7 @@ async function generateHookOverlay(btn){
   try{
     const p=`Write one short, scroll-stopping hook (max 8 words, under 60 characters) for a reel about: "${seed}". Write strictly about this topic, and do not introduce unrelated themes (for example not Montessori or children) unless the topic calls for it, even if the brand usually covers other subjects. English. No quotation marks, no period at the end. Return only the hook, no explanation.`;
     const out=await callClaude(p,key,60);
-    if(inp&&out){ inp.value=out.split('\n')[0].replace(/^["'«»\s]+|["'«»\s]+$/g,'').trim().slice(0,90); if(typeof updateReelOverlay==='function') updateReelOverlay(); }
+    if(inp&&out){ inp.value=out.split('\n')[0].replace(/^["'""\s]+|["'""\s]+$/g,'').trim().slice(0,90); if(typeof updateReelOverlay==='function') updateReelOverlay(); }
   }catch(e){ alert('Could not generate hook: '+((e&&e.message)||e)); }
   if(btn){ btn.disabled=false; btn.textContent=prev||'✨ Generate hook with AI'; }
 }

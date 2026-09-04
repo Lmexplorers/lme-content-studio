@@ -352,7 +352,7 @@ textarea.text-result{border:1.5px solid transparent;}
    korteste, i strategi-prompten, manglet forbudet mot vinkel-anførselstegn.
    Derfor kom 90-dagers planen ut med dem. Ligger tidlig, så alt som bygger
    en prompt senere på siden kan bruke den samme teksten. */
-const SKRIVEREGLER_NO = "NORSKE SKRIVEREGLER (følg alltid): Bruk rette anførselstegn, aldri « ». Bruk ALDRI lange bindestreker (— eller –), bruk heller komma, kolon, punktum eller \"og\". VIKTIG kolonregel (gjøres ofte feil): stor forbokstav etter kolon KUN når en hel setning følger (eksempel: \"Husk: Du trenger ikke være ekspert.\"), ellers liten forbokstav ved oppramsinger, undertitler og fragmenter (eksempel: \"Faste holdepunkter: måltider, hvile og leggetid.\"). Liten forbokstav etter semikolon. Komma foran \"men\", \"for\" og \"så\" når de binder to helsetninger, komma etter en innledende leddsetning, komma rundt innskutte setninger, og ikke komma foran siste \"og\" i en oppramsing. Sammensatte norske ord skrives i ett ord, ikke med bindestrek (Montessoripedagog, ikke Montessori-pedagog).";
+const SKRIVEREGLER_NO = "NORSKE SKRIVEREGLER (følg alltid): Bruk rette anførselstegn, aldri vinkel-anførselstegn (guillemeter). Bruk ALDRI lange bindestreker (— eller –), bruk heller komma, kolon, punktum eller \"og\". VIKTIG kolonregel (gjøres ofte feil): stor forbokstav etter kolon KUN når en hel setning følger (eksempel: \"Husk: Du trenger ikke være ekspert.\"), ellers liten forbokstav ved oppramsinger, undertitler og fragmenter (eksempel: \"Faste holdepunkter: måltider, hvile og leggetid.\"). Liten forbokstav etter semikolon. Komma foran \"men\", \"for\" og \"så\" når de binder to helsetninger, komma etter en innledende leddsetning, komma rundt innskutte setninger, og ikke komma foran siste \"og\" i en oppramsing. Sammensatte norske ord skrives i ett ord, ikke med bindestrek (Montessoripedagog, ikke Montessori-pedagog).";
 </script>
 
 
@@ -470,9 +470,9 @@ const SKRIVEREGLER_NO = "NORSKE SKRIVEREGLER (følg alltid): Bruk rette anførse
 }
 </style>
 <div id="lme-ob"><div class="obapp">
-<div class="obtop"><button class="obback" id="ob-back" aria-label="Tilbake"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button><div class="obbrand"><span class="obmark"></span><span class="obword">Content&nbsp;Studio</span></div></div>
+<div class="obtop"><button class="obback" id="ob-back" aria-label="Tilbake"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button><div class="obbrand"><span class="obmark"></span><span class="obword">Autopilot</span></div></div>
 <div class="obprog" id="ob-prog"></div>
-<div class="obstage"><div class="obcard"><div class="obslides" id="ob-slides"><section class="obslide"><div class="obeye">Velkommen</div><h1 class="obtitle">Din 90-dagers plan for innholdsmarkedsføring</h1><p class="obsub">Velg nisje og mål, så bygger Autopilot en komplett innholdsplan med hooks, tekst, hashtags, bilder og ferdige innlegg, klare til å publiseres.</p><div class="obvisual"><div class="obmosaic"><div class="obtile t1">Reels</div><div class="obtile t2">Karusell</div><div class="obtile t3">Stories</div><div class="obtile t4">Bilder</div><div class="obtile t5">Tekst</div><div class="obtile t6">Video</div><div class="obtile t7">Hooks</div><div class="obtile t8">SEO</div><div class="obtile t9">Hashtags</div></div></div></section><section class="obslide"><div class="obeye">Gjenkjennelig hver gang</div><h1 class="obtitle">Innhold som alltid ser ut som deg</h1><p class="obsub">Innholdet beholder samme uttrykk i hvert innlegg, gjenkjennelig og i din merkevarestil.</p><div class="obvisual"><div class="obmosaic" style="grid-template-columns:repeat(3,1fr)"><div class="obtile t1">Din stil</div><div class="obtile t3">Dine farger</div><div class="obtile t5">Din stemme</div></div></div></section><section class="obslide"><div class="obeye">Raskt</div><h1 class="obtitle">Fra idé til ferdig reel på minutter</h1><p class="obsub">Skriv én setning. Få et komplett innlegg med bilde, tekst og emneknagger, klart til å publiseres.</p><div class="obvisual"><div class="obdemo"><div class="obrow"><div class="obip">"3 tips for å få flere kunder"</div><div class="obgo">✦</div></div><div class="obresult"><span class="obcap">Ferdig innlegg på sekunder ✨</span></div></div></div></section><section class="obslide"><div class="obeye">To språk, ett klikk</div><h1 class="obtitle">Norsk og engelsk, helt automatisk</h1><p class="obsub">Lag alt innhold på begge språk samtidig, så du når både norske og internasjonale følgere og kunder.</p><div class="obvisual"><div class="oblangs"><div class="oblang"><div class="obflag">🇳🇴</div><div class="oblname">Norsk</div><div class="oblex">«Del ett tips målgruppen din vil elske …»</div></div><div class="oblang"><div class="obflag">🇬🇧</div><div class="oblname">English</div><div class="oblex">«Share one tip your audience will love …»</div></div></div></div></section><section class="obslide"><div class="obeye">Din stemme</div><h1 class="obtitle">La AI skrive teksten, du beholder stemmen din</h1><p class="obsub">Autopilot kjenner merkevarestemmen din og skriver i akkurat din tone, enten den er varm, faglig eller direkte.</p><div class="obvisual"><div class="obcapcard"><div class="obwho"><div class="obav"></div><div class="obhn">@dinmerkevare</div></div><p>Skriv én idé, så får du en ferdig, gjennomarbeidet tekst i din egen tone, klar til å publiseres.</p><div class="obtags">#dinnisje #innhold #merkevare</div></div></div></section><section class="obslide"><div class="obeye">Automatisk</div><h1 class="obtitle">Planlegg og publiser automatisk</h1><p class="obsub">Sett opp en hel uke på minutter. Autopilot legger det ut til rett tid, uten at du løfter en finger.</p><div class="obvisual"><div class="obsched"><div class="obev"><span class="obdot" style="background:#F02478"></span><div class="obmeta"><b>Reel · Lansering</b><span>Instagram &amp; Facebook</span></div><span class="obtime">Man 09:00</span></div><div class="obev"><span class="obdot" style="background:#9CC000"></span><div class="obmeta"><b>Karusell · 3 tips</b><span>Instagram</span></div><span class="obtime">Ons 17:30</span></div><div class="obev"><span class="obdot" style="background:#0084E4"></span><div class="obmeta"><b>Sitat · Dagens ro</b><span>Stories</span></div><span class="obtime">Fre 12:00</span></div></div></div></section><section class="obslide"><div class="obeye">Klar til å skape ✨</div><h1 class="obtitle">Ett verktøy. Hele innholdsflyten.</h1><p class="obsub">Lag, skriv, oversett og publiser, alt samlet i Autopilot.</p><div class="obvisual"><div class="obvalue"><div class="obvrow"><span class="obck">✓</span> Topp AI-modeller for tekst, bilde og video</div><div class="obvrow"><span class="obck">✓</span> Din merkevare i gjenkjennelig stil</div><div class="obvrow"><span class="obck">✓</span> Norsk + engelsk automatisk</div><div class="obvrow"><span class="obck">✓</span> Auto-publisering til alle kanaler</div></div></div></section></div></div></div>
+<div class="obstage"><div class="obcard"><div class="obslides" id="ob-slides"><section class="obslide"><div class="obeye">Velkommen</div><h1 class="obtitle">Din 90-dagers plan for innholdsmarkedsføring</h1><p class="obsub">Velg nisje og mål, så bygger Autopilot en komplett innholdsplan med hooks, tekst, hashtags, bilder og ferdige innlegg, klare til å publiseres.</p><div class="obvisual"><div class="obmosaic"><div class="obtile t1">Reels</div><div class="obtile t2">Karusell</div><div class="obtile t3">Stories</div><div class="obtile t4">Bilder</div><div class="obtile t5">Tekst</div><div class="obtile t6">Video</div><div class="obtile t7">Hooks</div><div class="obtile t8">SEO</div><div class="obtile t9">Hashtags</div></div></div></section><section class="obslide"><div class="obeye">Gjenkjennelig hver gang</div><h1 class="obtitle">Innhold som alltid ser ut som deg</h1><p class="obsub">Innholdet beholder samme uttrykk i hvert innlegg, gjenkjennelig og i din merkevarestil.</p><div class="obvisual"><div class="obmosaic" style="grid-template-columns:repeat(3,1fr)"><div class="obtile t1">Din stil</div><div class="obtile t3">Dine farger</div><div class="obtile t5">Din stemme</div></div></div></section><section class="obslide"><div class="obeye">Raskt</div><h1 class="obtitle">Fra idé til ferdig reel på minutter</h1><p class="obsub">Skriv én setning. Få et komplett innlegg med bilde, tekst og emneknagger, klart til å publiseres.</p><div class="obvisual"><div class="obdemo"><div class="obrow"><div class="obip">"3 tips for å få flere kunder"</div><div class="obgo">✦</div></div><div class="obresult"><span class="obcap">Ferdig innlegg på sekunder ✨</span></div></div></div></section><section class="obslide"><div class="obeye">To språk, ett klikk</div><h1 class="obtitle">Norsk og engelsk, helt automatisk</h1><p class="obsub">Lag alt innhold på begge språk samtidig, så du når både norske og internasjonale følgere og kunder.</p><div class="obvisual"><div class="oblangs"><div class="oblang"><div class="obflag">🇳🇴</div><div class="oblname">Norsk</div><div class="oblex">"Del ett tips målgruppen din vil elske …"</div></div><div class="oblang"><div class="obflag">🇬🇧</div><div class="oblname">English</div><div class="oblex">"Del ett tips målgruppen din vil elske …"</div></div></div></div></section><section class="obslide"><div class="obeye">Din stemme</div><h1 class="obtitle">La AI skrive teksten, du beholder stemmen din</h1><p class="obsub">Autopilot kjenner merkevarestemmen din og skriver i akkurat din tone, enten den er varm, faglig eller direkte.</p><div class="obvisual"><div class="obcapcard"><div class="obwho"><div class="obav"></div><div class="obhn">@dinmerkevare</div></div><p>Skriv én idé, så får du en ferdig, gjennomarbeidet tekst i din egen tone, klar til å publiseres.</p><div class="obtags">#dinnisje #innhold #merkevare</div></div></div></section><section class="obslide"><div class="obeye">Automatisk</div><h1 class="obtitle">Planlegg og publiser automatisk</h1><p class="obsub">Sett opp en hel uke på minutter. Autopilot legger det ut til rett tid, uten at du løfter en finger.</p><div class="obvisual"><div class="obsched"><div class="obev"><span class="obdot" style="background:#F02478"></span><div class="obmeta"><b>Reel · Lansering</b><span>Instagram &amp; Facebook</span></div><span class="obtime">Man 09:00</span></div><div class="obev"><span class="obdot" style="background:#9CC000"></span><div class="obmeta"><b>Karusell · 3 tips</b><span>Instagram</span></div><span class="obtime">Ons 17:30</span></div><div class="obev"><span class="obdot" style="background:#0084E4"></span><div class="obmeta"><b>Sitat · Dagens ro</b><span>Stories</span></div><span class="obtime">Fre 12:00</span></div></div></div></section><section class="obslide"><div class="obeye">Klar til å skape ✨</div><h1 class="obtitle">Ett verktøy. Hele innholdsflyten.</h1><p class="obsub">Lag, skriv, oversett og publiser, alt samlet i Autopilot.</p><div class="obvisual"><div class="obvalue"><div class="obvrow"><span class="obck">✓</span> Topp AI-modeller for tekst, bilde og video</div><div class="obvrow"><span class="obck">✓</span> Din merkevare i gjenkjennelig stil</div><div class="obvrow"><span class="obck">✓</span> Norsk + engelsk automatisk</div><div class="obvrow"><span class="obck">✓</span> Auto-publisering til alle kanaler</div></div></div></section></div></div></div>
 <div class="obctawrap"><button class="obcta" id="ob-cta"><span id="ob-label">Fortsett</span><span class="obarr"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></button></div>
 </div></div>
 <script>(function(){
@@ -528,7 +528,7 @@ const SKRIVEREGLER_NO = "NORSKE SKRIVEREGLER (følg alltid): Bruk rette anførse
     <div style="background:#fff;border-radius:24px;padding:36px 28px;box-shadow:0 20px 60px rgba(240,36,120,.18);max-width:440px;width:100%;text-align:center;font-family:'Sasson Montessori';color:#1A1A1A;">
       <div style="font-size:48px;margin-bottom:8px;">🌸</div>
       <h1 style="font-family:'Playpen Sans';font-size:24px;font-weight:900;color:#C81860;margin-bottom:6px;line-height:1.2;">LME Autopilot</h1>
-      <div style="font-size:13px;color:#6B6470;margin-bottom:20px;font-style:italic;">AI-drevet innhold + autopublisering<br/>AI-powered content + auto-publishing</div>
+      <div style="font-size:13px;color:#6B6470;margin-bottom:20px;font-style:italic;">AI-drevet innhold og autopublisering</div>
 
       <div style="background:#FCE4EE;border-radius:14px;padding:16px;margin-bottom:16px;text-align:left;font-size:13px;line-height:1.6;">
         <strong style="color:#C81860;">Lag og publiser automatisk til alle plattformer</strong><br/>
@@ -629,6 +629,8 @@ const SKRIVEREGLER_NO = "NORSKE SKRIVEREGLER (følg alltid): Bruk rette anførse
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Logg inn</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Logg ut</button>
+          <div class="nav-konto-ver">Versjon 20260904.0440</div>
+          <button class="nav-konto-btn ut" onclick="closeNavMenu();hentAppenPaaNytt()">Se etter ny versjon</button>
         </div>
       </div>
     </div>
@@ -646,6 +648,7 @@ const SKRIVEREGLER_NO = "NORSKE SKRIVEREGLER (følg alltid): Bruk rette anførse
 .nav-konto-epost{font-size:12px;color:var(--text);word-break:break-all;line-height:1.4;}
 .nav-konto-kred{font-size:12px;font-weight:700;color:var(--rose-d);margin-top:3px;}
 .nav-konto-btn{width:100%;margin-top:9px;background:var(--rose-l);border:none;color:var(--rose-d);border-radius:999px;padding:8px 12px;font-family:'Sasson Montessori',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
+.nav-konto-ver{font-size:10.5px;color:var(--text-s);margin-top:9px;padding-top:9px;border-top:1px solid var(--border);}
 .nav-konto-btn.ut{background:#fff;border:1.5px solid var(--border);color:var(--text-s);}
 
 .auth-btn{background:#fff;color:var(--rose-d);border:1.5px solid var(--rose);border-radius:999px;padding:7px 15px;font-size:12.5px;font-weight:700;cursor:pointer;}
@@ -722,6 +725,23 @@ async function lmeAuthApi(payload){ const r=await fetch('/api/auth',{method:'POS
 async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d=await lmeAuthApi({action:'me',token:t}); window._lmeAuthFeil=false; return d.account||null; }catch(e){ window._lmeAuthFeil=true; return null; } }
 /* Kontoen tegnes i "Mer"-menyen. Den kalles både når du er innlogget og når
    du ikke er det, så menyen alltid viser riktig knapp. */
+/* Uten et versjonsnummer på skjermen er det umulig å vite om du ser den
+   nye utgaven eller en mellomlagret gammel. Nå står den i Mer-menyen, under
+   kontoen, sammen med en knapp som henter appen på nytt og tømmer
+   mellomlageret. Renate 4. september 2026. */
+window.LME_VERSJON = '20260904.0440';
+async function hentAppenPaaNytt(){
+  try{
+    if('caches' in window){ const n=await caches.keys(); await Promise.all(n.map(function(x){ return caches.delete(x); })); }
+  }catch(e){}
+  try{
+    if(navigator.serviceWorker && navigator.serviceWorker.getRegistrations){
+      const r=await navigator.serviceWorker.getRegistrations();
+      await Promise.all(r.map(function(x){ return x.unregister(); }));
+    }
+  }catch(e){}
+  location.replace(location.pathname+'?v='+Date.now());
+}
 function tegnNavKonto(acc){
   const e=document.getElementById('nav-konto-epost');
   const k=document.getElementById('nav-konto-kreditter');
@@ -996,7 +1016,7 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
 
         <style>.reel-hook-overlay{position:absolute;left:0;right:0;padding:0 18px;text-align:center;font-family:'Playpen Sans';font-weight:800;font-size:22px;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.65);pointer-events:none;line-height:1.2;z-index:3;}.reel-hook-overlay.top{top:20px;}.reel-hook-overlay.center{top:50%;transform:translateY(-50%);}.reel-hook-overlay.bottom{bottom:20px;}.reel-extra{display:flex;flex-direction:column;gap:14px;margin:16px 0;}.re-card{background:#fff;border:1px solid var(--border);border-radius:18px;padding:18px;}.re-title{font-family:'Playpen Sans';font-weight:800;font-size:16px;color:var(--rose-d);margin-bottom:6px;}.re-sub{font-size:12.5px;color:var(--text-s);margin-bottom:12px;line-height:1.5;}.re-chip{font-family:'Sasson Montessori';font-size:13.5px;border:1.5px solid var(--border);background:#fff;color:var(--text-s);border-radius:999px;padding:9px 16px;cursor:pointer;}.re-chip.on{background:var(--rose);border-color:var(--rose);color:#fff;}.re-music{display:flex;align-items:center;gap:12px;border:1.5px solid var(--border);border-radius:13px;padding:12px 14px;cursor:pointer;margin-bottom:8px;}.re-music.on{border-color:var(--rose);background:var(--rose-l);}.re-music .rm-name{flex:1;font-size:14px;font-weight:700;}.re-music .rm-dur{font-size:12px;color:var(--text-s);}.hk-row{margin-top:13px;}.hk-lab{font-size:12px;font-weight:700;color:var(--text-s);margin-bottom:7px;}.hk-fonts{display:flex;gap:7px;flex-wrap:wrap;}.hk-font{border:1.5px solid var(--border);background:#fff;border-radius:10px;padding:6px 13px;cursor:pointer;font-size:15px;color:#1A1A1A;line-height:1.1;}.hk-font.on{border-color:var(--rose);background:var(--rose-l);}.hk-sws{display:flex;gap:9px;flex-wrap:wrap;align-items:center;}.hk-sw{width:27px;height:27px;border-radius:50%;box-shadow:0 0 0 1.5px var(--border);cursor:pointer;}.hk-sw.on{box-shadow:0 0 0 2.5px var(--rose);}.hk-bg{min-width:30px;height:27px;border-radius:8px;box-shadow:0 0 0 1.5px var(--border);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-family:'Sasson Montessori';font-size:11px;font-weight:700;color:var(--text-s);background:#fff;padding:0 8px;}.hk-bg.on{box-shadow:0 0 0 2.5px var(--rose);}.hk-emojis{display:flex;flex-wrap:wrap;gap:3px;}.hk-emoji{font-size:20px;line-height:1;background:none;border:none;cursor:pointer;padding:4px 5px;border-radius:8px;}.hk-emoji:hover{background:var(--rose-l);}.sp-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}.sp-item:last-child{border-bottom:none;}.sp-art{width:42px;height:42px;border-radius:8px;object-fit:cover;background:var(--rose-l);flex-shrink:0;}.sp-meta{flex:1;min-width:0;}.sp-name{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}.sp-art-name{font-size:11px;color:var(--text-s);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}.sp-play{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--rose);background:#fff;color:var(--rose);cursor:pointer;flex-shrink:0;font-size:12px;}.sp-open{font-size:11px;font-weight:700;color:#1DB954;text-decoration:none;flex-shrink:0;}.hook-sugg{display:flex;flex-direction:column;gap:6px;margin-top:10px;}.hk-sug{text-align:left;border:1.5px solid var(--border);background:#fff;border-radius:10px;padding:9px 12px;cursor:pointer;font-family:'Sasson Montessori';font-size:13.5px;color:#1A1A1A;line-height:1.35;}.hk-sug:hover{border-color:var(--rose);background:var(--rose-l);}.hk-sug.on{border-color:var(--rose);background:var(--rose-l);font-weight:700;}</style><div class="reel-extra"><div class="re-card"><div class="re-title">Musikk</div><div class="re-sub">Velg en lyd og trykk play for å forhåndshøre. Den valgte sangen bakes inn i videoen automatisk når du publiserer.</div><div class="music-list" id="reel-flow-music-list"></div><div class="hk-row"><div class="hk-lab">Musikkvolum</div><input type="range" min="0" max="100" value="40" id="reel-flow-music-volume" style="width:100%;accent-color:var(--rose);"></div><div style="margin-top:12px;background:var(--rose-l);border-radius:12px;padding:11px 13px;font-size:11.5px;color:var(--text-s);line-height:1.55;"><b style="color:var(--rose-d);">Trend-lyd fra Instagram eller TikTok?</b> Slike sanger er kun lisensiert inne i appene deres, så de kan ikke bakes inn ved automatisk publisering. Vil du bruke en bestemt trend-lyd, må du eksportere reelen og legge den på manuelt i Instagram eller TikTok når du poster.</div></div><div class="re-card"><div class="re-title">Trend-inspirasjon (Spotify)</div><div class="re-sub">Bla i populære sanger på Spotify for å finne stemningen. Disse kan ikke bakes inn (lisens), men hjelper deg å velge stil.</div><div style="display:flex;gap:8px;margin-bottom:10px;"><input id="spotify-q" class="text-overlay-input" placeholder="Søk, f.eks. rolig akustisk" style="flex:1;margin:0;" onkeydown="if(event.key==='Enter')searchSpotify()"/><button type="button" class="re-chip on" onclick="searchSpotify()">Søk</button></div><div id="spotify-results"></div></div></div>
         <button class="reel-publish-btn" id="reel-publish-btn" onclick="publishReel()" disabled>
-          🚀 Publish Reel automatically</button>
+          🚀 Publiser reelen automatisk</button>
         <div id="reel-status"></div>
       </div>
     </div>
@@ -1019,7 +1039,7 @@ window.setReelHookPos=function(p){var y=p==="top"?12:p==="bottom"?85:50;setHookY
       <div style="font-size:11px;color:var(--text-s);margin-bottom:10px;line-height:1.6;">
         Velg bildemodell og lag et forsidebilde med hook. <strong>9:16 for Story</strong>, 1:1 for karusell og feed. Du ser bildet og godkjenner før du bruker det.
       </div>
-      <div class="img-ctrl"><div class="ic-lab">Egen bildeprompt (valgfritt)</div><textarea id="img-prompt" rows="2" placeholder="Beskriv bildet du vil ha, f.eks. «to barn som planter frø i en hage, mykt morgenlys»" style="width:100%;border-radius:10px;border:1.5px solid var(--border);padding:10px 12px;font-family:'Sasson Montessori';font-size:12px;color:var(--text);outline:none;resize:vertical;box-sizing:border-box;"></textarea></div>
+      <div class="img-ctrl"><div class="ic-lab">Egen bildeprompt (valgfritt)</div><textarea id="img-prompt" rows="2" placeholder="Beskriv bildet du vil ha, f.eks. "to barn som planter frø i en hage, mykt morgenlys"" style="width:100%;border-radius:10px;border:1.5px solid var(--border);padding:10px 12px;font-family:'Sasson Montessori';font-size:12px;color:var(--text);outline:none;resize:vertical;box-sizing:border-box;"></textarea></div>
       <div class="img-ctrl"><div class="ic-lab">Malbilde / referanse (valgfritt)</div>
         <div style="display:flex;align-items:center;gap:10px;">
           <label class="act-btn sage-btn" style="font-size:12px;cursor:pointer;margin:0;">📎 Last opp bilde<input type="file" accept="image/*" id="img-ref-input" onchange="handleImgRef(this)" style="display:none;"></label>
@@ -1149,14 +1169,14 @@ window.setReelHookPos=function(p){var y=p==="top"?12:p==="bottom"?85:50;setHookY
 <div id="tab-calendar" style="display:none;">
   <div class="card">
     <div class="cal-nav">
-      <button class="cal-nav-btn" onclick="changeWeek(-4)" title="4 uker tilbake">«</button>
+      <button class="cal-nav-btn" onclick="changeWeek(-4)" title="4 uker tilbake">"</button>
       <button class="cal-nav-btn" onclick="changeWeek(-1)">← Forrige</button>
       <button class="cal-nav-btn" onclick="goToday()">I dag</button>
       <span class="cal-week-label" id="cal-week-label">Denne uken</span>
       <button class="cal-nav-btn" onclick="changeWeek(1)">Neste →</button>
-      <button class="cal-nav-btn" onclick="changeWeek(4)" title="4 uker frem">»</button>
+      <button class="cal-nav-btn" onclick="changeWeek(4)" title="4 uker frem">"</button>
     </div>
-    <p style="font-size:11px;color:var(--text-s);margin:8px 2px 0;line-height:1.5;">Planlegg innhold opptil 90 dager frem. Alt du planlegger fra «Lag innhold» dukker opp her på riktig dato og lagres, også etter at du lukker appen.</p>
+    <p style="font-size:11px;color:var(--text-s);margin:8px 2px 0;line-height:1.5;">Planlegg innhold opptil 90 dager frem. Alt du planlegger fra "Lag innhold" dukker opp her på riktig dato og lagres, også etter at du lukker appen.</p>
     <div id="cal-days"></div>
   </div>
 </div>
@@ -1235,7 +1255,7 @@ window.setReelHookPos=function(p){var y=p==="top"?12:p==="bottom"?85:50;setHookY
   <div class="card">
     <div class="card-title">Varianter per kanal</div>
     <div class="var-intro">Skriv ett tema, velg kanaler, og få ferdig tekst og bilde tilpasset hver kanal, i riktig format fra start (9:16 til Story/Reel/TikTok, 1:1 til feed, 16:9 til YouTube osv.). Da blir ikke posten avvist på grunn av feil format.</div>
-    <input class="var-topic" id="var-topic" type="text" placeholder="Hva skal innholdet handle om? F.eks. «Telling med naturmateriale ute»"/>
+    <input class="var-topic" id="var-topic" type="text" placeholder="Hva skal innholdet handle om? F.eks. "Telling med naturmateriale ute""/>
     <div class="vmode-row">
       <button type="button" class="vmode on" data-mode="ai">La AI skrive teksten</button>
       <button type="button" class="vmode" data-mode="own">Jeg skriver selv</button>
@@ -1260,7 +1280,7 @@ window.setReelHookPos=function(p){var y=p==="top"?12:p==="bottom"?85:50;setHookY
       </select>
     </label>
     <label class="vstyle-row">Egen bildeprompt (valgfritt):
-      <textarea class="var-topic" id="var-imgprompt" rows="2" placeholder="Overstyr bildebeskrivelsen, f.eks. «to barn som planter frø i en hage, mykt lys»" style="display:block;margin-top:6px;min-height:54px;"></textarea>
+      <textarea class="var-topic" id="var-imgprompt" rows="2" placeholder="Overstyr bildebeskrivelsen, f.eks. "to barn som planter frø i en hage, mykt lys"" style="display:block;margin-top:6px;min-height:54px;"></textarea>
     </label>
     <label class="vstyle-row">Malbilde / referanse (valgfritt):
       <span style="display:flex;align-items:center;gap:10px;margin-top:6px;">
@@ -1289,9 +1309,9 @@ window.setReelHookPos=function(p){var y=p==="top"?12:p==="bottom"?85:50;setHookY
     {id:'tiktok',   label:'TikTok',    emoji:'🎵', dalle:'1024x1792', gem:'9:16', spec:'video 9:16. Kort caption.',
       guide:'Skriv en kort, fengende TikTok-caption med sterk hook, pluss 3-5 trendrelevante hashtags.'},
     {id:'youtube',  label:'YouTube',   emoji:'▶️', dalle:'1792x1024', gem:'16:9', spec:'miniatyr 16:9 (Shorts 9:16).',
-      guide:'Lag YouTube-innhold: en SEO-tittel under 60 tegn (merk «TITTEL:»), en beskrivelse med nøkkelord (merk «BESKRIVELSE:»), og 5-8 tags (merk «TAGS:»).'},
+      guide:'Lag YouTube-innhold: en SEO-tittel under 60 tegn (merk "TITTEL:"), en beskrivelse med nøkkelord (merk "BESKRIVELSE:"), og 5-8 tags (merk "TAGS:").'},
     {id:'pinterest',label:'Pinterest', emoji:'📌', dalle:'1024x1792', gem:'3:4',  spec:'pin 2:3 (stående).',
-      guide:'Lag en Pinterest-pin: nøkkelordrik tittel under 100 tegn (merk «TITTEL:») og en beskrivelse på 150-200 tegn med nøkkelord (merk «BESKRIVELSE:»).'},
+      guide:'Lag en Pinterest-pin: nøkkelordrik tittel under 100 tegn (merk "TITTEL:") og en beskrivelse på 150-200 tegn med nøkkelord (merk "BESKRIVELSE:").'},
     {id:'linkedin', label:'LinkedIn',  emoji:'💼', dalle:'1792x1024', gem:'16:9', spec:'bilde 1.91:1 eller 1:1.',
       guide:'Skriv et LinkedIn-innlegg: profesjonelt men varmt, med en konkret innsikt eller verdi. 3-5 hashtags.'},
     {id:'x',        label:'X',         emoji:'✖️', dalle:'1792x1024', gem:'16:9', spec:'bilde 16:9. Maks 280 tegn.',
@@ -1468,7 +1488,7 @@ window.setReelHookPos=function(p){var y=p==="top"?12:p==="bottom"?85:50;setHookY
         document.getElementById('var-owntext').style.display = varMode==='own'?'block':'none';
         document.getElementById('var-topic').placeholder = varMode==='own'
           ? 'Tema/idé for bildet (valgfritt når du skriver teksten selv)'
-          : 'Hva skal innholdet handle om? F.eks. «Telling med naturmateriale ute»';
+          : 'Hva skal innholdet handle om? F.eks. "Telling med naturmateriale ute"';
       });
     });
     var vs=document.getElementById('var-style');
@@ -1722,10 +1742,10 @@ window.setReelHookPos=function(p){var y=p==="top"?12:p==="bottom"?85:50;setHookY
     </div>
   </div>
   <div class="card">
-    <div class="card-title">Your brand & niche</div>
+    <div class="card-title">Merkevaren og nisjen din</div>
     <div style="display:flex;flex-direction:column;gap:10px;">
-      <div><div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Brand name</div><input type="text" id="s-brand" placeholder="Din merkevare" oninput="saveSettings()"/></div>
-      <div><div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Your niche</div><input type="text" id="s-niche" placeholder="F.eks. AI-innholdsverktøy, kaffebar, yoga…" oninput="saveSettings();try{updateCharAvailability();}catch(e){}"/></div>
+      <div><div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Merkevarenavn</div><input type="text" id="s-brand" placeholder="Din merkevare" oninput="saveSettings()"/></div>
+      <div><div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Nisjen din</div><input type="text" id="s-niche" placeholder="F.eks. AI-innholdsverktøy, kaffebar, yoga…" oninput="saveSettings();try{updateCharAvailability();}catch(e){}"/></div>
       <div><div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Brand voice</div><textarea id="s-voice" rows="2" placeholder="Varm, pedagogisk, naturbasert." oninput="saveSettings()"></textarea></div>
       <div><div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Target audience</div><input type="text" id="s-audience" placeholder="Foreldre og pedagoger med barn 3-16 år" oninput="saveSettings()"/></div>
       <div><div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Hvem står bak merkevaren?</div>
@@ -1745,8 +1765,8 @@ window.setReelHookPos=function(p){var y=p==="top"?12:p==="bottom"?85:50;setHookY
       <div><div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Nettstedet ditt</div><input type="text" id="s-website" placeholder="https://lmexplorers.com" oninput="saveSettings()"/></div>
       <div><div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Det du lanserer nå</div><textarea id="s-launch" rows="7" placeholder="Hva produktet er, hva det faktisk gjør, hvem det er for, hvilket problem det løser og hva som skiller det fra alt annet. Jo mer konkret du skriver her, jo mindre generell blir teksten AI-en lager." oninput="saveSettings()"></textarea><div style="font-size:11px;color:var(--text-s);line-height:1.6;margin-top:6px;">Dette feltet er det viktigste for at innholdet skal handle om produktet ditt og ikke bli generelt. Det følger med i strategien, i hvert innlegg og i hookene.</div><button type="button" class="act-btn sage-btn" style="margin-top:8px;font-size:12px;" onclick="fyllLanseringAutopilot()">Fyll inn LME Autopilot</button></div>
       <div><div style="font-size:11px;color:var(--text-s);margin-bottom:4px;">Tilbudene dine</div><textarea id="s-offers" rows="6" placeholder="F.eks.
-Signaturkurset «…» – 3 uker, 2 490 kr – for …
-Workshop «…» – halvdag – for …" oninput="saveSettings()"></textarea></div>
+Signaturkurset "…" – 3 uker, 2 490 kr – for …
+Workshop "…" – halvdag – for …" oninput="saveSettings()"></textarea></div>
       <div><button class="act-btn sage-btn" id="fetch-offers-btn" onclick="fetchOffersFromWebsite(this)">Hent fra nettsiden min</button></div>
       <div style="font-size:11px;color:var(--text-s);line-height:1.6;">Henting bruker nettsøk og koster litt. Resultatet fylles inn her og lagres med én gang, så Nathalie kan bruke det uten å søke på nytt. Endre fritt — endringer lagres mens du skriver.</div>
     </div>
@@ -1872,7 +1892,7 @@ Workshop «…» – halvdag – for …" oninput="saveSettings()"></textarea></
   <div style="font-size:10px;color:var(--text-s);margin-top:6px;text-align:center;">
     Eksporter innstillingene dine som fil, importer dem igjen hvis du bytter enhet eller nettleser
   </div>
-  <div id="settings-ok" style="display:none;background:var(--sage-l);border-radius:10px;padding:10px 14px;color:var(--sage-d);font-size:13px;text-align:center;">Settings saved!</div>
+  <div id="settings-ok" style="display:none;background:var(--sage-l);border-radius:10px;padding:10px 14px;color:var(--sage-d);font-size:13px;text-align:center;">Innstillingene er lagret.</div>
   <div class="card" style="border:1px solid var(--border);margin-top:14px;">
     <div class="card-title">Konto og personvern</div>
     <div style="font-size:11px;color:var(--text-s);line-height:1.6;margin-bottom:10px;">Vil du slutte, sletter du kontoen din og alt appen har lagret. Det kan ikke angres, og et løpende abonnement må sies opp for seg.</div>
@@ -2378,7 +2398,7 @@ Workshop «…» – halvdag – for …" oninput="saveSettings()"></textarea></
 
       <!-- Caption / bildetekst -->
       <div class="card">
-        <div class="card-title">Bildetekst / Caption</div>
+        <div class="card-title">Bildetekst</div>
         <div style="margin-bottom:6px;">
         <button class="chip" onclick="renderEmojiPicker('reel-caption')" style="font-size:12px;">Emojier</button>
       </div>
@@ -3128,7 +3148,7 @@ function renderDashboard(){
     const tm=x.scheduledTime||'09:00';
     const pl=(x.scheduledPlatforms||x.platforms||[]).join(', ');
     return `<div class="dash-row"><span class="de">${f?f.emoji:'📄'}</span><div class="dmeta"><div class="dt">${esc(x.topic||(f?f.label:''))}</div><div class="ds">${esc(pl)}</div></div><span class="dwhen">${wd} ${tm}</span></div>`;
-  }).join('') : '<div class="dash-empty">Ingen planlagte innlegg. Planlegg et innlegg fra «Lag innhold».</div>';
+  }).join('') : '<div class="dash-empty">Ingen planlagte innlegg. Planlegg et innlegg fra "Lag innhold".</div>';
 
   const recRows=recent.map(x=>{
     const f=FORMATS.find(ff=>ff.id===x.format);
@@ -4481,7 +4501,7 @@ async function generateHook(){
     });
     const data=await res.json();
     const raw=(data.content?.map(b=>b.text||'').join('')||'');
-    const hooks=raw.split('\n').map(function(l){return l.replace(/^\s*\d+[\.\)]\s*/,'').replace(/^[-•]\s*/,'').replace(/^["'«»\s]+|["'«»\s]+$/g,'').trim();}).filter(Boolean).slice(0,5);
+    const hooks=raw.split('\n').map(function(l){return l.replace(/^\s*\d+[\.\)]\s*/,'').replace(/^[-•]\s*/,'').replace(/^["'""\s]+|["'""\s]+$/g,'').trim();}).filter(Boolean).slice(0,5);
     if(!hooks.length) throw new Error('tom');
     if(host) host.innerHTML=hooks.map(function(h){return '<button type="button" class="hk-sug" onclick="velgHook(this)">'+esc(h)+'</button>';}).join('');
   }catch(e){
@@ -5437,7 +5457,7 @@ async function generateHookOverlay(btn){
   try{
     const p=`Lag én kort, fengende hook (maks 8 ord, under 60 tegn) for en reel om: "${seed}". Skriv strengt om dette emnet, og ikke dra inn urelaterte temaer (for eksempel ikke Montessori eller barn) hvis emnet ikke tilsier det, selv om merkevaren vanligvis dekker noe annet. Den skal stoppe scrollingen. Norsk bokmål, uten anførselstegn, uten punktum på slutten. Returner kun hooken, ingen forklaring.`;
     const out=await callClaude(p,key,60);
-    if(inp&&out){ inp.value=out.split('\n')[0].replace(/^["'«»\s]+|["'«»\s]+$/g,'').trim().slice(0,90); if(typeof updateReelOverlay==='function') updateReelOverlay(); }
+    if(inp&&out){ inp.value=out.split('\n')[0].replace(/^["'""\s]+|["'""\s]+$/g,'').trim().slice(0,90); if(typeof updateReelOverlay==='function') updateReelOverlay(); }
   }catch(e){ alert('Kunne ikke generere hook: '+((e&&e.message)||e)); }
   if(btn){ btn.disabled=false; btn.textContent=prev||'✨ Generer hook med AI'; }
 }
@@ -5645,7 +5665,7 @@ async function sendReelTilPubliseringstjenesten(publishAt, dateStr){
     return;
   }
   if(cfg.blotatoKey && reelPickedAccountIds && !reelPickedAccountIds.length){
-    statusEl.innerHTML = '<div class="pub-status error" style="margin-top:8px;">Velg minst én plattform under «Publiser til» over.</div>';
+    statusEl.innerHTML = '<div class="pub-status error" style="margin-top:8px;">Velg minst én plattform under "Publiser til" over.</div>';
     return;
   }
 
@@ -7235,7 +7255,7 @@ async function exportAndPublishStory(){
     return;
   }
   if(cfg.blotatoKey && storyPickedAccountIds && !storyPickedAccountIds.length){
-    statusEl.innerHTML = '<div class="pub-status error" style="margin-top:8px;">Velg minst én plattform under «Publiser til» over.</div>';
+    statusEl.innerHTML = '<div class="pub-status error" style="margin-top:8px;">Velg minst én plattform under "Publiser til" over.</div>';
     return;
   }
 
