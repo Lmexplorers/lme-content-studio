@@ -647,7 +647,7 @@ const SKRIVEREGLER_NO = "NORSKE SKRIVEREGLER (følg alltid): Bruk rette anførse
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Logg inn</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Logg ut</button>
-          <div class="nav-konto-ver">Versjon 20260904.1724</div>
+          <div class="nav-konto-ver">Versjon 20260904.1750</div>
           <div class="nav-konto-ver" id="ver-status" style="display:none;line-height:1.5;"></div>
           <button class="nav-konto-btn ut" onclick="seEtterNyVersjon()">Se etter ny versjon</button>
         </div>
@@ -750,7 +750,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    nye utgaven eller en mellomlagret gammel. Nå står den i Mer-menyen, under
    kontoen, sammen med en knapp som henter appen på nytt og tømmer
    mellomlageret. Renate 4. september 2026. */
-window.LME_VERSJON = '20260904.1724';
+window.LME_VERSJON = '20260904.1750';
 /* Den installerte appen har sitt eget mellomlager, adskilt fra nettleseren,
    og på iPhone tømmes det ikke av at du oppdaterer siden i Safari. Da kan du
    sitte med en gammel utgave uten å vite det, og feil jeg har rettet ser ut
@@ -4876,10 +4876,54 @@ async function blotatoFetchAccounts(){
     if(note) note.style.color='var(--text-s)';
     const accts=lmeKontoer.concat(d.accounts||[]);
     if(!accts.length){ if(note)note.textContent='Fant ingen tilkoblede kontoer. Koble til profiler i Blotato først.'; if(sel)sel.style.display='none'; btn.disabled=false; btn.textContent=old; return; }
+    const rydd=ryddKontoer(accts);
     renderBlotatoAccountChecks(accts);
-    if(note)note.textContent=accts.length+' konto(er) funnet. Huk av alle du vil poste til.';
+    if(note){
+      let t=accts.length+' konto(er) funnet. Huk av alle du vil poste til.';
+      if(rydd.flyttet.length) t+=' '+rydd.flyttet.length+' konto(er) hadde fått ny ID etter at du koblet til på nytt, og er oppdatert: '+rydd.flyttet.join(', ')+'.';
+      if(rydd.fjernet.length) t+=' '+rydd.fjernet.length+' konto(er) finnes ikke lenger og er fjernet: '+rydd.fjernet.join(', ')+'. Huk dem av på nytt i listen.';
+      note.textContent=t;
+    }
   }catch(e){ if(note)note.textContent='Feil: '+((e&&e.message)||e); }
   btn.disabled=false; btn.textContent=old;
+}
+/* KOBLET TIL PAA NYTT I BLOTATO, MEN APPEN POSTET TIL DEN GAMLE KONTOEN
+   Kobler du en konto til paa nytt, faar den en ny ID hos Blotato. Appen satt
+   igjen med den gamle, som ikke finnes lenger, og publiseringen feilet uansett
+   hvor mange ganger kontoene ble hentet paa nytt. Naa flyttes valget ditt over
+   paa den nye IDen, og kontoer som er borte lukes ut.
+   Renate 4. september 2026. */
+function ryddKontoer(ferske){
+  const svar={flyttet:[],fjernet:[]};
+  if(!Array.isArray(cfg.blotatoAccounts) || !cfg.blotatoAccounts.length) return svar;
+  if(!Array.isArray(ferske) || !ferske.length) return svar;   /* tomt svar: ikke rydd noe */
+  const rens=function(n){ return String(n||'').toLowerCase().replace(/[^a-z0-9æøå]/g,''); };
+  const ider=new Set(ferske.map(function(a){ return String(a.id); }));
+  const ut=[];
+  cfg.blotatoAccounts.forEach(function(gml){
+    if(ider.has(String(gml.id))){ ut.push(gml); return; }
+    const navn=rens(gml.name);
+    const ny=ferske.find(function(f){
+      return String(f.platform||'')===String(gml.platform||'') && navn && rens(f.name)===navn;
+    });
+    const merke=(gml.platform||'konto')+': '+(gml.name||gml.id);
+    if(ny){
+      svar.flyttet.push(merke);
+      ut.push(Object.assign({},gml,{
+        id:String(ny.id),
+        pageId:gml.pageId||ny.pageId||undefined,
+        boardId:gml.boardId||ny.boardId||undefined
+      }));
+    } else {
+      svar.fjernet.push(merke);
+    }
+  });
+  cfg.blotatoAccounts=ut;
+  if(svar.flyttet.length || svar.fjernet.length){
+    try{ saveSettings(); }catch(e){}
+    try{ updateBlotatoPostToSummary(); }catch(e){}
+  }
+  return svar;
 }
 // Vis alle tilkoblede kontoer som avkrysningsbokser, sa Renate kan poste til flere samtidig.
 function renderBlotatoAccountChecks(accts){

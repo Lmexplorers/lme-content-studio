@@ -647,7 +647,7 @@ const WRITING_RULES_EN = "WRITING RULES (always follow): Use straight quotes, ne
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Log in</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Log out</button>
-          <div class="nav-konto-ver">Version 20260904.1724</div>
+          <div class="nav-konto-ver">Version 20260904.1750</div>
           <div class="nav-konto-ver" id="ver-status" style="display:none;line-height:1.5;"></div>
           <button class="nav-konto-btn ut" onclick="seEtterNyVersjon()">Check for a new version</button>
         </div>
@@ -750,7 +750,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    looking at the new build or a cached old one. It now sits in the More menu,
    under the account, with a button that refetches the app and clears the
    cache. */
-window.LME_VERSJON = '20260904.1724';
+window.LME_VERSJON = '20260904.1750';
 /* The installed app has its own cache, separate from the browser, and on
    iPhone it is not cleared by refreshing the page in Safari. So you can be
    sitting on an old build without knowing, and bugs I have fixed look like
@@ -4558,12 +4558,56 @@ async function blotatoFetchAccounts(){
     if(note) note.style.color='var(--text-s)';
     const accts=lmeKontoer.concat(d.accounts||[]);
     if(!accts.length){ if(note)note.textContent='No connected accounts found. Connect profiles in Blotato first.'; if(sel)sel.style.display='none'; btn.disabled=false; btn.textContent=old; return; }
+    const rydd=ryddKontoer(accts);
     renderBlotatoAccountChecks(accts);
-    if(note)note.textContent=accts.length+' account(s) found. Tick everyone you want to post to.';
+    if(note){
+      let t=accts.length+' account(s) found. Tick everyone you want to post to.';
+      if(rydd.flyttet.length) t+=' '+rydd.flyttet.length+' account(s) got a new ID when you reconnected, and have been updated: '+rydd.flyttet.join(', ')+'.';
+      if(rydd.fjernet.length) t+=' '+rydd.fjernet.length+' account(s) no longer exist and were removed: '+rydd.fjernet.join(', ')+'. Tick them again in the list.';
+      note.textContent=t;
+    }
   }catch(e){ if(note)note.textContent='Error: '+((e&&e.message)||e); }
   btn.disabled=false; btn.textContent=old;
 }
 // Show every connected account as a checkbox so Renate can post to several at once.
+/* RECONNECTED IN BLOTATO, BUT THE APP POSTED TO THE OLD ACCOUNT
+   Reconnect an account and Blotato gives it a new ID. The app was left with
+   the old one, which no longer exists, and publishing failed however many
+   times the accounts were fetched again. Your selection now moves onto the
+   new ID, and accounts that are gone are cleared out.
+   Renate, 4 September 2026. */
+function ryddKontoer(ferske){
+  const svar={flyttet:[],fjernet:[]};
+  if(!Array.isArray(cfg.blotatoAccounts) || !cfg.blotatoAccounts.length) return svar;
+  if(!Array.isArray(ferske) || !ferske.length) return svar;   /* empty answer: clean nothing */
+  const rens=function(n){ return String(n||'').toLowerCase().replace(/[^a-z0-9æøå]/g,''); };
+  const ider=new Set(ferske.map(function(a){ return String(a.id); }));
+  const ut=[];
+  cfg.blotatoAccounts.forEach(function(gml){
+    if(ider.has(String(gml.id))){ ut.push(gml); return; }
+    const navn=rens(gml.name);
+    const ny=ferske.find(function(f){
+      return String(f.platform||'')===String(gml.platform||'') && navn && rens(f.name)===navn;
+    });
+    const merke=(gml.platform||'account')+': '+(gml.name||gml.id);
+    if(ny){
+      svar.flyttet.push(merke);
+      ut.push(Object.assign({},gml,{
+        id:String(ny.id),
+        pageId:gml.pageId||ny.pageId||undefined,
+        boardId:gml.boardId||ny.boardId||undefined
+      }));
+    } else {
+      svar.fjernet.push(merke);
+    }
+  });
+  cfg.blotatoAccounts=ut;
+  if(svar.flyttet.length || svar.fjernet.length){
+    try{ saveSettings(); }catch(e){}
+    try{ updateBlotatoPostToSummary(); }catch(e){}
+  }
+  return svar;
+}
 function renderBlotatoAccountChecks(accts){
   const host=document.getElementById('s-blotato-accounts-checks'); if(!host) return;
   const sel=new Set((cfg.blotatoAccounts||[]).map(a=>String(a.id)));
