@@ -647,7 +647,7 @@ const WRITING_RULES_EN = "WRITING RULES (always follow): Use straight quotes, ne
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Log in</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Log out</button>
-          <div class="nav-konto-ver">Version 20260904.1222</div>
+          <div class="nav-konto-ver">Version 20260904.1245</div>
           <div class="nav-konto-ver" id="ver-status" style="display:none;line-height:1.5;"></div>
           <button class="nav-konto-btn ut" onclick="seEtterNyVersjon()">Check for a new version</button>
         </div>
@@ -750,7 +750,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    looking at the new build or a cached old one. It now sits in the More menu,
    under the account, with a button that refetches the app and clears the
    cache. */
-window.LME_VERSJON = '20260904.1222';
+window.LME_VERSJON = '20260904.1245';
 /* The installed app has its own cache, separate from the browser, and on
    iPhone it is not cleared by refreshing the page in Safari. So you can be
    sitting on an old build without knowing, and bugs I have fixed look like
@@ -3333,9 +3333,13 @@ async function tegnMerke(ctx,W,H,img){
   ctx.drawImage(img,x,y,b,h);
   ctx.restore();
 }
-function merkePaaSlide(i,antall){
+/* i er plassen i karusellen (for "kun forste"/"kun siste"), stilIdx er
+   hvilken slidetekst stilvalgene hoerer til. Forsiden har ingen slidetekst,
+   og sender derfor null. */
+function merkePaaSlide(i,antall,stilIdx){
   if(!merkeBilde()) return false;
-  const s=(typeof slideStil==='function')?slideStil(i):null;
+  const si=(stilIdx===undefined?i:stilIdx);
+  const s=(si!==null && typeof slideStil==='function')?slideStil(si):null;
   if(s && s.merke==='av') return false;
   if(s && s.merke==='paa') return true;
   const h=merkeHvor();
@@ -4715,7 +4719,7 @@ function renderPreview(){
 
   if(fmt==='story') tel.innerHTML=storyHtml(slides?slides[idx]:'',idx,slides?slides.length:1,img);
   else if(fmt==='reel') tel.innerHTML=reelHtml(typeof res==='string'?res:'',videoUrl,img);
-  else if(fmt==='carousel') tel.innerHTML=carouselHtml(slides?slides[idx]:'',idx,slides?slides.length:1,img);
+  else if(fmt==='carousel') tel.innerHTML=carouselHtml(karusellTekst(idx),idx,karusellAntall()||1,img);
   else if(fmt==='pinterest') tel.innerHTML=pinHtml(typeof res==='string'?res:'',img);
   else {
     const t=typeof res==='string'?res:'';
@@ -4845,7 +4849,7 @@ function karusellEkteHtml(url,idx,total){
     +'</div>'
     +'<div style="text-align:center;padding:7px 0;">'+dots+'</div>'
     +'<div style="padding:0 14px 14px;font-family:\'Sasson Montessori\';font-size:12.5px;line-height:1.6;color:#262626;white-space:pre-wrap;">'
-      +esc(String(medReklame((state.slides||[])[0]||'')).slice(0,300))+'</div></div>';
+      +esc(String(medReklame(karusellSlides()[0]||'')).slice(0,300))+'</div></div>';
 }
 /* The preview showed the cover image with the slide's text laid over it,
    not the actual carousel images that get published. It now shows the image
@@ -4953,7 +4957,7 @@ function pinHtml(text,img){
 }
 
 function pvPrev(){ if(state.currentSlide>0){goSlide(state.currentSlide-1);renderPreview();} }
-function pvNext(){ if(state.slides&&state.currentSlide<state.slides.length-1){goSlide(state.currentSlide+1);renderPreview();} }
+function pvNext(){ if(state.currentSlide<karusellAntall()-1){goSlide(state.currentSlide+1);renderPreview();} }
 
 // ══ SETTINGS ══
 function loadSettings(){
@@ -8137,6 +8141,29 @@ function _last(url){
     i.src=url;
   });
 }
+/* THE HOOK IMAGE ENDED UP LAST, NOT FIRST
+   The hook was only burned into the standalone cover image. The carousel was
+   built from the slide texts alone, so the cover had no place in it, and
+   ended up at the back whenever it came along anyway. The cover with the
+   hook is now slide 1 of the carousel, where it belongs.
+   Renate, 4 September 2026. */
+function karusellSlides(){
+  return (state.slides||[]).filter(function(t){ return String(t||'').trim(); });
+}
+function harForsideSlide(){
+  if(state.format!=='carousel') return false;
+  const hk=String((state&&state.reelHook)||'').trim();
+  return !!hk && !!(state.imageUrlClean||state.imageUrl);
+}
+function karusellAntall(){
+  return karusellSlides().length + (harForsideSlide()?1:0);
+}
+/* The text belonging to image number i. The cover carries the hook. */
+function karusellTekst(i){
+  const s=karusellSlides();
+  if(harForsideSlide()) return i===0 ? String((state&&state.reelHook)||'') : String(s[i-1]||'');
+  return String(s[i]||'');
+}
 async function lagKarusellbilder(){
   const slides=(state.slides||[]).filter(function(t){ return String(t||'').trim(); });
   if(!slides.length) return [];
@@ -8152,6 +8179,23 @@ async function lagKarusellbilder(){
   const bg=await _last(state.imageUrlClean||state.imageUrl);
   const merke=merkeBilde()?await _last(merkeBilde()):null;
   const ut=[];
+  /* The cover with the hook first, in the same format as the rest, so
+     Instagram does not crop it differently from the others. */
+  const medForside=harForsideSlide() && !!bg;
+  const antall=slides.length+(medForside?1:0);
+  if(medForside){
+    const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+    const ctx=cv.getContext('2d');
+    _tegnBakgrunn(ctx,W,H,bg);
+    try{ await _drawHook(ctx,W,H,String(state.reelHook||'').trim()); }catch(e){}
+    ctx.textAlign='center'; ctx.textBaseline='top';
+    ctx.font="600 30px 'Sasson Montessori','Playpen Sans',sans-serif";
+    ctx.fillStyle='rgba(255,255,255,.9)';
+    ctx.fillText('Slide 1 of '+antall, W/2, H-78);
+    await drawAdBadgeAsync(ctx,W,H);
+    if(merkePaaSlide(0,antall,null)) await tegnMerke(ctx,W,H,merke);
+    ut.push(cv.toDataURL('image/jpeg',0.9));
+  }
   for(let i=0;i<slides.length;i++){
     const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
     const ctx=cv.getContext('2d');
@@ -8195,9 +8239,10 @@ async function lagKarusellbilder(){
     /* Sidetall, så leseren vet at det er mer å sveipe til. */
     ctx.font="600 30px 'Sasson Montessori','Playpen Sans',sans-serif";
     ctx.fillStyle=_lysStyrke(stil.tf||tekstFarge)>0.5?'rgba(255,255,255,.9)':'rgba(26,26,26,.75)';
-    ctx.fillText('Slide %s of %s'.replace('%s',String(i+1)).replace('%s',String(slides.length)), W/2, H-78);
+    const nr=i+1+(medForside?1:0);
+    ctx.fillText('Slide %s of %s'.replace('%s',String(nr)).replace('%s',String(antall)), W/2, H-78);
     await drawAdBadgeAsync(ctx,W,H);
-    if(merkePaaSlide(i,slides.length)) await tegnMerke(ctx,W,H,merke);
+    if(merkePaaSlide(nr-1,antall,i)) await tegnMerke(ctx,W,H,merke);
     ut.push(cv.toDataURL('image/jpeg',0.9));
   }
   state.karusellBilder=ut;
@@ -8240,7 +8285,7 @@ function visKarusellbilder(){
 async function karusellMedier(){
   if(state.format!=='carousel') return null;
   if(!(state.slides&&state.slides.length>1)) return null;
-  if(!(state.karusellBilder&&state.karusellBilder.length===state.slides.filter(function(t){return String(t||'').trim();}).length)){
+  if(!(state.karusellBilder&&state.karusellBilder.length===karusellAntall())){
     await lagKarusellbilder();
     try{ visKarusellbilder(); }catch(e){}
   }
