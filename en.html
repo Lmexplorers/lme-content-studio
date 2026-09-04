@@ -637,7 +637,7 @@ const WRITING_RULES_EN = "WRITING RULES (always follow): Use straight quotes, ne
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Log in</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Log out</button>
-          <div class="nav-konto-ver">Version 20260904.0722</div>
+          <div class="nav-konto-ver">Version 20260904.0732</div>
           <button class="nav-konto-btn ut" onclick="closeNavMenu();hentAppenPaaNytt()">Check for a new version</button>
         </div>
       </div>
@@ -738,7 +738,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    looking at the new build or a cached old one. It now sits in the More menu,
    under the account, with a button that refetches the app and clears the
    cache. */
-window.LME_VERSJON = '20260904.0722';
+window.LME_VERSJON = '20260904.0732';
 /* The installed app has its own cache, separate from the browser, and on
    iPhone it is not cleared by refreshing the page in Safari. So you can be
    sitting on an old build without knowing, and bugs I have fixed look like
@@ -3902,6 +3902,7 @@ function setImgCount(el,n){ state.imgCount=n; document.querySelectorAll('#img-co
 
 function selectBildeVariant(url,el){
   state.imageUrl=url; state.imageUrlClean=url;
+  try{ taVareePaaBildet(url); }catch(e){}
   state.hookBrent=false; var _hr=document.getElementById('bilde-hook-rad'); if(_hr) _hr.style.display='none';
   document.getElementById('bilde-preview-img').src=url;
   document.getElementById('bilde-last-ned').href=url;
@@ -3910,6 +3911,7 @@ function selectBildeVariant(url,el){
 function renderBildeVarianter(urls){
   const grid=document.getElementById('bilde-varianter');
   state.imageUrl=urls[0]; state.imageUrlClean=urls[0];
+  try{ taVareePaaBildet(urls[0]); }catch(e){}
   state.hookBrent=false; var _hr=document.getElementById('bilde-hook-rad'); if(_hr) _hr.style.display='none';
   document.getElementById('bilde-preview-img').src=urls[0];
   document.getElementById('bilde-last-ned').href=urls[0];
@@ -6074,14 +6076,21 @@ function lagreArbeid(){
     if(!window._arbeidKlart) return;
     let d;
     try{ d=_fangArbeid(); }catch(e){ return; }
+    /* Bildene holdes utenfor sammenligningen fordi de er store, men et
+       fingeravtrykk av dem er med, ellers ville et bytte av bilde se ut som
+       ingen endring i det hele tatt. */
+    const avtrykk=function(v){ const t=String(v||''); return t?(t.length+':'+t.slice(-24)):''; };
     const n=JSON.stringify(_utenBilder(d));
-    if(n===_sisteArbeid) return;
+    /* Nøkkelen er bare til sammenligning. Den må ikke skrives til lagringen,
+       for da er det ikke gyldig JSON lenger. */
+    const nokkel=n+'|'+avtrykk(d.imageUrl)+'|'+avtrykk(d.imageUrlClean);
+    if(nokkel===_sisteArbeid) return;
     /* Et tomt arbeid skal aldri overskrive et som har innhold. */
     if(!(d.result||d.customTopic||d.reelHook||d.imageUrl)){
       let gml=null; try{ gml=JSON.parse(localStorage.getItem(ARBEID_LS)||'null'); }catch(e){}
       if(gml && (gml.result||gml.customTopic||gml.reelHook||gml.imageUrl)) return;
     }
-    _sisteArbeid=n;
+    _sisteArbeid=nokkel;
     try{ localStorage.setItem(ARBEID_LS,n); }catch(e){}
     try{ _arbeidPut(d).catch(function(){}); }catch(e){}
     try{ pushArbeidToServer(); }catch(e){}
@@ -8002,6 +8011,67 @@ async function karusellMedier(){
   }
   return (state.karusellBilder&&state.karusellBilder.length)?state.karusellBilder:null;
 }
+/* THE IMAGE WAS NOT SAVED
+   Two faults together.
+
+   1. The change check compared the work WITHOUT the images, since images are
+      large and are kept out of localStorage. Change only the image and it saw
+      no change, so it skipped saving entirely, including to IndexedDB where
+      the image was supposed to live.
+
+   2. The image from the generator is an address at the provider, not a file.
+      It expires after an hour or so. Even when it was saved, it was dead the
+      next day.
+
+   A local copy is now taken as soon as the image is generated, and the change
+   check notices that the image was swapped. */
+async function beholdBildeLokalt(url){
+  if(!url || /^data:/.test(String(url))) return url;
+  /* Lerret først, samme vei som hooken brennes inn. Klarer ikke nettleseren
+     det, prøver vi å hente filen direkte. Går ingen av delene, beholder vi
+     adressen, så vi aldri gjør situasjonen verre. */
+  const viaLerret=await new Promise(function(res){
+    const i=new Image(); i.crossOrigin='anonymous';
+    i.onload=function(){
+      try{
+        const cv=document.createElement('canvas');
+        cv.width=i.naturalWidth||1024; cv.height=i.naturalHeight||1024;
+        cv.getContext('2d').drawImage(i,0,0);
+        res(cv.toDataURL('image/png'));
+      }catch(e){ res(null); }
+    };
+    i.onerror=function(){ res(null); };
+    i.src=url;
+  });
+  if(viaLerret) return viaLerret;
+  try{
+    const r=await fetch(url,{mode:'cors'});
+    if(!r.ok) return url;
+    const bl=await r.blob();
+    if(bl.size>20*1024*1024) return url;
+    return await new Promise(function(res){
+      const fr=new FileReader();
+      fr.onload=function(){ res(String(fr.result||url)); };
+      fr.onerror=function(){ res(url); };
+      fr.readAsDataURL(bl);
+    });
+  }catch(e){ return url; }
+}
+/* Bytter ut adressen med den lokale kopien, men bare hvis du ikke har rukket
+   å generere et nytt bilde i mellomtiden. */
+function taVareePaaBildet(url){
+  if(!url || /^data:/.test(String(url))) return;
+  beholdBildeLokalt(url).then(function(lokal){
+    if(!lokal || lokal===url) return;
+    if(state.imageUrlClean===url) state.imageUrlClean=lokal;
+    if(state.imageUrl===url){
+      state.imageUrl=lokal;
+      const pv=document.getElementById('bilde-preview-img'); if(pv) pv.src=lokal;
+      const dl=document.getElementById('bilde-last-ned'); if(dl) dl.href=lokal;
+    }
+    try{ lagreArbeid(); }catch(e){}
+  }).catch(function(){});
+}
 async function burnHookIntoImage(srcUrl){
   const hk=(typeof state!=='undefined'&&state.reelHook)?String(state.reelHook).trim():'';
   /* The ad badge goes on regardless, also when you have written no hook.
@@ -8048,7 +8118,8 @@ function brukEgetBilde(input){
   const r=new FileReader();
   r.onload=function(){
     const url=String(r.result||'');
-    state.imageUrl=url; state.imageUrlClean=url; state.hookBrent=false;
+    state.imageUrl=url; state.imageUrlClean=url;
+  try{ taVareePaaBildet(url); }catch(e){} state.hookBrent=false;
     const sek=document.getElementById('bilde-preview-seksjon'); if(sek) sek.style.display='block';
     const img=document.getElementById('bilde-preview-img'); if(img) img.src=url;
     const dl=document.getElementById('bilde-last-ned'); if(dl) dl.href=url;
