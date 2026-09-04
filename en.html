@@ -647,7 +647,7 @@ const WRITING_RULES_EN = "WRITING RULES (always follow): Use straight quotes, ne
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Log in</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Log out</button>
-          <div class="nav-konto-ver">Version 20260904.1634</div>
+          <div class="nav-konto-ver">Version 20260904.1649</div>
           <div class="nav-konto-ver" id="ver-status" style="display:none;line-height:1.5;"></div>
           <button class="nav-konto-btn ut" onclick="seEtterNyVersjon()">Check for a new version</button>
         </div>
@@ -750,7 +750,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    looking at the new build or a cached old one. It now sits in the More menu,
    under the account, with a button that refetches the app and clears the
    cache. */
-window.LME_VERSJON = '20260904.1634';
+window.LME_VERSJON = '20260904.1649';
 /* The installed app has its own cache, separate from the browser, and on
    iPhone it is not cleared by refreshing the page in Safari. So you can be
    sitting on an old build without knowing, and bugs I have fixed look like
@@ -1174,6 +1174,7 @@ function renderHookColors(){var tc=el("hook-textcolors"),bgc=el("hook-bgcolors")
         <button class="act-btn" style="width:100%;margin-top:8px;font-size:12px;" onclick="leggHookPaaBilde()">🔤 Add hook to image</button>
         <button class="act-btn" id="karusell-knapp" style="display:none;width:100%;margin-top:8px;font-size:12px;" onclick="byggKarusell()">🎠 Build the carousel images</button>
         <div id="karusell-bilder" style="display:none;gap:8px;overflow-x:auto;margin-top:10px;padding-bottom:4px;"></div>
+        <div id="karusell-antall" style="display:none;font-size:11px;color:var(--text-s);margin-top:6px;line-height:1.5;"></div>
         <div id="avslutning-rad" style="display:none;margin-top:10px;background:var(--sage-l,#F4FBE4);border-radius:12px;padding:11px 13px;">
           <label style="display:flex;align-items:center;gap:9px;cursor:pointer;margin-bottom:10px;"><input type="checkbox" id="forside-paa" checked onchange="settForside(this.checked)" style="width:auto;"><span style="font-size:12.5px;font-weight:700;color:var(--text);">Cover slide with the hook</span></label>
           <label style="display:flex;align-items:center;gap:9px;cursor:pointer;"><input type="checkbox" id="avslutning-paa" checked onchange="settAvslutning(this.checked)" style="width:auto;"><span style="font-size:12.5px;font-weight:700;color:var(--text);">Closing slide with the image</span></label>
@@ -2878,7 +2879,14 @@ function _harVideofil(){
   return /^data:video\//i.test(u) || /\.(mp4|mov|m4v|webm)(\?|$)/i.test(u) || !!state.videoFile;
 }
 function _antallBilder(){
-  if(state.format==='carousel' && state.slides) return state.slides.filter(function(t){ return String(t||'').trim(); }).length;
+  /* The carousel is the cover with the hook, the slide texts and the closing
+     slide. Only the slide texts were counted here, so a carousel of eleven
+     images showed as nine, and channels with a limit slipped through with too
+     many. Renate, 4 September 2026. */
+  if(state.format==='carousel' && state.slides){
+    try{ return karusellAntall(); }
+    catch(e){ return state.slides.filter(function(t){ return String(t||'').trim(); }).length; }
+  }
   return state.imageUrl?1:0;
 }
 /* Returnerer en grunn hvis kanalen ikke kan ta imot dette innholdet, ellers
@@ -2887,6 +2895,8 @@ function kanalHinder(p){
   const bilder=_antallBilder();
   if(p==='YouTube' && !_harVideofil()) return 'Takes video only';
   if(bilder>4 && (p==='Bluesky' || p==='X (Twitter)')) return 'Takes 4 images at most, your carousel is longer';
+  /* LinkedIn answered "Carousels support up to 10 items (received 11)". */
+  if(bilder>10 && p==='LinkedIn') return 'Takes 10 images at most, your carousel has '+bilder;
   return '';
 }
 /* Advarsel, ikke hinder: innlegget går ut, men ikke som karusell. */
@@ -8581,8 +8591,17 @@ async function byggKarusell(){
 function visKarusellbilder(){
   const host=document.getElementById('karusell-bilder'); if(!host) return;
   const b=state.karusellBilder||[];
-  if(!b.length){ host.innerHTML=''; host.style.display='none'; return; }
+  if(!b.length){ host.innerHTML=''; host.style.display='none';
+    const t0=document.getElementById('karusell-antall'); if(t0) t0.style.display='none';
+    return; }
   host.style.display='flex';
+  const teller=document.getElementById('karusell-antall');
+  if(teller){
+    teller.style.display='block';
+    teller.textContent=b.length+' images in the carousel'
+      +(b.length>10?'. LinkedIn takes 10 at most, Bluesky and X 4.':'');
+    teller.style.color=(b.length>10)?'#856404':'var(--text-s)';
+  }
   /* The order was locked to whatever the AI came up with. You now move each
      image where you want it, with the arrows below. Renate, 4 September 2026. */
   const knapp='background:var(--rose-l);border:1.5px solid var(--rose-m);color:var(--rose-d);'

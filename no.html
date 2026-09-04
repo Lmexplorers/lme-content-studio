@@ -647,7 +647,7 @@ const SKRIVEREGLER_NO = "NORSKE SKRIVEREGLER (følg alltid): Bruk rette anførse
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Logg inn</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Logg ut</button>
-          <div class="nav-konto-ver">Versjon 20260904.1634</div>
+          <div class="nav-konto-ver">Versjon 20260904.1649</div>
           <div class="nav-konto-ver" id="ver-status" style="display:none;line-height:1.5;"></div>
           <button class="nav-konto-btn ut" onclick="seEtterNyVersjon()">Se etter ny versjon</button>
         </div>
@@ -750,7 +750,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    nye utgaven eller en mellomlagret gammel. Nå står den i Mer-menyen, under
    kontoen, sammen med en knapp som henter appen på nytt og tømmer
    mellomlageret. Renate 4. september 2026. */
-window.LME_VERSJON = '20260904.1634';
+window.LME_VERSJON = '20260904.1649';
 /* Den installerte appen har sitt eget mellomlager, adskilt fra nettleseren,
    og på iPhone tømmes det ikke av at du oppdaterer siden i Safari. Da kan du
    sitte med en gammel utgave uten å vite det, og feil jeg har rettet ser ut
@@ -1175,6 +1175,7 @@ function renderHookColors(){var tc=el("hook-textcolors"),bgc=el("hook-bgcolors")
         <button class="act-btn" style="width:100%;margin-top:8px;font-size:12px;" onclick="leggHookPaaBilde()">🔤 Legg hook på bildet</button>
         <button class="act-btn" id="karusell-knapp" style="display:none;width:100%;margin-top:8px;font-size:12px;" onclick="byggKarusell()">🎠 Lag bildene til karusellen</button>
         <div id="karusell-bilder" style="display:none;gap:8px;overflow-x:auto;margin-top:10px;padding-bottom:4px;"></div>
+        <div id="karusell-antall" style="display:none;font-size:11px;color:var(--text-s);margin-top:6px;line-height:1.5;"></div>
         <div id="avslutning-rad" style="display:none;margin-top:10px;background:var(--sage-l,#F4FBE4);border-radius:12px;padding:11px 13px;">
           <label style="display:flex;align-items:center;gap:9px;cursor:pointer;margin-bottom:10px;"><input type="checkbox" id="forside-paa" checked onchange="settForside(this.checked)" style="width:auto;"><span style="font-size:12.5px;font-weight:700;color:var(--text);">Forsideslide med hooken</span></label>
           <label style="display:flex;align-items:center;gap:9px;cursor:pointer;"><input type="checkbox" id="avslutning-paa" checked onchange="settAvslutning(this.checked)" style="width:auto;"><span style="font-size:12.5px;font-weight:700;color:var(--text);">Avslutningsslide med bildet</span></label>
@@ -3181,7 +3182,14 @@ function _harVideofil(){
   return /^data:video\//i.test(u) || /\.(mp4|mov|m4v|webm)(\?|$)/i.test(u) || !!state.videoFile;
 }
 function _antallBilder(){
-  if(state.format==='carousel' && state.slides) return state.slides.filter(function(t){ return String(t||'').trim(); }).length;
+  /* Karusellen er forsiden med hooken, slidetekstene og avslutningen. Her ble
+     bare slidetekstene talt, saa en karusell paa elleve bilder sto som ni, og
+     kanaler med en grense slapp igjennom med for mange.
+     Renate 4. september 2026. */
+  if(state.format==='carousel' && state.slides){
+    try{ return karusellAntall(); }
+    catch(e){ return state.slides.filter(function(t){ return String(t||'').trim(); }).length; }
+  }
   return state.imageUrl?1:0;
 }
 /* Returnerer en grunn hvis kanalen ikke kan ta imot dette innholdet, ellers
@@ -3190,6 +3198,8 @@ function kanalHinder(p){
   const bilder=_antallBilder();
   if(p==='YouTube' && !_harVideofil()) return 'Tar bare video';
   if(bilder>4 && (p==='Bluesky' || p==='X (Twitter)')) return 'Tar maks 4 bilder, karusellen din er lengre';
+  /* LinkedIn svarte "Carousels support up to 10 items (received 11)". */
+  if(bilder>10 && p==='LinkedIn') return 'Tar maks 10 bilder, karusellen din er på '+bilder;
   return '';
 }
 /* Advarsel, ikke hinder: innlegget går ut, men ikke som karusell. */
@@ -8854,7 +8864,7 @@ async function slettKarusellbilde(plass){
     return;
   }
   const tekster=karusellSlides();
-  if(tekster.length<=1){ alert('Karusellen maa ha minst en slide.'); return; }
+  if(tekster.length<=1){ alert('Karusellen må ha minst én slide.'); return; }
   if(!confirm('Slette slide ' + (plass+1) + '?\n\n' + String(tekster[bit]||'').slice(0,120))) return;
   /* Rekkefolgen din beholdes: den slettede tas ut, og de bak flyttes ett hakk
      ned saa de fortsatt peker paa riktig tekst. */
@@ -8868,7 +8878,7 @@ async function slettKarusellbilde(plass){
   try{ renderResult(); }catch(e){}
   try{ tegnBildetekstUI(); }catch(e){}
   const st=document.getElementById('pub-bilde-status');
-  if(st) st.innerHTML='<div class="pub-status loading">Tegner karusellen paa nytt\u2026</div>';
+  if(st) st.innerHTML='<div class="pub-status loading">Tegner karusellen på nytt\u2026</div>';
   await lagKarusellbilder();
   try{ visKarusellbilder(); }catch(e){}
   if(st) st.innerHTML='';
@@ -8884,7 +8894,7 @@ async function flyttKarusellbilde(fra,steg){
   const t=o[fra]; o[fra]=o[til]; o[til]=t;
   state.karusellOrden=o;
   const st=document.getElementById('pub-bilde-status');
-  if(st) st.innerHTML='<div class="pub-status loading">Bytter om paa bildene\u2026</div>';
+  if(st) st.innerHTML='<div class="pub-status loading">Bytter om på bildene\u2026</div>';
   await lagKarusellbilder();
   try{ visKarusellbilder(); }catch(e){}
   if(st) st.innerHTML='';
@@ -9021,8 +9031,17 @@ async function byggKarusell(){
 function visKarusellbilder(){
   const host=document.getElementById('karusell-bilder'); if(!host) return;
   const b=state.karusellBilder||[];
-  if(!b.length){ host.innerHTML=''; host.style.display='none'; return; }
+  if(!b.length){ host.innerHTML=''; host.style.display='none';
+    const t0=document.getElementById('karusell-antall'); if(t0) t0.style.display='none';
+    return; }
   host.style.display='flex';
+  const teller=document.getElementById('karusell-antall');
+  if(teller){
+    teller.style.display='block';
+    teller.textContent=b.length+' bilder i karusellen'
+      +(b.length>10?'. LinkedIn tar maks 10, Bluesky og X maks 4.':'');
+    teller.style.color=(b.length>10)?'#856404':'var(--text-s)';
+  }
   /* Rekkefolgen var laast til den AI-en fant paa. Naa flytter du hvert bilde
      dit du vil ha det, med pilene under. Renate 4. september 2026. */
   const knapp='background:var(--rose-l);border:1.5px solid var(--rose-m);color:var(--rose-d);'
