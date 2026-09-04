@@ -383,8 +383,12 @@ function oppsummer(alle) {
   const okCount = alle.filter((r) => r.ok).length;
   if (okCount === alle.length && okCount > 0) return json({ ok: true, results: alle });
   const failed = alle.filter((r) => !r.ok).map((r) => (r.platform || r.accountId) + (r.error ? " (" + r.error + ")" : "")).join(", ");
+  /* "Sendt til 1 av 9" sa ikke hvilken av dem. Da gikk innlegget ut ett sted
+     uten at hun visste hvor, og hun lette forgjeves paa de andre.
+     Renate 4. september 2026. */
+  const sendtTil = alle.filter((r) => r.ok).map((r) => r.platform || r.accountId).join(", ");
   const msg = okCount > 0
-    ? "Sendt til " + okCount + " av " + alle.length + ". Feilet: " + failed
+    ? "Gikk ut paa: " + sendtTil + ". Feilet: " + failed
     : "Publisering feilet for alle. " + failed;
   return json({ ok: false, error: msg, okCount: okCount, total: alle.length, results: alle }, 200);
 }

@@ -647,7 +647,7 @@ const WRITING_RULES_EN = "WRITING RULES (always follow): Use straight quotes, ne
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Log in</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Log out</button>
-          <div class="nav-konto-ver">Version 20260904.1623</div>
+          <div class="nav-konto-ver">Version 20260904.1634</div>
           <div class="nav-konto-ver" id="ver-status" style="display:none;line-height:1.5;"></div>
           <button class="nav-konto-btn ut" onclick="seEtterNyVersjon()">Check for a new version</button>
         </div>
@@ -750,7 +750,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    looking at the new build or a cached old one. It now sits in the More menu,
    under the account, with a button that refetches the app and clears the
    cache. */
-window.LME_VERSJON = '20260904.1623';
+window.LME_VERSJON = '20260904.1634';
 /* The installed app has its own cache, separate from the browser, and on
    iPhone it is not cleared by refreshing the page in Safari. So you can be
    sitting on an old build without knowing, and bugs I have fixed look like
@@ -4373,7 +4373,7 @@ async function publiserMedBilde(){
     kar2||[exportImg],
     state.format, null);
   if(ok){
-    statusEl.innerHTML=`<div class="pub-status success">Published to the publishing service!</div>`;
+    statusEl.innerHTML='<div class="pub-status success">Published'+(sisteUtgivelseKanaler?' to: '+_esc(sisteUtgivelseKanaler):'')+'.</div>';
   } else {
     statusEl.innerHTML=`<div class="pub-status error">Publishing failed. Check Settings.</div>`;
   }
@@ -4621,7 +4621,7 @@ function _medienavn(urls){
   return (type==='video'?'lme-video.':'lme-bilde.')+e;
 }
 async function sendToPublishingService(text,mediaUrls,format,publishAt,platforms){
-  sisteUtgivelsesfeil='';
+  sisteUtgivelsesfeil=''; sisteUtgivelseKanaler='';
   const medier=(mediaUrls||[]).filter(Boolean);
   const r=await blotatoPublish({
     text,
@@ -4632,8 +4632,14 @@ async function sendToPublishingService(text,mediaUrls,format,publishAt,platforms
     contentKind:(format==='reel'?'reel':format==='story'?'story':'post')
   });
   if(!r.ok) sisteUtgivelsesfeil=String(r.error||'');
+  /* Si hvor innlegget faktisk gikk ut, ikke bare at det gikk. */
+  try{
+    const ut=(r.results||[]).filter(function(x){ return x&&x.ok; }).map(function(x){ return x.platform||x.accountId; });
+    sisteUtgivelseKanaler=ut.join(', ');
+  }catch(e){}
   return r.ok;
 }
+var sisteUtgivelseKanaler='';
 function _esc(x){ return String(x||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function utgivelsesfeilHtml(){
   return sisteUtgivelsesfeil
@@ -4700,7 +4706,7 @@ async function schedulePost(){
     const tekst=kar?medReklame(bildetekstNaa()):text;
     const success=await sendToPublishingService(tekst,medier,state.format,publishAt);
     if(success){
-      ok.innerHTML=`Scheduled in the publishing service for ${date} at ${time}! Check your dashboard.`;
+      ok.innerHTML='Scheduled for '+date+' at '+time+(sisteUtgivelseKanaler?' on: '+_esc(sisteUtgivelseKanaler):'')+'.';
     }else{
       ok.innerHTML=`<b>The post did not go through.</b> `+`The post is saved in your calendar for %s at %s, so nothing is lost.`.replace('%s',date).replace('%s',time)+utgivelsesfeilHtml()+'<button type="button" class="act-btn sage-btn" style="margin-top:9px;font-size:12px;" onclick="showTab(\'settings\',null);window.scrollTo({top:0,behavior:\'smooth\'});">Open Settings</button>';
       ok.style.background='#FFF6D6'; ok.style.color='#856404';

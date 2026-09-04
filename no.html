@@ -647,7 +647,7 @@ const SKRIVEREGLER_NO = "NORSKE SKRIVEREGLER (følg alltid): Bruk rette anførse
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Logg inn</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Logg ut</button>
-          <div class="nav-konto-ver">Versjon 20260904.1623</div>
+          <div class="nav-konto-ver">Versjon 20260904.1634</div>
           <div class="nav-konto-ver" id="ver-status" style="display:none;line-height:1.5;"></div>
           <button class="nav-konto-btn ut" onclick="seEtterNyVersjon()">Se etter ny versjon</button>
         </div>
@@ -750,7 +750,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    nye utgaven eller en mellomlagret gammel. Nå står den i Mer-menyen, under
    kontoen, sammen med en knapp som henter appen på nytt og tømmer
    mellomlageret. Renate 4. september 2026. */
-window.LME_VERSJON = '20260904.1623';
+window.LME_VERSJON = '20260904.1634';
 /* Den installerte appen har sitt eget mellomlager, adskilt fra nettleseren,
    og på iPhone tømmes det ikke av at du oppdaterer siden i Safari. Da kan du
    sitte med en gammel utgave uten å vite det, og feil jeg har rettet ser ut
@@ -4690,7 +4690,7 @@ async function publiserMedBilde(){
     kar2||[exportImg],
     state.format, null);
   if(ok){
-    statusEl.innerHTML=`<div class="pub-status success">Publisert til publiseringstjenesten!</div>`;
+    statusEl.innerHTML='<div class="pub-status success">Publisert'+(sisteUtgivelseKanaler?' til: '+_esc(sisteUtgivelseKanaler):'')+'.</div>';
   } else {
     statusEl.innerHTML=`<div class="pub-status error"><b>Publiseringen gikk ikke gjennom.</b>${utgivelsesfeilHtml()}</div>`;
   }
@@ -4942,7 +4942,7 @@ function _medienavn(urls){
   return (type==='video'?'lme-video.':'lme-bilde.')+e;
 }
 async function sendToPublishingService(text,mediaUrls,format,publishAt,platforms){
-  sisteUtgivelsesfeil='';
+  sisteUtgivelsesfeil=''; sisteUtgivelseKanaler='';
   const medier=(mediaUrls||[]).filter(Boolean);
   const r=await blotatoPublish({
     text,
@@ -4953,8 +4953,14 @@ async function sendToPublishingService(text,mediaUrls,format,publishAt,platforms
     contentKind:(format==='reel'?'reel':format==='story'?'story':'post')
   });
   if(!r.ok) sisteUtgivelsesfeil=String(r.error||'');
+  /* Si hvor innlegget faktisk gikk ut, ikke bare at det gikk. */
+  try{
+    const ut=(r.results||[]).filter(function(x){ return x&&x.ok; }).map(function(x){ return x.platform||x.accountId; });
+    sisteUtgivelseKanaler=ut.join(', ');
+  }catch(e){}
   return r.ok;
 }
+var sisteUtgivelseKanaler='';
 function _esc(x){ return String(x||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function utgivelsesfeilHtml(){
   return sisteUtgivelsesfeil
@@ -5021,7 +5027,7 @@ async function schedulePost(){
     const tekst=kar?medReklame(bildetekstNaa()):text;
     const success=await sendToPublishingService(tekst,medier,state.format,publishAt);
     if(success){
-      ok.innerHTML=`Planlagt i publiseringstjenesten til ${date} kl. ${time}! Sjekk dashboardet ditt.`;
+      ok.innerHTML='Planlagt til '+date+' kl. '+time+(sisteUtgivelseKanaler?' p\u00e5: '+_esc(sisteUtgivelseKanaler):'')+'.';
     }else{
       ok.innerHTML=`<b>Publiseringen gikk ikke gjennom.</b> `+`Innlegget er lagret i kalenderen din for %s kl. %s, så ingenting er tapt.`.replace('%s',date).replace('%s',time)+utgivelsesfeilHtml()+'<button type="button" class="act-btn sage-btn" style="margin-top:9px;font-size:12px;" onclick="showTab(\'settings\',null);window.scrollTo({top:0,behavior:\'smooth\'});">Åpne Innstillinger</button>';
       ok.style.background='#FFF6D6'; ok.style.color='#856404';
