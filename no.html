@@ -897,7 +897,7 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
       </div>
     </div>
 
-    <script>(function(){function el(i){return document.getElementById(i);} var audio=null;function reRenderPv(){var ov=el("preview-overlay");if(ov&&ov.style.display!=="none"&&typeof renderPreview==="function"){try{renderPreview();}catch(e){}}}function hs(){if(typeof state==="undefined")return null;if(!state.hookStyle)state.hookStyle={font:"'Playpen Sans'",size:24,color:"#ffffff",bg:"none"};return state.hookStyle;}function escH(s){return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}window.hookCss=function(){var h=hs()||{font:"'Playpen Sans'",size:24,color:"#ffffff",bg:"none"};var c="font-family:"+h.font+",'Playpen Sans',sans-serif;font-weight:800;font-size:"+h.size+"px;color:"+h.color+";line-height:1.3;";if(h.bg&&h.bg!=="none"){c+="display:inline;background:"+h.bg+";padding:.1em .4em;border-radius:9px;-webkit-box-decoration-break:clone;box-decoration-break:clone;";}else{c+="display:inline-block;text-shadow:0 2px 12px rgba(0,0,0,.7);";}return c;};window.updateReelHook=function(){var o=el("reel-hook-overlay"),t=el("reel-hook-text");var v=t?t.value:"";if(o)o.innerHTML=v?'<span style="'+hookCss()+'">'+escH(v)+'</span>':'';if(typeof state!=="undefined"){hs();state.reelHook=v;}syncHookY();reRenderPv();};window.applyHookStyle=function(){updateReelHook();};window.setHookFont=function(btn,key){var m={playpen:"'Playpen Sans'",anton:"'Anton'",luckiest:"'Luckiest Guy'",fredoka:"'Fredoka'",bebas:"'Bebas Neue'"};var h=hs();if(h)h.font=m[key]||"'Playpen Sans'";document.querySelectorAll("[data-hookfont]").forEach(function(b){b.classList.toggle("on",b===btn);});updateReelHook();};window.setHookSize=function(v){var h=hs();if(h)h.size=parseInt(v,10)||24;updateReelHook();};window.setHookColor=function(elm,c){var h=hs();if(h)h.color=c;document.querySelectorAll("[data-hookcolor]").forEach(function(b){b.classList.toggle("on",b===elm);});updateReelHook();};window.setHookBg=function(elm,c){var h=hs();if(h)h.bg=c;document.querySelectorAll("[data-hookbg]").forEach(function(b){b.classList.toggle("on",b===elm);});updateReelHook();};window.hookYPct=function(){if(typeof state==="undefined")return 50;if(typeof state.reelHookY==="number")return state.reelHookY;var p=state.reelHookPos||"center";return p==="top"?12:p==="bottom"?85:50;};
+    <script>(function(){function el(i){return document.getElementById(i);} var audio=null;function reRenderPv(){var ov=el("preview-overlay");if(ov&&ov.style.display!=="none"&&typeof renderPreview==="function"){try{renderPreview();}catch(e){}}}function hs(){if(typeof state==="undefined")return null;if(!state.hookStyle)state.hookStyle={font:"'Playpen Sans'",size:24,color:"#ffffff",bg:"none"};return state.hookStyle;}function escH(s){return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}/* En ramme rundt hele hooken, ikke en boks per linje. */window.hookCss=function(){var h=hs()||{font:"'Playpen Sans'",size:24,color:"#ffffff",bg:"none"};var medBg=h.bg&&h.bg!=="none";var farge=(typeof lesbarFarge==="function")?lesbarFarge(h.color,medBg?h.bg:null):(h.color||"#ffffff");var c="font-family:"+h.font+",'Playpen Sans',sans-serif;font-weight:800;font-size:"+h.size+"px;color:"+farge+";line-height:1.32;text-wrap:balance;";if(medBg){c+="display:inline-block;background:"+h.bg+";padding:.42em .62em;border-radius:16px;max-width:78%;";}else{c+="display:inline-block;max-width:80%;text-shadow:0 2px 12px rgba(0,0,0,.72);";}return c;};window.updateReelHook=function(){var o=el("reel-hook-overlay"),t=el("reel-hook-text");var v=t?t.value:"";if(o)o.innerHTML=v?'<span style="'+hookCss()+'">'+escH(v)+'</span>':'';if(typeof state!=="undefined"){hs();state.reelHook=v;}syncHookY();reRenderPv();};window.applyHookStyle=function(){updateReelHook();};window.setHookFont=function(btn,key){var m={playpen:"'Playpen Sans'",anton:"'Anton'",luckiest:"'Luckiest Guy'",fredoka:"'Fredoka'",bebas:"'Bebas Neue'"};var h=hs();if(h)h.font=m[key]||"'Playpen Sans'";document.querySelectorAll("[data-hookfont]").forEach(function(b){b.classList.toggle("on",b===btn);});updateReelHook();};window.setHookSize=function(v){var h=hs();if(h)h.size=parseInt(v,10)||24;updateReelHook();};window.setHookColor=function(elm,c){var h=hs();if(h)h.color=c;document.querySelectorAll("[data-hookcolor]").forEach(function(b){b.classList.toggle("on",b===elm);});updateReelHook();};window.setHookBg=function(elm,c){var h=hs();if(h)h.bg=c;document.querySelectorAll("[data-hookbg]").forEach(function(b){b.classList.toggle("on",b===elm);});updateReelHook();};window.hookYPct=function(){if(typeof state==="undefined")return 50;if(typeof state.reelHookY==="number")return state.reelHookY;var p=state.reelHookPos||"center";return p==="top"?12:p==="bottom"?85:50;};
 window.hookPosCss=function(){return "top:"+hookYPct()+"%;transform:translateY(-50%);";};
 function syncHookY(){var y=hookYPct();var o=el("reel-hook-overlay");if(o){o.className="reel-hook-overlay";o.style.top=y+"%";o.style.bottom="auto";o.style.transform="translateY(-50%)";}
 document.querySelectorAll("[data-hooky]").forEach(function(s){if(String(s.value)!==String(y))s.value=y;});
@@ -4326,7 +4326,7 @@ async function generateHook(){
     const res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:300,messages:[{role:'user',content:`Lag 5 korte, fengende hooks for en reel om: "${desc}". Skriv strengt om dette emnet, og ikke dra inn urelaterte temaer (for eksempel ikke Montessori eller barn) hvis emnet ikke tilsier det, selv om merkevaren vanligvis dekker noe annet. Hver hook maks 8 ord og under 60 tegn, og skal stoppe scrollingen. Skriv på norsk bokmål, uten anførselstegn, uten punktum på slutten. Returner som en nummerert liste, én hook per linje, ingen forklaring.${produktFakta()}`}]})
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:300,messages:[{role:'user',content:`Lag 5 korte, fengende hooks for en reel om: "${desc}". Skriv strengt om dette emnet, og ikke dra inn urelaterte temaer (for eksempel ikke Montessori eller barn) hvis emnet ikke tilsier det, selv om merkevaren vanligvis dekker noe annet. Hver hook maks 8 ord og under 60 tegn, og skal stoppe scrollingen. Skriv på norsk bokmål, uten anførselstegn, uten punktum på slutten. Returner som en nummerert liste, én hook per linje, ingen forklaring.\n${SKRIVEREGLER_NO}${produktFakta()}`}]})
     });
     const data=await res.json();
     const raw=(data.content?.map(b=>b.text||'').join('')||'');
@@ -7316,41 +7316,96 @@ function roundRectPath(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.a
 
 // ── Tegn hook-teksten til en gjennomsiktig PNG i videooppløsning ──
 // Bruker nettleserens fontgjengivelse, så valgt font/farge/bakgrunn/emoji blir riktig.
+/* Hooken ble satt sammen linje for linje, hver med sin egen bakgrunnsboks.
+   Boksene fikk ulik bredde, siste ord havnet alene i en smal boks, og med
+   rosa tekst på rosa bakgrunn var den nesten uleselig. Nå settes hele hooken
+   som én blokk: én ramme rundt alt, jevne linjer, ingen enslige ord til slutt,
+   og tekstfargen justeres hvis den ikke står nok fra bakgrunnen.
+   Renate 3. september 2026. */
+function _hexRgb(c){
+  c=String(c||'').trim();
+  let m=/^#([0-9a-f]{3})$/i.exec(c);
+  if(m) return [parseInt(m[1][0]+m[1][0],16),parseInt(m[1][1]+m[1][1],16),parseInt(m[1][2]+m[1][2],16)];
+  m=/^#([0-9a-f]{6})$/i.exec(c);
+  if(m) return [parseInt(m[1].slice(0,2),16),parseInt(m[1].slice(2,4),16),parseInt(m[1].slice(4,6),16)];
+  m=/^rgba?\(([^)]+)\)$/i.exec(c);
+  if(m){ const p=m[1].split(',').map(Number); return [p[0]||0,p[1]||0,p[2]||0]; }
+  return [255,255,255];
+}
+function _lys(c){
+  const k=_hexRgb(c).map(function(v){ v/=255; return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4); });
+  return 0.2126*k[0]+0.7152*k[1]+0.0722*k[2];
+}
+function _kontrast(a,b){ const l1=_lys(a),l2=_lys(b); return (Math.max(l1,l2)+0.05)/(Math.min(l1,l2)+0.05); }
+/* Står tekstfargen for nær bakgrunnen, byttes den til svart eller hvit, den
+   som står best. Ellers beholdes fargen du valgte. */
+function lesbarFarge(tekst,bg){
+  if(!bg) return tekst||'#ffffff';
+  if(_kontrast(tekst||'#ffffff',bg)>=3.2) return tekst||'#ffffff';
+  return _kontrast('#1A1A1A',bg)>=_kontrast('#ffffff',bg)?'#1A1A1A':'#ffffff';
+}
+function _brytLinjer(ctx,text,maxW){
+  const ord=(text||'').split(/\s+/).filter(Boolean);
+  const l=[]; let cur='';
+  for(const w of ord){ const t=cur?cur+' '+w:w; if(ctx.measureText(t).width>maxW&&cur){ l.push(cur); cur=w; } else cur=t; }
+  if(cur) l.push(cur);
+  return l;
+}
+/* Grådig linjebryting etterlater ofte ett kort ord alene på siste linje. Vi
+   strammer bredden litt om gangen, så lenge linjetallet er det samme, til
+   linjene blir jevne. */
+function _jevneLinjer(ctx,text,maxW){
+  let beste=_brytLinjer(ctx,text,maxW);
+  if(beste.length<2) return beste;
+  const antall=beste.length;
+  for(let i=1;i<=6;i++){
+    const l=_brytLinjer(ctx,text,maxW*(1-i*0.04));
+    if(l.length!==antall) break;
+    const b=l.map(function(s){ return ctx.measureText(s).width; });
+    const bb=beste.map(function(s){ return ctx.measureText(s).width; });
+    if(Math.max.apply(null,b)-Math.min.apply(null,b) < Math.max.apply(null,bb)-Math.min.apply(null,bb)) beste=l;
+  }
+  return beste;
+}
 async function _drawHook(ctx,W,H,text){
   const h=(typeof state!=='undefined'&&state.hookStyle)||{font:"'Playpen Sans'",size:24,color:'#ffffff',bg:'none'};
-  const fontPx=Math.max(22,Math.round((h.size||24)*W/360));
   const fam=(h.font||"'Playpen Sans'")+",sans-serif";
-  try{ await document.fonts.load('800 '+fontPx+'px '+fam); }catch(e){}
-  ctx.font='800 '+fontPx+'px '+fam;
-  ctx.textAlign='center'; ctx.textBaseline='top';
-  const maxW=W*0.86;
-  const words=(text||'').split(/\s+/).filter(Boolean);
-  const lines=[]; let cur='';
-  for(const w of words){ const t=cur?cur+' '+w:w; if(ctx.measureText(t).width>maxW&&cur){ lines.push(cur); cur=w; } else cur=t; }
-  if(cur) lines.push(cur);
-  const cx=W/2, padX=fontPx*0.42, padY=fontPx*0.16, radius=fontPx*0.3;
   const useBg=h.bg&&h.bg!=='none';
-  /* Boksen bak hver linje er fontPx+padY*2 hoey. Var linjeavstanden mindre
-     enn det, la boksene seg oppaa hverandre og teksten saa hakkete ut. */
-  const boksH=fontPx+padY*2;
-  const lineH= useBg ? (boksH+fontPx*0.10) : fontPx*1.28;
-  const blockH=(lines.length-1)*lineH + (useBg?boksH:fontPx*1.18);
+  const farge=lesbarFarge(h.color||'#ffffff', useBg?h.bg:null);
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  const maxW=W*0.78;
+  let fontPx=Math.max(20,Math.round((h.size||24)*W/360));
+  let lines=[];
+  /* Lange hooks krymper til de får plass, i stedet for å dekke halve bildet. */
+  for(let n=0;n<16;n++){
+    try{ await document.fonts.load('800 '+fontPx+'px '+fam); }catch(e){}
+    ctx.font='800 '+fontPx+'px '+fam;
+    lines=_jevneLinjer(ctx,text,maxW);
+    if((lines.length<=5 && lines.length*fontPx*1.30<=H*0.38) || fontPx<=15) break;
+    fontPx=Math.max(15,Math.round(fontPx*0.92));
+  }
+  if(!lines.length) return;
+  const cx=W/2, lineH=fontPx*1.30;
+  const tekstH=(lines.length-1)*lineH+fontPx*1.12;
+  const padX=fontPx*0.62, padY=fontPx*0.46;
+  const blokkH=useBg?(tekstH+padY*2):tekstH;
   const yPct=(typeof hookYPct==='function')?hookYPct():50;
-  let y0=H*(yPct/100) - blockH/2;
   const marg=H*0.03;
-  if(blockH < H-marg*2) y0=Math.max(marg, Math.min(y0, H-marg-blockH));
-  else y0=Math.max(0,(H-blockH)/2);
+  let topp=H*(yPct/100)-blokkH/2;
+  if(blokkH<H-marg*2) topp=Math.max(marg,Math.min(topp,H-marg-blokkH));
+  else topp=Math.max(0,(H-blokkH)/2);
+  const y0=useBg?(topp+padY):topp;
+  if(useBg){
+    const bred=Math.max.apply(null,lines.map(function(s){ return ctx.measureText(s).width; }));
+    ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetY=0;
+    ctx.fillStyle=h.bg;
+    roundRectPath(ctx,cx-bred/2-padX,topp,bred+padX*2,blokkH,fontPx*0.52);
+    ctx.fill();
+  }
   for(let i=0;i<lines.length;i++){
-    const ly=y0+i*lineH;
-    const lw=ctx.measureText(lines[i]).width;
-    if(useBg){
-      ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetY=0;
-      ctx.fillStyle=h.bg; roundRectPath(ctx,cx-lw/2-padX,ly-padY,lw+padX*2,fontPx+padY*2,radius); ctx.fill();
-    } else {
-      ctx.shadowColor='rgba(0,0,0,.7)'; ctx.shadowBlur=fontPx*0.3; ctx.shadowOffsetY=fontPx*0.06;
-    }
-    ctx.fillStyle=h.color||'#ffffff';
-    ctx.fillText(lines[i],cx,ly);
+    if(!useBg){ ctx.shadowColor='rgba(0,0,0,.72)'; ctx.shadowBlur=fontPx*0.32; ctx.shadowOffsetY=fontPx*0.07; }
+    ctx.fillStyle=farge;
+    ctx.fillText(lines[i],cx,y0+i*lineH);
     ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetY=0;
   }
 }
