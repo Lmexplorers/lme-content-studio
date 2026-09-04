@@ -647,7 +647,7 @@ const SKRIVEREGLER_NO = "NORSKE SKRIVEREGLER (følg alltid): Bruk rette anførse
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Logg inn</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Logg ut</button>
-          <div class="nav-konto-ver">Versjon 20260904.1408</div>
+          <div class="nav-konto-ver">Versjon 20260904.1612</div>
           <div class="nav-konto-ver" id="ver-status" style="display:none;line-height:1.5;"></div>
           <button class="nav-konto-btn ut" onclick="seEtterNyVersjon()">Se etter ny versjon</button>
         </div>
@@ -750,7 +750,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    nye utgaven eller en mellomlagret gammel. Nå står den i Mer-menyen, under
    kontoen, sammen med en knapp som henter appen på nytt og tømmer
    mellomlageret. Renate 4. september 2026. */
-window.LME_VERSJON = '20260904.1408';
+window.LME_VERSJON = '20260904.1612';
 /* Den installerte appen har sitt eget mellomlager, adskilt fra nettleseren,
    og på iPhone tømmes det ikke av at du oppdaterer siden i Safari. Da kan du
    sitte med en gammel utgave uten å vite det, og feil jeg har rettet ser ut
@@ -1176,6 +1176,7 @@ function renderHookColors(){var tc=el("hook-textcolors"),bgc=el("hook-bgcolors")
         <button class="act-btn" id="karusell-knapp" style="display:none;width:100%;margin-top:8px;font-size:12px;" onclick="byggKarusell()">🎠 Lag bildene til karusellen</button>
         <div id="karusell-bilder" style="display:none;gap:8px;overflow-x:auto;margin-top:10px;padding-bottom:4px;"></div>
         <div id="avslutning-rad" style="display:none;margin-top:10px;background:var(--sage-l,#F4FBE4);border-radius:12px;padding:11px 13px;">
+          <label style="display:flex;align-items:center;gap:9px;cursor:pointer;margin-bottom:10px;"><input type="checkbox" id="forside-paa" checked onchange="settForside(this.checked)" style="width:auto;"><span style="font-size:12.5px;font-weight:700;color:var(--text);">Forsideslide med hooken</span></label>
           <label style="display:flex;align-items:center;gap:9px;cursor:pointer;"><input type="checkbox" id="avslutning-paa" checked onchange="settAvslutning(this.checked)" style="width:auto;"><span style="font-size:12.5px;font-weight:700;color:var(--text);">Avslutningsslide med bildet</span></label>
           <div style="font-size:11px;color:var(--text-s);line-height:1.6;margin:6px 0 6px;">Et siste bilde etter slidene, med forsidebildet og teksten under. Du kan flytte den dit du vil med pilene.</div>
           <input type="text" id="avslutning-tekst" placeholder="Folg for mer" oninput="settAvslutningTekst(this.value)"/>
@@ -6668,7 +6669,7 @@ const ARBEID_LS='lme_arbeid_v1';
 const ARBEID_FELT=['format','topic','customTopic','extra','cta','slideCount','ageGroup','targetGroup',
   'char','tone','goal','niche','timeLevel','platforms','result','slides','currentSlide',
   'reelHook','reelHookY','reelHookPos','hookStyle','imageUrl','imageUrlClean','imageUrlHook','hookBrent','imgAspect',
-  'slideStil','karusellOrden','karusellBilder','avslutningPaa','avslutningTekst','bildetekst','history'];
+  'slideStil','karusellOrden','karusellBilder','forsidePaa','avslutningPaa','avslutningTekst','bildetekst','history'];
 
 function _erStortBilde(v){ return typeof v==='string' && v.slice(0,5)==='data:' && v.length>2000; }
 function _fangArbeid(){
@@ -8611,8 +8612,15 @@ function karusellSlides(){
 }
 function harForsideSlide(){
   if(state.format!=='carousel') return false;
+  if(state.forsidePaa===false) return false;
   const hk=String((state&&state.reelHook)||'').trim();
   return !!hk && !!(state.imageUrlClean||state.imageUrl);
+}
+function settForside(paa){
+  state.forsidePaa=!!paa;
+  try{ tegnAvslutningUI(); }catch(e){}
+  try{ oppdaterSlideStil(-1); }catch(e){}
+  try{ lagreArbeid(); }catch(e){}
 }
 /* Karusellen er en ordnet liste: "f" er forsiden med hooken, tallene er
    slidetekstene. Rekkefolgen kan du flytte paa, og den huskes med arbeidet.
@@ -8685,6 +8693,7 @@ function tegnBildetekstUI(){
 function tegnAvslutningUI(){
   const rad=document.getElementById('avslutning-rad'); if(!rad) return;
   rad.style.display=(state.format==='carousel')?'block':'none';
+  const fp=document.getElementById('forside-paa'); if(fp) fp.checked=(state.forsidePaa!==false);
   const p=document.getElementById('avslutning-paa'); if(p) p.checked=(state.avslutningPaa!==false);
   const t=document.getElementById('avslutning-tekst');
   if(t && t.value!==(state.avslutningTekst||'')) t.value=state.avslutningTekst||'';
@@ -8729,6 +8738,47 @@ function karusellForsteTekst(){
   const o=karusellOrden(), s=karusellSlides();
   for(const bit of o){ if(bit!=='f' && bit!=='a' && String(s[bit]||'').trim()) return String(s[bit]); }
   return String(s[0]||'');
+}
+/* SLETT ET BILDE FRA KARUSELLEN
+   AI-en gjentar seg av og til, og da sto du med to like slides uten noen vei
+   ut. Naa ligger det en soppelboette under hvert bilde.
+   Renate 4. september 2026. */
+async function slettKarusellbilde(plass){
+  const o=karusellOrden();
+  const bit=o[plass];
+  if(bit===undefined) return;
+  if(bit==='f'){
+    if(!confirm('Fjerne forsiden med hooken?')) return;
+    settForside(false);
+    return;
+  }
+  if(bit==='a'){
+    if(!confirm('Fjerne avslutningssliden?')) return;
+    settAvslutning(false);
+    return;
+  }
+  const tekster=karusellSlides();
+  if(tekster.length<=1){ alert('Karusellen maa ha minst en slide.'); return; }
+  if(!confirm('Slette slide ' + (plass+1) + '?\n\n' + String(tekster[bit]||'').slice(0,120))) return;
+  /* Rekkefolgen din beholdes: den slettede tas ut, og de bak flyttes ett hakk
+     ned saa de fortsatt peker paa riktig tekst. */
+  state.karusellOrden = o.filter(function(x){ return x!==bit; })
+                         .map(function(x){ return (typeof x==='number' && x>bit) ? x-1 : x; });
+  const res=state.result;
+  state.slides.splice(bit,1);
+  if(Array.isArray(res) && res!==state.slides) res.splice(bit,1);
+  if(Array.isArray(state.slideStil)) state.slideStil.splice(bit,1);
+  if(state.currentSlide>=karusellAntall()) state.currentSlide=Math.max(0,karusellAntall()-1);
+  try{ renderResult(); }catch(e){}
+  try{ tegnBildetekstUI(); }catch(e){}
+  const st=document.getElementById('pub-bilde-status');
+  if(st) st.innerHTML='<div class="pub-status loading">Tegner karusellen paa nytt\u2026</div>';
+  await lagKarusellbilder();
+  try{ visKarusellbilder(); }catch(e){}
+  if(st) st.innerHTML='';
+  try{ const ov=document.getElementById('preview-overlay');
+       if(ov && ov.style.display!=='none') renderPreview(); }catch(e){}
+  try{ lagreArbeid(); }catch(e){}
 }
 /* Flytt bildet ett hakk fram eller tilbake, og tegn karusellen paa nytt. */
 async function flyttKarusellbilde(fra,steg){
@@ -8880,15 +8930,17 @@ function visKarusellbilder(){
   /* Rekkefolgen var laast til den AI-en fant paa. Naa flytter du hvert bilde
      dit du vil ha det, med pilene under. Renate 4. september 2026. */
   const knapp='background:var(--rose-l);border:1.5px solid var(--rose-m);color:var(--rose-d);'
-    +'border-radius:8px;width:32px;height:28px;font-size:14px;line-height:1;cursor:pointer;font-family:inherit;';
+    +'border-radius:8px;width:29px;height:28px;font-size:13px;line-height:1;cursor:pointer;font-family:inherit;';
   host.innerHTML=b.map(function(u,i){
     const fram='<button type="button" title="Flytt fram" style="'+knapp+(i===0?'opacity:.35;cursor:default;':'')
       +'" '+(i===0?'disabled':'onclick="flyttKarusellbilde('+i+',-1)"')+'>\u2039</button>';
     const bak='<button type="button" title="Flytt bak" style="'+knapp+(i===b.length-1?'opacity:.35;cursor:default;':'')
       +'" '+(i===b.length-1?'disabled':'onclick="flyttKarusellbilde('+i+',1)"')+'>\u203a</button>';
+    const slett='<button type="button" title="Slett" style="'+knapp
+      +'background:#FFF0F0;border-color:#F3C0C0;color:#C0392B;" onclick="slettKarusellbilde('+i+')">\u2715</button>';
     return '<div style="flex:none;width:104px;"><img src="'+u+'" style="width:100%;border-radius:10px;border:1.5px solid var(--rose-m);display:block;">'
       +'<div style="font-size:10px;color:var(--text-s);text-align:center;margin-top:3px;">'+(i+1)+'</div>'
-      +'<div style="display:flex;gap:6px;justify-content:center;margin-top:4px;">'+fram+bak+'</div></div>';
+      +'<div style="display:flex;gap:5px;justify-content:center;margin-top:4px;">'+fram+bak+slett+'</div></div>';
   }).join('');
 }
 /* Publiseringen bruker karusellbildene når formatet er karusell, og lager dem
