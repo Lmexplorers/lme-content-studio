@@ -857,6 +857,8 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
     <div id="installert-melding" style="display:none;background:var(--rose-l);border-radius:12px;padding:10px 13px;font-size:12px;color:var(--rose-d);font-weight:700;">Appen er installert. Du kjører den nå.</div>
     <div id="installer-boks">
       <button type="button" class="act-btn" id="installer-knapp" style="display:none;width:100%;background:var(--rose);color:#fff;border-color:var(--rose);font-weight:700;" onclick="installerAppen()">Last ned appen</button>
+      <button type="button" class="act-btn" id="installer-safari" style="display:none;width:100%;background:var(--rose);color:#fff;border-color:var(--rose);font-weight:700;" onclick="aapneISafari()">Åpne i Safari</button>
+      <button type="button" class="act-btn sage-btn" id="installer-kopier" style="width:100%;margin-top:8px;font-size:12px;" onclick="kopierAppLenke(this)">Kopier lenken</button>
       <div id="installer-hjelp" style="font-size:11.5px;color:var(--text-s);line-height:1.75;margin-top:10px;"></div>
       <div style="font-size:11px;color:var(--text-s);line-height:1.6;margin-top:10px;">Appen kommer også i App Store og Google Play etter hvert. Denne veien virker allerede i dag, på alt.</div>
     </div>
@@ -6266,6 +6268,48 @@ async function installerAppen(){
   try{ e.prompt(); await e.userChoice; }catch(_){}
   tegnInstaller();
 }
+/* Kortet ga bare tekst, ingen knapp å trykke på. Grunnen var Apple: på
+   iPhone er det bare Safari som får legge en app på hjemskjermen, og de gir
+   ingen installasjonsknapp uansett. Er du i Chrome på iPhone, finnes det
+   altså ingenting å trykke på i det hele tatt.
+
+   Nå får du en knapp som faktisk gjør noe uansett hvor du står: åpner Safari
+   når du er i feil nettleser på iPhone, eller kopierer lenken så du kan lime
+   den inn selv. Renate 4. september 2026. */
+function _appLenke(){ return location.origin + location.pathname; }
+function aapneISafari(){
+  /* x-safari-https åpner Safari fra en annen nettleser på iPhone. Virker den
+     ikke, kopierer vi lenken i stedet, så du aldri står igjen med ingenting. */
+  const u=_appLenke();
+  try{ location.href='x-safari-'+u; }catch(e){}
+  setTimeout(function(){
+    const k=document.getElementById('installer-kopier');
+    if(k && document.visibilityState==='visible') kopierAppLenke(k);
+  }, 900);
+}
+function kopierAppLenke(btn){
+  const u=_appLenke();
+  const ferdig=function(){
+    if(!btn) return;
+    const gml=btn.textContent;
+    btn.textContent='Lenken er kopiert';
+    setTimeout(function(){ btn.textContent=gml; }, 2200);
+  };
+  try{
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(u).then(ferdig).catch(function(){ _kopierGammeltVis(u); ferdig(); });
+      return;
+    }
+  }catch(e){}
+  _kopierGammeltVis(u); ferdig();
+}
+function _kopierGammeltVis(t){
+  try{
+    const f=document.createElement('textarea');
+    f.value=t; f.style.position='fixed'; f.style.opacity='0';
+    document.body.appendChild(f); f.select(); document.execCommand('copy'); f.remove();
+  }catch(e){}
+}
 function erInstallert(){
   try{
     return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone===true;
@@ -6295,12 +6339,20 @@ function tegnInstaller(){
   const iOS=/iPhone|iPad|iPod/.test(u) || (/Macintosh/.test(u) && berorer);
   const mac=/Macintosh/.test(u) && !berorer;
   const android=/Android/.test(u);
+  /* På iPhone er alle nettlesere WebKit, så vi kan ikke se etter motoren.
+     CriOS er Chrome, FxiOS er Firefox, EdgiOS er Edge. Ingen av dem får
+     legge noe på hjemskjermen. */
+  const iosAnnenNettleser = iOS && /CriOS|FxiOS|EdgiOS|OPiOS|GSA/.test(u);
+  const safariKnapp=document.getElementById('installer-safari');
+  if(safariKnapp) safariKnapp.style.display=iosAnnenNettleser?'block':'none';
   const hjelp=document.getElementById('installer-hjelp');
   if(!hjelp) return;
-  if(iOS) hjelp.innerHTML='<b>iPhone og iPad:</b> trykk Del-knappen nederst i Safari, bla ned og velg "Legg til på Hjem-skjerm".';
-  else if(mac) hjelp.innerHTML='<b>Mac:</b> åpne siden i Safari, trykk Del i verktøylinjen og velg "Legg til i Dock". I Chrome finner du det under de tre prikkene, "Cast, lagre og del", "Installer side som app".';
-  else if(android) hjelp.innerHTML='<b>Android:</b> trykk knappen over, eller velg "Installer app" i menyen med de tre prikkene.';
-  else hjelp.innerHTML='<b>Windows:</b> i Chrome eller Edge dukker et installasjonsikon opp helt til høyre i adressefeltet. Trykk på det, eller bruk knappen over.';
+  if(iosAnnenNettleser) hjelp.innerHTML='<b>Du er i Chrome på iPhone.</b> På iPhone er det bare Safari som får lov til å legge en app på hjemskjermen, det er Apples regel, ikke min. Trykk "Åpne i Safari" over, og så Del-knappen nederst, og "Legg til på Hjem-skjerm".';
+  else if(iOS) hjelp.innerHTML='<b>Du er i Safari.</b> Trykk Del-knappen nederst på skjermen, den med pilen som peker opp, bla ned i listen og velg "Legg til på Hjem-skjerm". Da ligger LME Autopilot som et ikon sammen med de andre appene dine.';
+  else if(mac) hjelp.innerHTML='<b>Mac:</b> i Safari trykker du Del i verktøylinjen og velger "Legg til i Dock". I Chrome ligger det under de tre prikkene, "Cast, lagre og del", "Installer side som app".';
+  else if(android) hjelp.innerHTML='<b>Android:</b> trykk "Last ned appen" over. Er knappen borte, velg "Installer app" i menyen med de tre prikkene.';
+  else if(/Chrome|Edg|Chromium/.test(u)) hjelp.innerHTML='<b>Windows:</b> i Chrome eller Edge dukker et lite installasjonsikon opp helt til høyre i adressefeltet. Trykk på det. Kommer det ikke opp, ligger valget under de tre prikkene, "Cast, lagre og del", "Installer side som app".';
+  else hjelp.innerHTML='Åpne denne siden i Chrome, Edge eller Safari, så kan du legge den til som app.';
 }
 /* HVORFOR INGENTING BLE LAGRET
    Jeg hevet IndexedDB fra versjon 3 til 4 for å legge til lageret for utkast.
