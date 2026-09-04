@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Last ned LME Autopilot</title>
+<link rel="manifest" href="/manifest.json"/>
+<meta name="theme-color" content="#F02478">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="LME Autopilot">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Playpen+Sans:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+@font-face{font-family:'Sasson Montessori';src:url('/SassoonMontessori.woff2') format('woff2'),url('/SassoonMontessori.ttf') format('truetype');font-display:swap;}
+:root{--rose:#F02478;--rose-d:#C81860;--rose-m:#F7A8C4;--rose-l:#FCE4EE;--warm:#FFFBEF;--border:#E7DDE3;--text:#1A1A1A;--text-s:#7A6B72;
+--font-head:'Playpen Sans',system-ui,sans-serif;--font-body:'Sasson Montessori','Playpen Sans',system-ui,sans-serif;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:var(--font-body);background:linear-gradient(135deg,var(--rose-l) 0%,var(--warm) 100%);min-height:100vh;color:var(--text);padding:22px 16px 40px;}
+.wrap{max-width:460px;margin:0 auto;}
+.topp{display:flex;align-items:center;gap:12px;margin-bottom:18px;}
+.logo{width:56px;height:56px;border-radius:14px;overflow:hidden;background:#fff;box-shadow:0 4px 16px -8px rgba(90,56,37,.5);flex-shrink:0;}
+.logo img{width:100%;height:100%;object-fit:contain;}
+h1{font-family:var(--font-head);font-weight:800;font-size:24px;line-height:1.15;color:var(--rose-d);}
+.tag{font-size:12.5px;color:var(--text-s);margin-top:3px;}
+.kort{background:#fff;border:1.5px solid var(--border);border-radius:18px;padding:18px;margin-bottom:14px;}
+h2{font-family:var(--font-head);font-weight:800;font-size:16px;color:var(--rose-d);margin-bottom:8px;}
+p{font-size:13px;line-height:1.7;color:var(--text-s);}
+p+p{margin-top:9px;}
+p b{color:var(--text);}
+.knapp{display:block;width:100%;margin-top:12px;padding:13px;border:none;border-radius:999px;background:var(--rose);color:#fff;font-family:var(--font-body);font-size:14px;font-weight:700;cursor:pointer;text-align:center;text-decoration:none;}
+.knapp.rolig{background:#fff;border:1.5px solid var(--border);color:var(--text-s);}
+.steg{counter-reset:s;list-style:none;margin-top:10px;}
+.steg li{counter-increment:s;position:relative;padding:9px 0 9px 34px;font-size:13px;line-height:1.65;border-top:1px solid var(--border);}
+.steg li:first-child{border-top:none;}
+.steg li::before{content:counter(s);position:absolute;left:0;top:9px;width:23px;height:23px;border-radius:50%;background:var(--rose-l);color:var(--rose-d);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.ok{background:var(--rose-l);border-radius:12px;padding:12px 14px;font-size:13px;font-weight:700;color:var(--rose-d);}
+.sprak{display:flex;gap:7px;justify-content:flex-end;margin-bottom:14px;}
+.sprak button{border:1.5px solid var(--border);background:#fff;color:var(--text-s);border-radius:999px;padding:5px 13px;font-family:var(--font-body);font-size:12px;cursor:pointer;}
+.sprak button.on{background:var(--rose);border-color:var(--rose);color:#fff;font-weight:700;}
+.bunn{text-align:center;margin-top:18px;}
+.bunn a{color:var(--rose-d);font-size:12.5px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="sprak"><button id="sp-no" class="on" onclick="switchLanguage('no')">Norsk</button><button id="sp-en" onclick="switchLanguage('en')">English</button></div>
+
+  <div class="topp">
+    <div class="logo"><img src="/images/lme-logo.png" alt="LME"></div>
+    <div>
+      <h1 data-no="Last ned LME Autopilot" data-en="Download LME Autopilot">Last ned LME Autopilot</h1>
+      <div class="tag" data-no="Legg appen på hjemskjermen eller skrivebordet" data-en="Put the app on your home screen or desktop">Legg appen på hjemskjermen eller skrivebordet</div>
+    </div>
+  </div>
+
+  <div class="kort" id="kort-installert" style="display:none;">
+    <div class="ok" data-no="Appen er installert. Du kjører den nå." data-en="The app is installed. You are running it now.">Appen er installert. Du kjører den nå.</div>
+    <a class="knapp" href="/" data-no="Åpne LME Autopilot" data-en="Open LME Autopilot">Åpne LME Autopilot</a>
+  </div>
+
+  <div class="kort" id="kort-installer">
+    <h2 id="tittel" data-no="Slik gjør du det" data-en="How to do it">Slik gjør du det</h2>
+    <div id="hjelp"></div>
+    <button type="button" class="knapp" id="knapp-installer" style="display:none;" onclick="installerAppen()" data-no="Last ned appen" data-en="Download the app">Last ned appen</button>
+    <button type="button" class="knapp" id="knapp-safari" style="display:none;" onclick="aapneISafari()" data-no="Åpne i Safari" data-en="Open in Safari">Åpne i Safari</button>
+    <button type="button" class="knapp rolig" id="knapp-kopier" onclick="kopierLenke(this)" data-no="Kopier lenken" data-en="Copy the link">Kopier lenken</button>
+  </div>
+
+  <div class="kort">
+    <h2 data-no="Hvorfor det ser forskjellig ut" data-en="Why it looks different everywhere">Hvorfor det ser forskjellig ut</h2>
+    <p data-no="På iPhone og iPad er det bare Safari som får legge en app på hjemskjermen. Det er Apples regel, og den gjelder alle nettsteder, ikke bare dette. Er du i Chrome eller Firefox på iPhone, må du innom Safari først." data-en="On iPhone and iPad only Safari is allowed to put an app on the home screen. That is Apple's rule, and it applies to every website, not just this one. If you are in Chrome or Firefox on iPhone, you have to go through Safari first.">På iPhone og iPad er det bare Safari som får legge en app på hjemskjermen. Det er Apples regel, og den gjelder alle nettsteder, ikke bare dette. Er du i Chrome eller Firefox på iPhone, må du innom Safari først.</p>
+    <p data-no="I Chrome, Edge og på Android får du en ekte installasjonsknapp. Appen er den samme uansett hvilken vei du går inn." data-en="In Chrome, Edge and on Android you get a real install button. The app is the same whichever way you come in.">I Chrome, Edge og på Android får du en ekte installasjonsknapp. Appen er den samme uansett hvilken vei du går inn.</p>
+  </div>
+
+  <div class="bunn"><a href="/" data-no="Til LME Autopilot" data-en="To LME Autopilot">Til LME Autopilot</a></div>
+</div>
+
+<script>
+/* Egen installasjonsside, uten innlogging.
+   Trykket du "Åpne i Safari" inne i appen, kom du til appen på nytt, og der
+   møtte du innloggingen mens installasjonskortet lå bak den. Denne siden
+   krever ingenting, og lenker manifestet, så "Legg til på Hjem-skjerm"
+   installerer LME Autopilot og ikke bare en snarvei til denne siden.
+   Renate 4. september 2026. */
+var TEKST = {
+  iosAnnen: {
+    no: '<p><b>Du er i Chrome på iPhone.</b> På iPhone er det bare Safari som får legge en app på hjemskjermen. Trykk knappen under, så åpner Safari denne siden, og der fullfører du.</p>',
+    en: '<p><b>You are in Chrome on iPhone.</b> On iPhone only Safari may put an app on the home screen. Tap the button below, Safari opens this page, and you finish there.</p>'
+  },
+  iosSafari: {
+    no: '<p><b>Du er i Safari, og da er du på rett sted.</b></p><ol class="steg"><li>Trykk Del-knappen nederst på skjermen, firkanten med pilen som peker opp.</li><li>Bla nedover i listen som kommer opp.</li><li>Velg "Legg til på Hjem-skjerm".</li><li>Trykk "Legg til" oppe til høyre.</li></ol><p>Nå ligger LME Autopilot som et ikon sammen med de andre appene dine.</p>',
+    en: '<p><b>You are in Safari, so you are in the right place.</b></p><ol class="steg"><li>Tap the Share button at the bottom of the screen, the square with the arrow pointing up.</li><li>Scroll down the list that appears.</li><li>Choose "Add to Home Screen".</li><li>Tap "Add" at the top right.</li></ol><p>LME Autopilot now sits as an icon with your other apps.</p>'
+  },
+  macSafari: {
+    no: '<p><b>Mac, Safari.</b></p><ol class="steg"><li>Trykk Del-knappen i verktøylinjen øverst.</li><li>Velg "Legg til i Dock".</li><li>Trykk "Legg til".</li></ol>',
+    en: '<p><b>Mac, Safari.</b></p><ol class="steg"><li>Click the Share button in the toolbar at the top.</li><li>Choose "Add to Dock".</li><li>Click "Add".</li></ol>'
+  },
+  macChrome: {
+    no: '<p><b>Mac, Chrome.</b> Kommer ikke knappen under opp, finner du valget under de tre prikkene oppe til høyre, "Cast, lagre og del", "Installer side som app".</p>',
+    en: '<p><b>Mac, Chrome.</b> If the button below does not appear, the option is under the three dots at the top right, "Cast, save and share", "Install page as app".</p>'
+  },
+  windows: {
+    no: '<p><b>Windows.</b> I Chrome og Edge dukker det opp et lite installasjonsikon helt til høyre i adressefeltet. Trykk på det, eller bruk knappen under. Er ingen av delene der, ligger valget under de tre prikkene, "Cast, lagre og del", "Installer side som app".</p>',
+    en: '<p><b>Windows.</b> In Chrome and Edge a small install icon appears at the far right of the address bar. Click it, or use the button below. If neither is there, the option is under the three dots, "Cast, save and share", "Install page as app".</p>'
+  },
+  android: {
+    no: '<p><b>Android.</b> Trykk knappen under. Er den ikke der, velg "Installer app" i menyen med de tre prikkene.</p>',
+    en: '<p><b>Android.</b> Tap the button below. If it is not there, choose "Install app" in the three-dot menu.</p>'
+  },
+  annet: {
+    no: '<p>Åpne denne siden i Chrome, Edge eller Safari, så kan du legge den til som app. Kopier lenken under og lim den inn der.</p>',
+    en: '<p>Open this page in Chrome, Edge or Safari to add it as an app. Copy the link below and paste it there.</p>'
+  }
+};
+
+var LANG = 'no', NOKKEL = 'annet', hendelse = null;
+
+function switchLanguage(l){
+  LANG = l;
+  document.documentElement.lang = l;
+  document.getElementById('sp-no').classList.toggle('on', l === 'no');
+  document.getElementById('sp-en').classList.toggle('on', l === 'en');
+  document.querySelectorAll('[data-no][data-en]').forEach(function(e){
+    var v = e.getAttribute('data-' + l);
+    if (v !== null) e.textContent = v;
+  });
+  document.getElementById('hjelp').innerHTML = TEKST[NOKKEL][l];
+  try { localStorage.setItem('lme_lang', l); } catch (e) {}
+}
+
+function erInstallert(){
+  try { return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true; }
+  catch (e) { return false; }
+}
+
+function hvilken(){
+  var u = navigator.userAgent || '';
+  var berorer = (navigator.maxTouchPoints || 0) > 1;
+  var iOS = /iPhone|iPad|iPod/.test(u) || (/Macintosh/.test(u) && berorer);
+  var mac = /Macintosh/.test(u) && !berorer;
+  if (iOS) return /CriOS|FxiOS|EdgiOS|OPiOS|GSA/.test(u) ? 'iosAnnen' : 'iosSafari';
+  if (mac) return /Chrome|Chromium|Edg/.test(u) ? 'macChrome' : 'macSafari';
+  if (/Android/.test(u)) return 'android';
+  if (/Windows/.test(u)) return 'windows';
+  if (/Chrome|Chromium|Edg/.test(u)) return 'windows';
+  return 'annet';
+}
+
+function tegn(){
+  var inst = erInstallert();
+  document.getElementById('kort-installert').style.display = inst ? 'block' : 'none';
+  document.getElementById('kort-installer').style.display = inst ? 'none' : 'block';
+  if (inst) return;
+  NOKKEL = hvilken();
+  document.getElementById('hjelp').innerHTML = TEKST[NOKKEL][LANG];
+  document.getElementById('knapp-safari').style.display = (NOKKEL === 'iosAnnen') ? 'block' : 'none';
+  document.getElementById('knapp-installer').style.display = hendelse ? 'block' : 'none';
+}
+
+window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); hendelse = e; tegn(); });
+window.addEventListener('appinstalled', function(){ hendelse = null; tegn(); });
+
+async function installerAppen(){
+  if (!hendelse) return;
+  var e = hendelse; hendelse = null;
+  try { e.prompt(); await e.userChoice; } catch (_) {}
+  tegn();
+}
+
+function lenken(){ return location.origin + location.pathname; }
+
+function aapneISafari(){
+  try { location.href = 'x-safari-' + lenken(); } catch (e) {}
+  setTimeout(function(){
+    if (document.visibilityState === 'visible') kopierLenke(document.getElementById('knapp-kopier'));
+  }, 900);
+}
+
+function kopierLenke(btn){
+  var u = lenken();
+  var ferdig = function(){
+    if (!btn) return;
+    var gml = btn.textContent;
+    btn.textContent = (LANG === 'no') ? 'Lenken er kopiert' : 'Link copied';
+    setTimeout(function(){ btn.textContent = gml; }, 2200);
+  };
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(u).then(ferdig).catch(function(){ gammelKopi(u); ferdig(); });
+      return;
+    }
+  } catch (e) {}
+  gammelKopi(u); ferdig();
+}
+
+function gammelKopi(t){
+  try {
+    var f = document.createElement('textarea');
+    f.value = t; f.style.position = 'fixed'; f.style.opacity = '0';
+    document.body.appendChild(f); f.select(); document.execCommand('copy'); f.remove();
+  } catch (e) {}
+}
+
+(function start(){
+  /* Norsk er utgangspunktet, engelsk er oversettelsen. Har du valgt engelsk
+     før, huskes det. */
+  var l = null;
+  try { l = localStorage.getItem('lme_lang'); } catch (e) {}
+  if (l !== 'no' && l !== 'en') l = 'no';
+  tegn();
+  switchLanguage(l);
+  if ('serviceWorker' in navigator) { try { navigator.serviceWorker.register('/sw.js'); } catch (e) {} }
+})();
+</script>
+</body>
+</html>

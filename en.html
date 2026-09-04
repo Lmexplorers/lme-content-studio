@@ -860,6 +860,7 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
       <button type="button" class="act-btn" id="installer-safari" style="display:none;width:100%;background:var(--rose);color:#fff;border-color:var(--rose);font-weight:700;" onclick="aapneISafari()">Open in Safari</button>
       <button type="button" class="act-btn sage-btn" id="installer-kopier" style="width:100%;margin-top:8px;font-size:12px;" onclick="kopierAppLenke(this)">Copy the link</button>
       <div id="installer-hjelp" style="font-size:11.5px;color:var(--text-s);line-height:1.75;margin-top:10px;"></div>
+      <a class="act-btn sage-btn" href="/installer.html" style="display:block;width:100%;margin-top:10px;font-size:12px;text-align:center;text-decoration:none;">Open the install page</a>
       <div style="font-size:11px;color:var(--text-s);line-height:1.6;margin-top:10px;">The app is coming to the App Store and Google Play later. This route already works today, everywhere.</div>
     </div>
   </div>
@@ -5854,7 +5855,10 @@ async function installerAppen(){
    at all. Now you get a button that actually does something wherever you
    are: it opens Safari when you are in the wrong browser on iPhone, or
    copies the link so you can paste it yourself. */
-function _appLenke(){ return location.origin + location.pathname; }
+/* Åpne i Safari pekte på appen selv, og der møter du innloggingen mens
+   installasjonskortet ligger bak den. Nå peker den på /installer.html,
+   som ikke krever noe. Renate 4. september 2026. */
+function _appLenke(){ return location.origin + '/installer.html'; }
 function aapneISafari(){
   /* x-safari-https åpner Safari fra en annen nettleser på iPhone. Virker den
      ikke, kopierer vi lenken i stedet, så du aldri står igjen med ingenting. */
