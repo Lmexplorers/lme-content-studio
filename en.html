@@ -643,7 +643,7 @@ const WRITING_RULES_EN = "WRITING RULES (always follow): Use straight quotes, ne
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Log in</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Log out</button>
-          <div class="nav-konto-ver">Version 20260904.0755</div>
+          <div class="nav-konto-ver">Version 20260904.0858</div>
           <button class="nav-konto-btn ut" onclick="closeNavMenu();hentAppenPaaNytt()">Check for a new version</button>
         </div>
       </div>
@@ -745,7 +745,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    looking at the new build or a cached old one. It now sits in the More menu,
    under the account, with a button that refetches the app and clears the
    cache. */
-window.LME_VERSJON = '20260904.0755';
+window.LME_VERSJON = '20260904.0858';
 /* The installed app has its own cache, separate from the browser, and on
    iPhone it is not cleared by refreshing the page in Safari. So you can be
    sitting on an old build without knowing, and bugs I have fixed look like
@@ -2635,6 +2635,12 @@ function updateSlidesCard(){
 }
 function updateReelSection(){
   try{ renderSchedPlatforms(); }catch(e){}
+  /* The carousel images are built as soon as the text is ready, so the strip
+     is there and you see what your choices do without pressing anything. */
+  try{ if(state.format==='carousel' && state.slides && state.slides.length>1
+        && !(state.karusellBilder&&state.karusellBilder.length)){
+    setTimeout(function(){ lagKarusellbilder().then(function(){ try{ visKarusellbilder(); }catch(e){} }).catch(function(){}); }, 60);
+  } }catch(e){}
   try{ const kk=document.getElementById('karusell-knapp'); if(kk) kk.style.display=(state.format==='carousel')?'block':'none'; if(state.format!=='carousel'){ const kb=document.getElementById('karusell-bilder'); if(kb){ kb.style.display='none'; } } else { visKarusellbilder(); } }catch(e){}
   const isReel = state.format==='reel';
   const isStory = state.format==='story';
@@ -3780,9 +3786,13 @@ let _stilTimer=null;
 function oppdaterSlideStil(i){
   try{ tegnSlideKnapper(); }catch(e){}
   try{ lagreArbeid(); }catch(e){}
-  /* Bildene lages på nytt bare når de allerede finnes, så du ser endringen
-     med en gang uten at det skjer noe når du ikke har laget dem ennå. */
-  if(!(state.karusellBilder&&state.karusellBilder.length)) return;
+  /* I used to redraw the images only if they already existed. If you had not
+     pressed "Build the carousel images" first, colour, font and "Use on all"
+     did nothing visible, and the buttons looked dead. The images are now
+     built on the first change. */
+  if(state.format!=='carousel') return;
+  const slides=(state.slides||[]).filter(function(t){ return String(t||'').trim(); });
+  if(!slides.length) return;
   clearTimeout(_stilTimer);
   _stilTimer=setTimeout(async function(){
     await lagKarusellbilder();

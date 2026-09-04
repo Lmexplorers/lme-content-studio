@@ -643,7 +643,7 @@ const SKRIVEREGLER_NO = "NORSKE SKRIVEREGLER (følg alltid): Bruk rette anførse
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Logg inn</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Logg ut</button>
-          <div class="nav-konto-ver">Versjon 20260904.0755</div>
+          <div class="nav-konto-ver">Versjon 20260904.0858</div>
           <button class="nav-konto-btn ut" onclick="closeNavMenu();hentAppenPaaNytt()">Se etter ny versjon</button>
         </div>
       </div>
@@ -745,7 +745,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    nye utgaven eller en mellomlagret gammel. Nå står den i Mer-menyen, under
    kontoen, sammen med en knapp som henter appen på nytt og tømmer
    mellomlageret. Renate 4. september 2026. */
-window.LME_VERSJON = '20260904.0755';
+window.LME_VERSJON = '20260904.0858';
 /* Den installerte appen har sitt eget mellomlager, adskilt fra nettleseren,
    og på iPhone tømmes det ikke av at du oppdaterer siden i Safari. Da kan du
    sitte med en gammel utgave uten å vite det, og feil jeg har rettet ser ut
@@ -2937,6 +2937,12 @@ function updateSlidesCard(){
 }
 function updateReelSection(){
   try{ renderSchedPlatforms(); }catch(e){}
+  /* Karusellbildene lages med en gang teksten er klar, så stripen står der
+     og du ser hva valgene dine gjør uten å måtte trykke noe først. */
+  try{ if(state.format==='carousel' && state.slides && state.slides.length>1
+        && !(state.karusellBilder&&state.karusellBilder.length)){
+    setTimeout(function(){ lagKarusellbilder().then(function(){ try{ visKarusellbilder(); }catch(e){} }).catch(function(){}); }, 60);
+  } }catch(e){}
   try{ const kk=document.getElementById('karusell-knapp'); if(kk) kk.style.display=(state.format==='carousel')?'block':'none'; if(state.format!=='carousel'){ const kb=document.getElementById('karusell-bilder'); if(kb){ kb.style.display='none'; } } else { visKarusellbilder(); } }catch(e){}
   const isReel = state.format==='reel';
   const isStory = state.format==='story';
@@ -4092,9 +4098,13 @@ let _stilTimer=null;
 function oppdaterSlideStil(i){
   try{ tegnSlideKnapper(); }catch(e){}
   try{ lagreArbeid(); }catch(e){}
-  /* Bildene lages på nytt bare når de allerede finnes, så du ser endringen
-     med en gang uten at det skjer noe når du ikke har laget dem ennå. */
-  if(!(state.karusellBilder&&state.karusellBilder.length)) return;
+  /* Før tegnet jeg bildene på nytt bare hvis de allerede fantes. Hadde du
+     ikke trykket "Lag bildene til karusellen" først, gjorde farge, font og
+     "Bruk på alle" ingenting synlig, og det så ut som knappene var døde.
+     Nå lages bildene ved første endring. Renate 4. september 2026. */
+  if(state.format!=='carousel') return;
+  const slides=(state.slides||[]).filter(function(t){ return String(t||'').trim(); });
+  if(!slides.length) return;
   clearTimeout(_stilTimer);
   _stilTimer=setTimeout(async function(){
     await lagKarusellbilder();
