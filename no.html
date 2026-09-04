@@ -638,7 +638,7 @@ const SKRIVEREGLER_NO = "NORSKE SKRIVEREGLER (følg alltid): Bruk rette anførse
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Logg inn</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Logg ut</button>
-          <div class="nav-konto-ver">Versjon 20260904.0735</div>
+          <div class="nav-konto-ver">Versjon 20260904.0743</div>
           <button class="nav-konto-btn ut" onclick="closeNavMenu();hentAppenPaaNytt()">Se etter ny versjon</button>
         </div>
       </div>
@@ -739,7 +739,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    nye utgaven eller en mellomlagret gammel. Nå står den i Mer-menyen, under
    kontoen, sammen med en knapp som henter appen på nytt og tømmer
    mellomlageret. Renate 4. september 2026. */
-window.LME_VERSJON = '20260904.0735';
+window.LME_VERSJON = '20260904.0743';
 /* Den installerte appen har sitt eget mellomlager, adskilt fra nettleseren,
    og på iPhone tømmes det ikke av at du oppdaterer siden i Safari. Da kan du
    sitte med en gammel utgave uten å vite det, og feil jeg har rettet ser ut
@@ -4051,13 +4051,27 @@ function _lysStyrke(hex){
   const r=parseInt(h.slice(0,2),16), g=parseInt(h.slice(2,4),16), b=parseInt(h.slice(4,6),16);
   return (0.299*r+0.587*g+0.114*b)/255;
 }
+/* Du kunne velge bakgrunn og hvor teksten sto, men ikke hvordan den så ut.
+   Nå velger du også tekstfarge, font og om den skal være fet, per slide.
+
+   Tekstfargen står på Auto til du velger noe: da settes den til svart eller
+   hvit etter hvor lys bakgrunnen er. Velger du en farge, er det din farge som
+   gjelder, uten at jeg overstyrer den. Renate 4. september 2026. */
+const SLIDE_FONTER=[['playpen',"'Playpen Sans'",'Playpen'],['anton',"'Anton'",'Anton'],['luckiest',"'Luckiest Guy'",'Luckiest'],['fredoka',"'Fredoka'",'Fredoka'],['bebas',"'Bebas Neue'",'Bebas']];
+function slideFontFamilie(n){
+  const r=SLIDE_FONTER.find(function(x){ return x[0]===n; });
+  return (r?r[1]:"'Playpen Sans'")+",sans-serif";
+}
+function settSlideTekstfarge(i,v){ slideStil(i).tf=v; oppdaterSlideStil(i); }
+function settSlideFont(i,v){ slideStil(i).font=v; oppdaterSlideStil(i); }
+function settSlideFet(i){ const s=slideStil(i); s.fet=(s.fet===false); oppdaterSlideStil(i); }
 function settSlideMerke(i,v){ slideStil(i).merke=v; oppdaterSlideStil(i); }
 function settSlideBg(i,v){ slideStil(i).bg=v; oppdaterSlideStil(i); }
 function settSlidePos(i,v){ slideStil(i).pos=v; oppdaterSlideStil(i); }
 function settAlleSlider(i){
   const s=slideStil(i);
   const n=(state.slides||[]).length;
-  for(let j=0;j<n;j++){ slideStil(j).bg=s.bg; slideStil(j).pos=s.pos; }
+  for(let j=0;j<n;j++){ const d=slideStil(j); d.bg=s.bg; d.pos=s.pos; d.tf=s.tf; d.font=s.font; d.fet=s.fet; d.merke=s.merke; }
   oppdaterSlideStil(-1);
 }
 let _stilTimer=null;
@@ -4078,8 +4092,14 @@ function slideKnapperHtml(i){
   const f=SLIDE_FARGER.map(function(c){
     return '<span class="sl-farge'+(s.bg===c[1]?' on':'')+'" title="'+c[0]+'" style="background:'+c[1]+'" onclick="settSlideBg('+i+',\''+c[1]+'\')"></span>';
   }).join('');
+  const tf=SLIDE_FARGER.map(function(c){
+    return '<span class="sl-farge'+(s.tf===c[1]?' on':'')+'" title="'+c[0]+'" style="background:'+c[1]+'" onclick="settSlideTekstfarge('+i+',\''+c[1]+'\')"></span>';
+  }).join('');
   const pos=[['topp','Topp'],['midt','Midt'],['bunn','Bunn']].map(function(p){
     return '<button type="button" class="sl-pos'+(s.pos===p[0]?' on':'')+'" onclick="settSlidePos('+i+',\''+p[0]+'\')">'+p[1]+'</button>';
+  }).join('');
+  const fonter=SLIDE_FONTER.map(function(x){
+    return '<button type="button" class="sl-pos'+(((s.font||'playpen')===x[0])?' on':'')+'" style="font-family:'+x[1]+',sans-serif;" onclick="settSlideFont('+i+',\''+x[0]+'\')">'+x[2]+'</button>';
   }).join('');
   /* Merket følger standardvalget i Innstillinger, men kan slås på eller av
      for denne ene sliden. */
@@ -4090,9 +4110,14 @@ function slideKnapperHtml(i){
     +'<div class="sl-rad"><span class="sl-lab">Bakgrunn</span>'
       +'<button type="button" class="sl-pos'+(s.bg==='bilde'?' on':'')+'" onclick="settSlideBg('+i+',\'bilde\')">Bilde</button>'
       +f+'</div>'
-    +'<div class="sl-rad"><span class="sl-lab">Tekst</span>'+pos
-      +'<button type="button" class="sl-alle" onclick="settAlleSlider('+i+')">Bruk på alle</button></div>'
+    +'<div class="sl-rad"><span class="sl-lab">Tekst</span>'+pos+'</div>'
+    +'<div class="sl-rad"><span class="sl-lab">Tekstfarge</span>'
+      +'<button type="button" class="sl-pos'+(!s.tf?' on':'')+'" onclick="settSlideTekstfarge('+i+',\'\')">Auto</button>'
+      +tf+'</div>'
+    +'<div class="sl-rad"><span class="sl-lab">Font</span>'+fonter
+      +'<button type="button" class="sl-pos'+((s.fet!==false)?' on':'')+'" onclick="settSlideFet('+i+')">Fet</button></div>'
     +(merkeBilde()?('<div class="sl-rad"><span class="sl-lab">Merke</span>'+merkeValg+'</div>'):'')
+    +'<div class="sl-rad"><button type="button" class="sl-alle" style="margin-left:0;" onclick="settAlleSlider('+i+')">Bruk på alle</button></div>'
     +'</div>';
 }
 function tegnSlideKnapper(){
@@ -8413,8 +8438,12 @@ async function lagKarusellbilder(){
   const slides=(state.slides||[]).filter(function(t){ return String(t||'').trim(); });
   if(!slides.length) return [];
   const W=1080, H=1350;
-  const fam="'Playpen Sans',sans-serif";
-  try{ await document.fonts.load('800 60px '+fam); }catch(e){}
+  /* Alle fontene lastes én gang, så den du velger per slide faktisk tegnes og
+     ikke faller tilbake til systemfonten. */
+  for(const fnt of SLIDE_FONTER){
+    try{ await document.fonts.load('800 60px '+fnt[1]+',sans-serif'); }catch(e){}
+    try{ await document.fonts.load('500 60px '+fnt[1]+',sans-serif'); }catch(e){}
+  }
   const bg=await _last(state.imageUrlClean||state.imageUrl);
   const merke=merkeBilde()?await _last(merkeBilde()):null;
   const ut=[];
@@ -8431,10 +8460,12 @@ async function lagKarusellbilder(){
       tekstFarge=_lysStyrke(stil.bg)>0.62?'#1A1A1A':'#ffffff';
     } else { _tegnBakgrunn(ctx,W,H,null); }
     /* Teksten krymper til den får plass, i stedet for å renne ut av bildet. */
+    const fam=slideFontFamilie(stil.font||'playpen');
+    const vekt=(stil.fet===false)?'500':'800';
     const maksB=W*0.80, maksH=H*0.62;
     let fs=76, linjer=[];
     for(let n=0;n<24;n++){
-      ctx.font='800 '+fs+'px '+fam;
+      ctx.font=vekt+' '+fs+'px '+fam;
       const ord=String(slides[i]).replace(/\s+/g,' ').trim().split(' ');
       linjer=[]; let cur='';
       for(const w of ord){ const t=cur?cur+' '+w:w; if(ctx.measureText(t).width>maksB&&cur){ linjer.push(cur); cur=w; } else cur=t; }
@@ -8449,7 +8480,8 @@ async function lagKarusellbilder(){
           : stil.pos==='bunn' ? (H*0.86-blokk)
           : (H-blokk)/2;
     y=Math.max(H*0.06, Math.min(y, H-blokk-H*0.10));
-    ctx.fillStyle=tekstFarge;
+    /* Din farge hvis du har valgt en. Auto bare når du ikke har. */
+    ctx.fillStyle=stil.tf||tekstFarge;
     /* Skygge bare når teksten ligger på et bilde. På ensfarget bakgrunn blir
        den bare grumsete. */
     if(brukBilde){ ctx.shadowColor='rgba(0,0,0,.55)'; ctx.shadowBlur=fs*0.32; ctx.shadowOffsetY=fs*0.06; }
@@ -8457,7 +8489,7 @@ async function lagKarusellbilder(){
     ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetY=0;
     /* Sidetall, så leseren vet at det er mer å sveipe til. */
     ctx.font="600 30px 'Sasson Montessori','Playpen Sans',sans-serif";
-    ctx.fillStyle=(tekstFarge==='#1A1A1A')?'rgba(26,26,26,.75)':'rgba(255,255,255,.9)';
+    ctx.fillStyle=_lysStyrke(stil.tf||tekstFarge)>0.5?'rgba(255,255,255,.9)':'rgba(26,26,26,.75)';
     ctx.fillText('Slide %s av %s'.replace('%s',String(i+1)).replace('%s',String(slides.length)), W/2, H-78);
     await drawAdBadgeAsync(ctx,W,H);
     if(merkePaaSlide(i,slides.length)) await tegnMerke(ctx,W,H,merke);
