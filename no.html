@@ -897,7 +897,7 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
       </div>
     </div>
 
-    <script>(function(){function el(i){return document.getElementById(i);} var audio=null;function reRenderPv(){var ov=el("preview-overlay");if(ov&&ov.style.display!=="none"&&typeof renderPreview==="function"){try{renderPreview();}catch(e){}}}function hs(){if(typeof state==="undefined")return null;if(!state.hookStyle)state.hookStyle={font:"'Playpen Sans'",size:24,color:"#ffffff",bg:"none"};return state.hookStyle;}function escH(s){return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}/* En ramme rundt hele hooken, ikke en boks per linje. */window.hookCss=function(){var h=hs()||{font:"'Playpen Sans'",size:24,color:"#ffffff",bg:"none"};var medBg=h.bg&&h.bg!=="none";var farge=(typeof lesbarFarge==="function")?lesbarFarge(h.color,medBg?h.bg:null):(h.color||"#ffffff");var c="font-family:"+h.font+",'Playpen Sans',sans-serif;font-weight:800;font-size:"+h.size+"px;color:"+farge+";line-height:1.32;text-wrap:balance;";if(medBg){c+="display:inline-block;background:"+h.bg+";padding:.42em .62em;border-radius:16px;max-width:78%;";}else{c+="display:inline-block;max-width:80%;text-shadow:0 2px 12px rgba(0,0,0,.72);";}return c;};window.updateReelHook=function(){var o=el("reel-hook-overlay"),t=el("reel-hook-text");var v=t?t.value:"";if(o)o.innerHTML=v?'<span style="'+hookCss()+'">'+escH(v)+'</span>':'';if(typeof state!=="undefined"){hs();state.reelHook=v;}syncHookY();reRenderPv();};window.applyHookStyle=function(){updateReelHook();};window.setHookFont=function(btn,key){var m={playpen:"'Playpen Sans'",anton:"'Anton'",luckiest:"'Luckiest Guy'",fredoka:"'Fredoka'",bebas:"'Bebas Neue'"};var h=hs();if(h)h.font=m[key]||"'Playpen Sans'";document.querySelectorAll("[data-hookfont]").forEach(function(b){b.classList.toggle("on",b===btn);});updateReelHook();};window.setHookSize=function(v){var h=hs();if(h)h.size=parseInt(v,10)||24;updateReelHook();};window.setHookColor=function(elm,c){var h=hs();if(h)h.color=c;document.querySelectorAll("[data-hookcolor]").forEach(function(b){b.classList.toggle("on",b===elm);});updateReelHook();};window.setHookBg=function(elm,c){var h=hs();if(h)h.bg=c;document.querySelectorAll("[data-hookbg]").forEach(function(b){b.classList.toggle("on",b===elm);});updateReelHook();};window.hookYPct=function(){if(typeof state==="undefined")return 50;if(typeof state.reelHookY==="number")return state.reelHookY;var p=state.reelHookPos||"center";return p==="top"?12:p==="bottom"?85:50;};
+    <script>(function(){function el(i){return document.getElementById(i);} var audio=null;function reRenderPv(){var ov=el("preview-overlay");if(ov&&ov.style.display!=="none"&&typeof renderPreview==="function"){try{renderPreview();}catch(e){}}}function hs(){if(typeof state==="undefined")return null;if(!state.hookStyle)state.hookStyle={font:"'Playpen Sans'",size:24,color:"#ffffff",bg:"none"};return state.hookStyle;}function escH(s){return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}/* En ramme rundt hele hooken, ikke en boks per linje. */window.hookCss=function(){var h=hs()||{font:"'Playpen Sans'",size:24,color:"#ffffff",bg:"none"};var medBg=h.bg&&h.bg!=="none";var farge=h.color||"#ffffff";var c="font-family:"+h.font+",'Playpen Sans',sans-serif;font-weight:800;font-size:"+h.size+"px;color:"+farge+";line-height:1.32;text-wrap:balance;";if(medBg){c+="display:inline-block;background:"+h.bg+";padding:.42em .62em;border-radius:16px;max-width:78%;";}else{c+="display:inline-block;max-width:80%;text-shadow:0 2px 12px rgba(0,0,0,.72);";}return c;};window.updateReelHook=function(){var o=el("reel-hook-overlay"),t=el("reel-hook-text");var v=t?t.value:"";if(o)o.innerHTML=v?'<span style="'+hookCss()+'">'+escH(v)+'</span>':'';if(typeof state!=="undefined"){hs();state.reelHook=v;}syncHookY();reRenderPv();};window.applyHookStyle=function(){updateReelHook();};window.setHookFont=function(btn,key){var m={playpen:"'Playpen Sans'",anton:"'Anton'",luckiest:"'Luckiest Guy'",fredoka:"'Fredoka'",bebas:"'Bebas Neue'"};var h=hs();if(h)h.font=m[key]||"'Playpen Sans'";document.querySelectorAll("[data-hookfont]").forEach(function(b){b.classList.toggle("on",b===btn);});updateReelHook();};window.setHookSize=function(v){var h=hs();if(h)h.size=parseInt(v,10)||24;updateReelHook();};window.setHookColor=function(elm,c){var h=hs();if(h)h.color=c;document.querySelectorAll("[data-hookcolor]").forEach(function(b){b.classList.toggle("on",b===elm);});updateReelHook();};window.setHookBg=function(elm,c){var h=hs();if(h)h.bg=c;document.querySelectorAll("[data-hookbg]").forEach(function(b){b.classList.toggle("on",b===elm);});updateReelHook();};window.hookYPct=function(){if(typeof state==="undefined")return 50;if(typeof state.reelHookY==="number")return state.reelHookY;var p=state.reelHookPos||"center";return p==="top"?12:p==="bottom"?85:50;};
 window.hookPosCss=function(){return "top:"+hookYPct()+"%;transform:translateY(-50%);";};
 function syncHookY(){var y=hookYPct();var o=el("reel-hook-overlay");if(o){o.className="reel-hook-overlay";o.style.top=y+"%";o.style.bottom="auto";o.style.transform="translateY(-50%)";}
 document.querySelectorAll("[data-hooky]").forEach(function(s){if(String(s.value)!==String(y))s.value=y;});
@@ -7322,28 +7322,10 @@ function roundRectPath(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.a
    som én blokk: én ramme rundt alt, jevne linjer, ingen enslige ord til slutt,
    og tekstfargen justeres hvis den ikke står nok fra bakgrunnen.
    Renate 3. september 2026. */
-function _hexRgb(c){
-  c=String(c||'').trim();
-  let m=/^#([0-9a-f]{3})$/i.exec(c);
-  if(m) return [parseInt(m[1][0]+m[1][0],16),parseInt(m[1][1]+m[1][1],16),parseInt(m[1][2]+m[1][2],16)];
-  m=/^#([0-9a-f]{6})$/i.exec(c);
-  if(m) return [parseInt(m[1].slice(0,2),16),parseInt(m[1].slice(2,4),16),parseInt(m[1].slice(4,6),16)];
-  m=/^rgba?\(([^)]+)\)$/i.exec(c);
-  if(m){ const p=m[1].split(',').map(Number); return [p[0]||0,p[1]||0,p[2]||0]; }
-  return [255,255,255];
-}
-function _lys(c){
-  const k=_hexRgb(c).map(function(v){ v/=255; return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4); });
-  return 0.2126*k[0]+0.7152*k[1]+0.0722*k[2];
-}
-function _kontrast(a,b){ const l1=_lys(a),l2=_lys(b); return (Math.max(l1,l2)+0.05)/(Math.min(l1,l2)+0.05); }
-/* Står tekstfargen for nær bakgrunnen, byttes den til svart eller hvit, den
-   som står best. Ellers beholdes fargen du valgte. */
-function lesbarFarge(tekst,bg){
-  if(!bg) return tekst||'#ffffff';
-  if(_kontrast(tekst||'#ffffff',bg)>=3.2) return tekst||'#ffffff';
-  return _kontrast('#1A1A1A',bg)>=_kontrast('#ffffff',bg)?'#1A1A1A':'#ffffff';
-}
+/* Fargene er dine, ikke mine. Jeg hadde lagt inn en automatisk
+   kontrastsjekk som byttet cerise på lys rosa til svart. Cerise på lys rosa
+   er nettopp uttrykket til LME, så den overstyringen er fjernet: fargene du
+   velger, er fargene som brukes. Renate 3. september 2026. */
 function _brytLinjer(ctx,text,maxW){
   const ord=(text||'').split(/\s+/).filter(Boolean);
   const l=[]; let cur='';
@@ -7371,7 +7353,7 @@ async function _drawHook(ctx,W,H,text){
   const h=(typeof state!=='undefined'&&state.hookStyle)||{font:"'Playpen Sans'",size:24,color:'#ffffff',bg:'none'};
   const fam=(h.font||"'Playpen Sans'")+",sans-serif";
   const useBg=h.bg&&h.bg!=='none';
-  const farge=lesbarFarge(h.color||'#ffffff', useBg?h.bg:null);
+  const farge=h.color||'#ffffff';
   ctx.textAlign='center'; ctx.textBaseline='top';
   const maxW=W*0.78;
   let fontPx=Math.max(20,Math.round((h.size||24)*W/360));
