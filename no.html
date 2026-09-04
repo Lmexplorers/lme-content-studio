@@ -647,7 +647,7 @@ const SKRIVEREGLER_NO = "NORSKE SKRIVEREGLER (følg alltid): Bruk rette anførse
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Logg inn</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Logg ut</button>
-          <div class="nav-konto-ver">Versjon 20260904.1307</div>
+          <div class="nav-konto-ver">Versjon 20260904.1330</div>
           <div class="nav-konto-ver" id="ver-status" style="display:none;line-height:1.5;"></div>
           <button class="nav-konto-btn ut" onclick="seEtterNyVersjon()">Se etter ny versjon</button>
         </div>
@@ -750,7 +750,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    nye utgaven eller en mellomlagret gammel. Nå står den i Mer-menyen, under
    kontoen, sammen med en knapp som henter appen på nytt og tømmer
    mellomlageret. Renate 4. september 2026. */
-window.LME_VERSJON = '20260904.1307';
+window.LME_VERSJON = '20260904.1330';
 /* Den installerte appen har sitt eget mellomlager, adskilt fra nettleseren,
    og på iPhone tømmes det ikke av at du oppdaterer siden i Safari. Da kan du
    sitte med en gammel utgave uten å vite det, og feil jeg har rettet ser ut
@@ -6739,7 +6739,14 @@ function settArbeid(d){
       const box=document.getElementById('result-box'); if(box) box.style.display='block';
     }
     if(state.imageUrl){
+      /* HELE BILDEBLOKKEN VAR BORTE ETTER EN OPPFRISKNING
+         Bildet ble hentet tilbake, men seksjonen det ligger i sto fortsatt
+         paa display:none. Da forsvant "Forhaandsvis foer publisering",
+         "Publiser", "Last ned", karusellstripen og pilene, selv om arbeidet
+         var i behold. Naa aapnes seksjonen naar det finnes et bilde.
+         Renate 4. september 2026. */
       const vis=bildeMedHook();
+      const sek=document.getElementById('bilde-preview-seksjon'); if(sek) sek.style.display='block';
       const img=document.getElementById('bilde-preview-img'); if(img) img.src=vis;
       const dl=document.getElementById('bilde-last-ned'); if(dl) dl.href=vis;
       const rad=document.getElementById('bilde-hook-rad'); if(rad&&state.hookBrent) rad.style.display='block';
