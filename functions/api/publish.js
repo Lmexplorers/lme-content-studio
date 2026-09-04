@@ -185,7 +185,7 @@ export async function onRequestPost(context) {
   if (lmeKontoer.length) {
     lmeResultater = await publiserViaLME(env, tilgang.email, lmeKontoer, b, contentKind);
   }
-  if (!blKontoer.length) return oppsummer(lmeResultater);
+  if (!blKontoer.length) return oppsummer(lmeResultater, !!b.scheduledTime);
 
   if (!key) {
     return json({ error: "Mangler Blotato-nokkel. Legg den inn i Innstillinger, eller velg kontoene du har koblet til via LME." }, 200);
@@ -299,7 +299,7 @@ export async function onRequestPost(context) {
       });
     }
 
-    return oppsummer(lmeResultater.concat(results));
+    return oppsummer(lmeResultater.concat(results), !!b.scheduledTime);
   } catch (e) {
     return json({ error: String((e && e.message) || e) }, 200);
   }
@@ -379,7 +379,11 @@ async function publiserViaLME(env, email, kontoer, b, contentKind) {
 }
 
 /* Samme oppsummering uansett hvilken vei innlegget gikk. */
-function oppsummer(alle) {
+/* "Gikk ut paa" var feil ord for et planlagt innlegg. Det er lagt i koe hos
+   publiseringstjenesten, og gaar ut paa tidspunktet du valgte. Hun trodde
+   Instagram og Threads hadde feilet, naar de bare ikke hadde gaatt ut enda.
+   Renate 4. september 2026. */
+function oppsummer(alle, planlagt) {
   const okCount = alle.filter((r) => r.ok).length;
   if (okCount === alle.length && okCount > 0) return json({ ok: true, results: alle });
   const failed = alle.filter((r) => !r.ok).map((r) => (r.platform || r.accountId) + (r.error ? " (" + r.error + ")" : "")).join(", ");
@@ -388,7 +392,7 @@ function oppsummer(alle) {
      Renate 4. september 2026. */
   const sendtTil = alle.filter((r) => r.ok).map((r) => r.platform || r.accountId).join(", ");
   const msg = okCount > 0
-    ? "Gikk ut paa: " + sendtTil + ". Feilet: " + failed
+    ? (planlagt ? "Lagt i koe til planlagt tid for: " : "Gikk ut paa: ") + sendtTil + ". Feilet: " + failed
     : "Publisering feilet for alle. " + failed;
   return json({ ok: false, error: msg, okCount: okCount, total: alle.length, results: alle }, 200);
 }
