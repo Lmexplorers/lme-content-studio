@@ -647,7 +647,7 @@ const SKRIVEREGLER_NO = "NORSKE SKRIVEREGLER (følg alltid): Bruk rette anførse
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Logg inn</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Logg ut</button>
-          <div class="nav-konto-ver">Versjon 20260904.1250</div>
+          <div class="nav-konto-ver">Versjon 20260904.1303</div>
           <div class="nav-konto-ver" id="ver-status" style="display:none;line-height:1.5;"></div>
           <button class="nav-konto-btn ut" onclick="seEtterNyVersjon()">Se etter ny versjon</button>
         </div>
@@ -750,7 +750,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    nye utgaven eller en mellomlagret gammel. Nå står den i Mer-menyen, under
    kontoen, sammen med en knapp som henter appen på nytt og tømmer
    mellomlageret. Renate 4. september 2026. */
-window.LME_VERSJON = '20260904.1250';
+window.LME_VERSJON = '20260904.1303';
 /* Den installerte appen har sitt eget mellomlager, adskilt fra nettleseren,
    og på iPhone tømmes det ikke av at du oppdaterer siden i Safari. Da kan du
    sitte med en gammel utgave uten å vite det, og feil jeg har rettet ser ut
@@ -4375,7 +4375,7 @@ function setImgAspect(el,v){ state.imgAspect=v; document.querySelectorAll('#img-
 function setImgCount(el,n){ state.imgCount=n; document.querySelectorAll('#img-count-chips .chip').forEach(c=>c.classList.toggle('active',c===el)); }
 
 function selectBildeVariant(url,el){
-  state.imageUrl=url; state.imageUrlClean=url;
+  state.imageUrl=url; state.imageUrlClean=url; state.imageUrlHook=null;
   try{ taVareePaaBildet(url); }catch(e){}
   state.hookBrent=false; var _hr=document.getElementById('bilde-hook-rad'); if(_hr) _hr.style.display='none';
   document.getElementById('bilde-preview-img').src=url;
@@ -4384,7 +4384,7 @@ function selectBildeVariant(url,el){
 }
 function renderBildeVarianter(urls){
   const grid=document.getElementById('bilde-varianter');
-  state.imageUrl=urls[0]; state.imageUrlClean=urls[0];
+  state.imageUrl=urls[0]; state.imageUrlClean=urls[0]; state.imageUrlHook=null;
   try{ taVareePaaBildet(urls[0]); }catch(e){}
   state.hookBrent=false; var _hr=document.getElementById('bilde-hook-rad'); if(_hr) _hr.style.display='none';
   document.getElementById('bilde-preview-img').src=urls[0];
@@ -4914,7 +4914,7 @@ async function schedulePost(){
     /* Karusell: alle slidene som egne bilder, og bildeteksten blir bare
        den første sliden. Før gikk hele karusellen som en tekstvegg. */
     const kar=await karusellMedier();
-    const medier=kar||(state.imageUrl?[state.imageUrl]:null);
+    const medier=kar||(bildeMedHook()?[bildeMedHook()]:null);
     const tekst=kar?medReklame(String((state.slides||[])[0]||'')):text;
     const success=await sendToPublishingService(tekst,medier,state.format,publishAt);
     if(success){
@@ -5032,7 +5032,7 @@ function renderPreview(){
      inkludert, ikke en penere utgave uten. */
   const fmt=state.format; const res=medReklame(state.result);
   const slides=Array.isArray(res)?res:state.slides; const idx=state.currentSlide||0;
-  const img=state.imageUrl;
+  const img=bildeMedHook();
   const videoUrl=state.videoObjectUrl;
 
   if(fmt==='story'||fmt==='reel'){tel.style.padding='0';tel.style.background='#000';}
@@ -6655,7 +6655,7 @@ var _storyLibCache = [];   // siste leste liste, sa Apne/Slett kan jobbe synkron
 const ARBEID_LS='lme_arbeid_v1';
 const ARBEID_FELT=['format','topic','customTopic','extra','cta','slideCount','ageGroup','targetGroup',
   'char','tone','goal','niche','timeLevel','platforms','result','slides','currentSlide',
-  'reelHook','reelHookY','reelHookPos','hookStyle','imageUrl','imageUrlClean','hookBrent','imgAspect',
+  'reelHook','reelHookY','reelHookPos','hookStyle','imageUrl','imageUrlClean','imageUrlHook','hookBrent','imgAspect',
   'slideStil','karusellOrden','karusellBilder','history'];
 
 function _erStortBilde(v){ return typeof v==='string' && v.slice(0,5)==='data:' && v.length>2000; }
@@ -6667,7 +6667,7 @@ function _fangArbeid(){
 }
 function _utenBilder(d){
   const k=JSON.parse(JSON.stringify(d));
-  ['imageUrl','imageUrlClean'].forEach(function(f){ if(_erStortBilde(k[f])) k[f]=null; });
+  ['imageUrl','imageUrlClean','imageUrlHook'].forEach(function(f){ if(_erStortBilde(k[f])) k[f]=null; });
   /* Karusellbildene er store og lages på nytt på et blikk. De hører ikke
      hjemme i localStorage eller på kontoen. */
   delete k.karusellBilder;
@@ -6733,8 +6733,9 @@ function settArbeid(d){
       const box=document.getElementById('result-box'); if(box) box.style.display='block';
     }
     if(state.imageUrl){
-      const img=document.getElementById('bilde-preview-img'); if(img) img.src=state.imageUrl;
-      const dl=document.getElementById('bilde-last-ned'); if(dl) dl.href=state.imageUrl;
+      const vis=bildeMedHook();
+      const img=document.getElementById('bilde-preview-img'); if(img) img.src=vis;
+      const dl=document.getElementById('bilde-last-ned'); if(dl) dl.href=vis;
       const rad=document.getElementById('bilde-hook-rad'); if(rad&&state.hookBrent) rad.style.display='block';
     }
   }catch(e){}
@@ -6800,7 +6801,7 @@ function nyttArbeid(){
   if(!confirm('Tømme det du jobber med nå? Lagrede utkast blir liggende.')) return;
   state.result=null; state.slides=null; state.currentSlide=0;
   state.customTopic=''; state.extra=''; state.cta=''; state.reelHook='';
-  state.imageUrl=null; state.imageUrlClean=null; state.hookBrent=false;
+  state.imageUrl=null; state.imageUrlClean=null; state.imageUrlHook=null; state.hookBrent=false;
   try{ localStorage.removeItem(ARBEID_LS); }catch(e){}
   try{ _arbeidPut({ts:Date.now()}).catch(function(){}); }catch(e){}
   _sisteArbeid='';
@@ -8658,13 +8659,18 @@ async function lagKarusellbilder(){
     try{ await document.fonts.load('800 60px '+fam); }catch(e){}
     try{ await document.fonts.load('500 60px '+fam); }catch(e){}
   }
-  const bg=await _last(state.imageUrlClean||state.imageUrl);
+  /* Bakgrunnen skal alltid vaere det rene bildet. Er hooken brent inn i en
+     gammel lagring uten en ren kopi, dropper vi bildet heller enn aa dra
+     hooken med paa hver slide. */
+  const rentBilde = state.imageUrlClean || (state.hookBrent ? null : state.imageUrl);
+  const bg=await _last(rentBilde);
   const merke=merkeBilde()?await _last(merkeBilde()):null;
   const ut=[];
   /* Forsiden med hooken foerst, i samme format som resten, saa Instagram
      ikke beskjaerer den ulikt de andre. */
-  let orden=karusellOrden();
-  if(!bg) orden=orden.filter(function(b){ return b!=='f'; });
+  /* Forsiden blir med selv om bildet mangler: da tegnes hooken paa
+     merkefargen i stedet, slik at slide 1 aldri forsvinner. */
+  const orden=karusellOrden();
   const antall=orden.length;
   const plassen={};                       /* slidetekst -> plass i karusellen */
   orden.forEach(function(b,p){ if(b!=='f') plassen[b]=p; });
@@ -8894,7 +8900,7 @@ function brukEgetBilde(input){
   const r=new FileReader();
   r.onload=function(){
     const url=String(r.result||'');
-    state.imageUrl=url; state.imageUrlClean=url;
+    state.imageUrl=url; state.imageUrlClean=url; state.imageUrlHook=null;
   try{ taVareePaaBildet(url); }catch(e){} state.hookBrent=false;
     const sek=document.getElementById('bilde-preview-seksjon'); if(sek) sek.style.display='block';
     const img=document.getElementById('bilde-preview-img'); if(img) img.src=url;
@@ -8907,6 +8913,8 @@ function brukEgetBilde(input){
   };
   r.readAsDataURL(f);
 }
+/* Bildet slik det gaar ut: med hooken hvis du har brent den inn. */
+function bildeMedHook(){ return (state&&state.imageUrlHook)||(state&&state.imageUrl)||null; }
 async function leggHookPaaBilde(stille){
   const src=state.imageUrlClean||state.imageUrl;
   if(!src){ if(!stille) alert('Generer et bilde først!'); return; }
@@ -8915,8 +8923,14 @@ async function leggHookPaaBilde(stille){
   const hk=(state.reelHook||'').trim();
   if(!hk){ if(!stille&&st) st.innerHTML='<div class="pub-status error">Skriv eller generer en hook først (i Hook-kortet over).</div>'; return; }
   if(!stille&&st) st.innerHTML='<div class="pub-status loading">Brenner hook inn i bildet…</div>';
+  /* HOOKEN FULGTE MED SOM BAKGRUNN PAA ALLE SLIDENE
+     Den innbrente hooken ble skrevet rett over state.imageUrl, altsaa det
+     samme bildet karusellen bruker som bakgrunn. Valgte du "bilde" paa flere
+     slides, fikk du hooken paa hver eneste en. Naa ligger den innbrente
+     kopien for seg selv, i imageUrlHook, mens imageUrl alltid er rent.
+     Hooken tegnes da bare paa forsiden. Renate 4. september 2026. */
   const out=await burnHookIntoImage(state.imageUrlClean);
-  state.imageUrl=out;
+  state.imageUrlHook=out;
   state.hookBrent=true;
   const pv=document.getElementById('bilde-preview-img'); if(pv) pv.src=out;
   const dl=document.getElementById('bilde-last-ned'); if(dl) dl.href=out;

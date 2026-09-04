@@ -647,7 +647,7 @@ const WRITING_RULES_EN = "WRITING RULES (always follow): Use straight quotes, ne
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Log in</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Log out</button>
-          <div class="nav-konto-ver">Version 20260904.1250</div>
+          <div class="nav-konto-ver">Version 20260904.1303</div>
           <div class="nav-konto-ver" id="ver-status" style="display:none;line-height:1.5;"></div>
           <button class="nav-konto-btn ut" onclick="seEtterNyVersjon()">Check for a new version</button>
         </div>
@@ -750,7 +750,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    looking at the new build or a cached old one. It now sits in the More menu,
    under the account, with a button that refetches the app and clears the
    cache. */
-window.LME_VERSJON = '20260904.1250';
+window.LME_VERSJON = '20260904.1303';
 /* The installed app has its own cache, separate from the browser, and on
    iPhone it is not cleared by refreshing the page in Safari. So you can be
    sitting on an old build without knowing, and bugs I have fixed look like
@@ -4063,7 +4063,7 @@ function setImgAspect(el,v){ state.imgAspect=v; document.querySelectorAll('#img-
 function setImgCount(el,n){ state.imgCount=n; document.querySelectorAll('#img-count-chips .chip').forEach(c=>c.classList.toggle('active',c===el)); }
 
 function selectBildeVariant(url,el){
-  state.imageUrl=url; state.imageUrlClean=url;
+  state.imageUrl=url; state.imageUrlClean=url; state.imageUrlHook=null;
   try{ taVareePaaBildet(url); }catch(e){}
   state.hookBrent=false; var _hr=document.getElementById('bilde-hook-rad'); if(_hr) _hr.style.display='none';
   document.getElementById('bilde-preview-img').src=url;
@@ -4072,7 +4072,7 @@ function selectBildeVariant(url,el){
 }
 function renderBildeVarianter(urls){
   const grid=document.getElementById('bilde-varianter');
-  state.imageUrl=urls[0]; state.imageUrlClean=urls[0];
+  state.imageUrl=urls[0]; state.imageUrlClean=urls[0]; state.imageUrlHook=null;
   try{ taVareePaaBildet(urls[0]); }catch(e){}
   state.hookBrent=false; var _hr=document.getElementById('bilde-hook-rad'); if(_hr) _hr.style.display='none';
   document.getElementById('bilde-preview-img').src=urls[0];
@@ -4593,7 +4593,7 @@ async function schedulePost(){
     /* Carousel: every slide as its own image, and the caption becomes just
        the first slide. Before, the whole carousel went out as a wall of text. */
     const kar=await karusellMedier();
-    const medier=kar||(state.imageUrl?[state.imageUrl]:null);
+    const medier=kar||(bildeMedHook()?[bildeMedHook()]:null);
     const tekst=kar?medReklame(String((state.slides||[])[0]||'')):text;
     const success=await sendToPublishingService(tekst,medier,state.format,publishAt);
     if(success){
@@ -4711,7 +4711,7 @@ function renderPreview(){
      inkludert, ikke en penere utgave uten. */
   const fmt=state.format; const res=medReklame(state.result);
   const slides=Array.isArray(res)?res:state.slides; const idx=state.currentSlide||0;
-  const img=state.imageUrl;
+  const img=bildeMedHook();
   const videoUrl=state.videoObjectUrl;
 
   if(fmt==='story'||fmt==='reel'){tel.style.padding='0';tel.style.background='#000';}
@@ -6231,7 +6231,7 @@ var _storyLibCache = [];   // last read list, so Open/Delete can work synchronou
 const ARBEID_LS='lme_arbeid_v1';
 const ARBEID_FELT=['format','topic','customTopic','extra','cta','slideCount','ageGroup','targetGroup',
   'char','tone','goal','niche','timeLevel','platforms','result','slides','currentSlide',
-  'reelHook','reelHookY','reelHookPos','hookStyle','imageUrl','imageUrlClean','hookBrent','imgAspect',
+  'reelHook','reelHookY','reelHookPos','hookStyle','imageUrl','imageUrlClean','imageUrlHook','hookBrent','imgAspect',
   'slideStil','karusellOrden','karusellBilder','history'];
 
 function _erStortBilde(v){ return typeof v==='string' && v.slice(0,5)==='data:' && v.length>2000; }
@@ -6243,7 +6243,7 @@ function _fangArbeid(){
 }
 function _utenBilder(d){
   const k=JSON.parse(JSON.stringify(d));
-  ['imageUrl','imageUrlClean'].forEach(function(f){ if(_erStortBilde(k[f])) k[f]=null; });
+  ['imageUrl','imageUrlClean','imageUrlHook'].forEach(function(f){ if(_erStortBilde(k[f])) k[f]=null; });
   /* Karusellbildene er store og lages på nytt på et blikk. De hører ikke
      hjemme i localStorage eller på kontoen. */
   delete k.karusellBilder;
@@ -6309,8 +6309,9 @@ function settArbeid(d){
       const box=document.getElementById('result-box'); if(box) box.style.display='block';
     }
     if(state.imageUrl){
-      const img=document.getElementById('bilde-preview-img'); if(img) img.src=state.imageUrl;
-      const dl=document.getElementById('bilde-last-ned'); if(dl) dl.href=state.imageUrl;
+      const vis=bildeMedHook();
+      const img=document.getElementById('bilde-preview-img'); if(img) img.src=vis;
+      const dl=document.getElementById('bilde-last-ned'); if(dl) dl.href=vis;
       const rad=document.getElementById('bilde-hook-rad'); if(rad&&state.hookBrent) rad.style.display='block';
     }
   }catch(e){}
@@ -6376,7 +6377,7 @@ function nyttArbeid(){
   if(!confirm('Clear what you are working on now? Saved drafts stay.')) return;
   state.result=null; state.slides=null; state.currentSlide=0;
   state.customTopic=''; state.extra=''; state.cta=''; state.reelHook='';
-  state.imageUrl=null; state.imageUrlClean=null; state.hookBrent=false;
+  state.imageUrl=null; state.imageUrlClean=null; state.imageUrlHook=null; state.hookBrent=false;
   try{ localStorage.removeItem(ARBEID_LS); }catch(e){}
   try{ _arbeidPut({ts:Date.now()}).catch(function(){}); }catch(e){}
   _sisteArbeid='';
@@ -8219,13 +8220,18 @@ async function lagKarusellbilder(){
     try{ await document.fonts.load('800 60px '+fam); }catch(e){}
     try{ await document.fonts.load('500 60px '+fam); }catch(e){}
   }
-  const bg=await _last(state.imageUrlClean||state.imageUrl);
+  /* The background must always be the clean image. If the hook is burned into
+     an old save with no clean copy, we drop the image rather than drag the
+     hook onto every slide. */
+  const rentBilde = state.imageUrlClean || (state.hookBrent ? null : state.imageUrl);
+  const bg=await _last(rentBilde);
   const merke=merkeBilde()?await _last(merkeBilde()):null;
   const ut=[];
   /* The cover with the hook first, in the same format as the rest, so
      Instagram does not crop it differently from the others. */
-  let orden=karusellOrden();
-  if(!bg) orden=orden.filter(function(b){ return b!=='f'; });
+  /* The cover stays even when the image is missing: the hook is then drawn on
+     the brand colour instead, so slide 1 never disappears. */
+  const orden=karusellOrden();
   const antall=orden.length;
   const plassen={};                       /* slide text -> place in the carousel */
   orden.forEach(function(b,p){ if(b!=='f') plassen[b]=p; });
@@ -8454,7 +8460,7 @@ function brukEgetBilde(input){
   const r=new FileReader();
   r.onload=function(){
     const url=String(r.result||'');
-    state.imageUrl=url; state.imageUrlClean=url;
+    state.imageUrl=url; state.imageUrlClean=url; state.imageUrlHook=null;
   try{ taVareePaaBildet(url); }catch(e){} state.hookBrent=false;
     const sek=document.getElementById('bilde-preview-seksjon'); if(sek) sek.style.display='block';
     const img=document.getElementById('bilde-preview-img'); if(img) img.src=url;
@@ -8467,6 +8473,8 @@ function brukEgetBilde(input){
   };
   r.readAsDataURL(f);
 }
+/* The image as it goes out: with the hook if you burned it in. */
+function bildeMedHook(){ return (state&&state.imageUrlHook)||(state&&state.imageUrl)||null; }
 async function leggHookPaaBilde(stille){
   const src=state.imageUrlClean||state.imageUrl;
   if(!src){ if(!stille) alert('Generate an image first!'); return; }
@@ -8475,8 +8483,14 @@ async function leggHookPaaBilde(stille){
   const hk=(state.reelHook||'').trim();
   if(!hk){ if(!stille&&st) st.innerHTML='<div class="pub-status error">Write or generate a hook first (in the Hook card above).</div>'; return; }
   if(!stille&&st) st.innerHTML='<div class="pub-status loading">Burning hook into the image…</div>';
+  /* THE HOOK CAME ALONG AS THE BACKGROUND ON EVERY SLIDE
+     The burned-in hook was written straight over state.imageUrl, the very
+     image the carousel uses as its background. Pick "image" on several
+     slides and you got the hook on every one of them. The burned copy now
+     lives on its own, in imageUrlHook, while imageUrl stays clean. The hook
+     is then drawn on the cover only. Renate, 4 September 2026. */
   const out=await burnHookIntoImage(state.imageUrlClean);
-  state.imageUrl=out;
+  state.imageUrlHook=out;
   state.hookBrent=true;
   const pv=document.getElementById('bilde-preview-img'); if(pv) pv.src=out;
   const dl=document.getElementById('bilde-last-ned'); if(dl) dl.href=out;
