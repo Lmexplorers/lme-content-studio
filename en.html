@@ -647,7 +647,7 @@ const WRITING_RULES_EN = "WRITING RULES (always follow): Use straight quotes, ne
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Log in</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Log out</button>
-          <div class="nav-konto-ver">Version 20260904.1303</div>
+          <div class="nav-konto-ver">Version 20260904.1307</div>
           <div class="nav-konto-ver" id="ver-status" style="display:none;line-height:1.5;"></div>
           <button class="nav-konto-btn ut" onclick="seEtterNyVersjon()">Check for a new version</button>
         </div>
@@ -750,7 +750,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    looking at the new build or a cached old one. It now sits in the More menu,
    under the account, with a button that refetches the app and clears the
    cache. */
-window.LME_VERSJON = '20260904.1303';
+window.LME_VERSJON = '20260904.1307';
 /* The installed app has its own cache, separate from the browser, and on
    iPhone it is not cleared by refreshing the page in Safari. So you can be
    sitting on an old build without knowing, and bugs I have fixed look like
@@ -1174,6 +1174,11 @@ function renderHookColors(){var tc=el("hook-textcolors"),bgc=el("hook-bgcolors")
         <button class="act-btn" style="width:100%;margin-top:8px;font-size:12px;" onclick="leggHookPaaBilde()">🔤 Add hook to image</button>
         <button class="act-btn" id="karusell-knapp" style="display:none;width:100%;margin-top:8px;font-size:12px;" onclick="byggKarusell()">🎠 Build the carousel images</button>
         <div id="karusell-bilder" style="display:none;gap:8px;overflow-x:auto;margin-top:10px;padding-bottom:4px;"></div>
+        <div id="avslutning-rad" style="display:none;margin-top:10px;background:var(--sage-l,#F4FBE4);border-radius:12px;padding:11px 13px;">
+          <label style="display:flex;align-items:center;gap:9px;cursor:pointer;"><input type="checkbox" id="avslutning-paa" checked onchange="settAvslutning(this.checked)" style="width:auto;"><span style="font-size:12.5px;font-weight:700;color:var(--text);">Closing slide with the image</span></label>
+          <div style="font-size:11px;color:var(--text-s);line-height:1.6;margin:6px 0 6px;">One last image after the slides, with your cover image and the text below. Move it wherever you like with the arrows.</div>
+          <input type="text" id="avslutning-tekst" placeholder="Follow for more" oninput="settAvslutningTekst(this.value)"/>
+        </div>
         <button type="button" class="act-btn" id="forhaandsvis-knapp" style="width:100%;margin-top:10px;font-size:12px;" onclick="forhaandsvisAlt()">👁 Preview before publishing</button>
         <div id="bilde-hook-rad" style="display:none;margin-top:10px;background:var(--rose-l);border-radius:12px;padding:11px 13px;">
           <div style="font-size:11px;font-weight:700;color:var(--rose-d);margin-bottom:6px;">Move the hook up or down</div>
@@ -2666,6 +2671,7 @@ function selectFormat(id){
 function updateSlidesCard(){
   const f = FORMATS.find(x=>x.id===state.format);
   document.getElementById('slides-card').style.display = f?.slides ? 'block' : 'none';
+  try{ tegnAvslutningUI(); }catch(e){}
 }
 function updateReelSection(){
   try{ renderSchedPlatforms(); }catch(e){}
@@ -6232,7 +6238,7 @@ const ARBEID_LS='lme_arbeid_v1';
 const ARBEID_FELT=['format','topic','customTopic','extra','cta','slideCount','ageGroup','targetGroup',
   'char','tone','goal','niche','timeLevel','platforms','result','slides','currentSlide',
   'reelHook','reelHookY','reelHookPos','hookStyle','imageUrl','imageUrlClean','imageUrlHook','hookBrent','imgAspect',
-  'slideStil','karusellOrden','karusellBilder','history'];
+  'slideStil','karusellOrden','karusellBilder','avslutningPaa','avslutningTekst','history'];
 
 function _erStortBilde(v){ return typeof v==='string' && v.slice(0,5)==='data:' && v.length>2000; }
 function _fangArbeid(){
@@ -8159,10 +8165,50 @@ function harForsideSlide(){
 /* The carousel is an ordered list: "f" is the cover with the hook, the
    numbers are the slide texts. You can move the order around, and it is
    remembered with your work. Renate, 4 September 2026. */
+/* CLOSING SLIDE
+   The carousel ended mid-text. It can now close with the cover image and one
+   last message, "a" in the order, and it moves like the others.
+   Renate, 4 September 2026. */
+function avslutningTekst(){
+  const egen=String((state&&state.avslutningTekst)||'').trim();
+  if(egen) return egen;
+  const cta=String((state&&state.cta)||'').trim();
+  if(cta) return cta;
+  return 'Follow for more';
+}
+function harAvslutningSlide(){
+  if(state.format!=='carousel') return false;
+  if(state.avslutningPaa===false) return false;
+  return !!avslutningTekst();
+}
+function settAvslutning(paa){
+  state.avslutningPaa=!!paa;
+  tegnAvslutningUI();
+  try{ oppdaterSlideStil(-1); }catch(e){}
+  try{ lagreArbeid(); }catch(e){}
+}
+var _avslTimer=null;
+function settAvslutningTekst(v){
+  state.avslutningTekst=String(v||'');
+  clearTimeout(_avslTimer);
+  _avslTimer=setTimeout(function(){
+    try{ oppdaterSlideStil(-1); }catch(e){}
+    try{ lagreArbeid(); }catch(e){}
+  },400);
+}
+function tegnAvslutningUI(){
+  const rad=document.getElementById('avslutning-rad'); if(!rad) return;
+  rad.style.display=(state.format==='carousel')?'block':'none';
+  const p=document.getElementById('avslutning-paa'); if(p) p.checked=(state.avslutningPaa!==false);
+  const t=document.getElementById('avslutning-tekst');
+  if(t && t.value!==(state.avslutningTekst||'')) t.value=state.avslutningTekst||'';
+  if(t) t.placeholder=avslutningTekst();
+}
 function karusellStandardOrden(){
   const o=[];
   if(harForsideSlide()) o.push('f');
   karusellSlides().forEach(function(_,i){ o.push(i); });
+  if(harAvslutningSlide()) o.push('a');
   return o;
 }
 function karusellOrden(){
@@ -8184,12 +8230,13 @@ function karusellTekst(i){
   const o=karusellOrden(), s=karusellSlides();
   const bit=o[i];
   if(bit==='f') return String((state&&state.reelHook)||'');
+  if(bit==='a') return avslutningTekst();
   return String(s[bit]||'');
 }
 /* The caption is the first slide text in the order you chose. */
 function karusellForsteTekst(){
   const o=karusellOrden(), s=karusellSlides();
-  for(const bit of o){ if(bit!=='f' && String(s[bit]||'').trim()) return String(s[bit]); }
+  for(const bit of o){ if(bit!=='f' && bit!=='a' && String(s[bit]||'').trim()) return String(s[bit]); }
   return String(s[0]||'');
 }
 /* Move the image one step forward or back, and redraw the carousel. */
@@ -8234,8 +8281,9 @@ async function lagKarusellbilder(){
   const orden=karusellOrden();
   const antall=orden.length;
   const plassen={};                       /* slide text -> place in the carousel */
-  orden.forEach(function(b,p){ if(b!=='f') plassen[b]=p; });
+  orden.forEach(function(b,p){ if(b!=='f' && b!=='a') plassen[b]=p; });
   const forsidePlass=orden.indexOf('f');
+  const avslPlass=orden.indexOf('a');
   if(forsidePlass>=0){
     const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
     const ctx=cv.getContext('2d');
@@ -8248,6 +8296,19 @@ async function lagKarusellbilder(){
     await drawAdBadgeAsync(ctx,W,H);
     if(merkePaaSlide(forsidePlass,antall,null)) await tegnMerke(ctx,W,H,merke);
     ut[forsidePlass]=cv.toDataURL('image/jpeg',0.9);
+  }
+  if(avslPlass>=0){
+    const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+    const ctx=cv.getContext('2d');
+    _tegnBakgrunn(ctx,W,H,bg);
+    try{ await _drawHook(ctx,W,H,avslutningTekst()); }catch(e){}
+    ctx.textAlign='center'; ctx.textBaseline='top';
+    ctx.font="600 30px 'Sasson Montessori','Playpen Sans',sans-serif";
+    ctx.fillStyle='rgba(255,255,255,.9)';
+    ctx.fillText('Slide '+(avslPlass+1)+' of '+antall, W/2, H-78);
+    await drawAdBadgeAsync(ctx,W,H);
+    if(merkePaaSlide(avslPlass,antall,null)) await tegnMerke(ctx,W,H,merke);
+    ut[avslPlass]=cv.toDataURL('image/jpeg',0.9);
   }
   for(let i=0;i<slides.length;i++){
     const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
