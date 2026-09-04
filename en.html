@@ -647,7 +647,7 @@ const WRITING_RULES_EN = "WRITING RULES (always follow): Use straight quotes, ne
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Log in</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Log out</button>
-          <div class="nav-konto-ver">Version 20260904.1245</div>
+          <div class="nav-konto-ver">Version 20260904.1250</div>
           <div class="nav-konto-ver" id="ver-status" style="display:none;line-height:1.5;"></div>
           <button class="nav-konto-btn ut" onclick="seEtterNyVersjon()">Check for a new version</button>
         </div>
@@ -750,7 +750,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    looking at the new build or a cached old one. It now sits in the More menu,
    under the account, with a button that refetches the app and clears the
    cache. */
-window.LME_VERSJON = '20260904.1245';
+window.LME_VERSJON = '20260904.1250';
 /* The installed app has its own cache, separate from the browser, and on
    iPhone it is not cleared by refreshing the page in Safari. So you can be
    sitting on an old build without knowing, and bugs I have fixed look like
@@ -4849,7 +4849,7 @@ function karusellEkteHtml(url,idx,total){
     +'</div>'
     +'<div style="text-align:center;padding:7px 0;">'+dots+'</div>'
     +'<div style="padding:0 14px 14px;font-family:\'Sasson Montessori\';font-size:12.5px;line-height:1.6;color:#262626;white-space:pre-wrap;">'
-      +esc(String(medReklame(karusellSlides()[0]||'')).slice(0,300))+'</div></div>';
+      +esc(String(medReklame(karusellForsteTekst())).slice(0,300))+'</div></div>';
 }
 /* The preview showed the cover image with the slide's text laid over it,
    not the actual carousel images that get published. It now shows the image
@@ -6232,7 +6232,7 @@ const ARBEID_LS='lme_arbeid_v1';
 const ARBEID_FELT=['format','topic','customTopic','extra','cta','slideCount','ageGroup','targetGroup',
   'char','tone','goal','niche','timeLevel','platforms','result','slides','currentSlide',
   'reelHook','reelHookY','reelHookPos','hookStyle','imageUrl','imageUrlClean','hookBrent','imgAspect',
-  'slideStil','karusellBilder','history'];
+  'slideStil','karusellOrden','karusellBilder','history'];
 
 function _erStortBilde(v){ return typeof v==='string' && v.slice(0,5)==='data:' && v.length>2000; }
 function _fangArbeid(){
@@ -8155,14 +8155,57 @@ function harForsideSlide(){
   const hk=String((state&&state.reelHook)||'').trim();
   return !!hk && !!(state.imageUrlClean||state.imageUrl);
 }
-function karusellAntall(){
-  return karusellSlides().length + (harForsideSlide()?1:0);
+/* The carousel is an ordered list: "f" is the cover with the hook, the
+   numbers are the slide texts. You can move the order around, and it is
+   remembered with your work. Renate, 4 September 2026. */
+function karusellStandardOrden(){
+  const o=[];
+  if(harForsideSlide()) o.push('f');
+  karusellSlides().forEach(function(_,i){ o.push(i); });
+  return o;
 }
+function karusellOrden(){
+  const std=karusellStandardOrden();
+  const lagret=state.karusellOrden;
+  if(Array.isArray(lagret) && lagret.length===std.length){
+    /* Only if it holds exactly the same pieces. Generate new text or change
+       the number of slides and the order starts over. */
+    const a=std.map(String).sort().join('|');
+    const b=lagret.map(String).sort().join('|');
+    if(a===b) return lagret.slice();
+  }
+  state.karusellOrden=std.slice();
+  return std.slice();
+}
+function karusellAntall(){ return karusellOrden().length; }
 /* The text belonging to image number i. The cover carries the hook. */
 function karusellTekst(i){
-  const s=karusellSlides();
-  if(harForsideSlide()) return i===0 ? String((state&&state.reelHook)||'') : String(s[i-1]||'');
-  return String(s[i]||'');
+  const o=karusellOrden(), s=karusellSlides();
+  const bit=o[i];
+  if(bit==='f') return String((state&&state.reelHook)||'');
+  return String(s[bit]||'');
+}
+/* The caption is the first slide text in the order you chose. */
+function karusellForsteTekst(){
+  const o=karusellOrden(), s=karusellSlides();
+  for(const bit of o){ if(bit!=='f' && String(s[bit]||'').trim()) return String(s[bit]); }
+  return String(s[0]||'');
+}
+/* Move the image one step forward or back, and redraw the carousel. */
+async function flyttKarusellbilde(fra,steg){
+  const o=karusellOrden();
+  const til=fra+steg;
+  if(til<0 || til>=o.length) return;
+  const t=o[fra]; o[fra]=o[til]; o[til]=t;
+  state.karusellOrden=o;
+  const st=document.getElementById('pub-bilde-status');
+  if(st) st.innerHTML='<div class="pub-status loading">Reordering the images\u2026</div>';
+  await lagKarusellbilder();
+  try{ visKarusellbilder(); }catch(e){}
+  if(st) st.innerHTML='';
+  try{ const ov=document.getElementById('preview-overlay');
+       if(ov && ov.style.display!=='none'){ state.currentSlide=Math.min(state.currentSlide||0,karusellAntall()-1); renderPreview(); } }catch(e){}
+  try{ lagreArbeid(); }catch(e){}
 }
 async function lagKarusellbilder(){
   const slides=(state.slides||[]).filter(function(t){ return String(t||'').trim(); });
@@ -8181,9 +8224,13 @@ async function lagKarusellbilder(){
   const ut=[];
   /* The cover with the hook first, in the same format as the rest, so
      Instagram does not crop it differently from the others. */
-  const medForside=harForsideSlide() && !!bg;
-  const antall=slides.length+(medForside?1:0);
-  if(medForside){
+  let orden=karusellOrden();
+  if(!bg) orden=orden.filter(function(b){ return b!=='f'; });
+  const antall=orden.length;
+  const plassen={};                       /* slide text -> place in the carousel */
+  orden.forEach(function(b,p){ if(b!=='f') plassen[b]=p; });
+  const forsidePlass=orden.indexOf('f');
+  if(forsidePlass>=0){
     const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
     const ctx=cv.getContext('2d');
     _tegnBakgrunn(ctx,W,H,bg);
@@ -8191,10 +8238,10 @@ async function lagKarusellbilder(){
     ctx.textAlign='center'; ctx.textBaseline='top';
     ctx.font="600 30px 'Sasson Montessori','Playpen Sans',sans-serif";
     ctx.fillStyle='rgba(255,255,255,.9)';
-    ctx.fillText('Slide 1 of '+antall, W/2, H-78);
+    ctx.fillText('Slide '+(forsidePlass+1)+' of '+antall, W/2, H-78);
     await drawAdBadgeAsync(ctx,W,H);
-    if(merkePaaSlide(0,antall,null)) await tegnMerke(ctx,W,H,merke);
-    ut.push(cv.toDataURL('image/jpeg',0.9));
+    if(merkePaaSlide(forsidePlass,antall,null)) await tegnMerke(ctx,W,H,merke);
+    ut[forsidePlass]=cv.toDataURL('image/jpeg',0.9);
   }
   for(let i=0;i<slides.length;i++){
     const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
@@ -8239,11 +8286,11 @@ async function lagKarusellbilder(){
     /* Sidetall, så leseren vet at det er mer å sveipe til. */
     ctx.font="600 30px 'Sasson Montessori','Playpen Sans',sans-serif";
     ctx.fillStyle=_lysStyrke(stil.tf||tekstFarge)>0.5?'rgba(255,255,255,.9)':'rgba(26,26,26,.75)';
-    const nr=i+1+(medForside?1:0);
+    const nr=(plassen[i]||0)+1;
     ctx.fillText('Slide %s of %s'.replace('%s',String(nr)).replace('%s',String(antall)), W/2, H-78);
     await drawAdBadgeAsync(ctx,W,H);
     if(merkePaaSlide(nr-1,antall,i)) await tegnMerke(ctx,W,H,merke);
-    ut.push(cv.toDataURL('image/jpeg',0.9));
+    ut[nr-1]=cv.toDataURL('image/jpeg',0.9);
   }
   state.karusellBilder=ut;
   try{ renderSchedPlatforms(); }catch(e){}
@@ -8275,9 +8322,18 @@ function visKarusellbilder(){
   const b=state.karusellBilder||[];
   if(!b.length){ host.innerHTML=''; host.style.display='none'; return; }
   host.style.display='flex';
+  /* The order was locked to whatever the AI came up with. You now move each
+     image where you want it, with the arrows below. Renate, 4 September 2026. */
+  const knapp='background:var(--rose-l);border:1.5px solid var(--rose-m);color:var(--rose-d);'
+    +'border-radius:8px;width:32px;height:28px;font-size:14px;line-height:1;cursor:pointer;font-family:inherit;';
   host.innerHTML=b.map(function(u,i){
+    const fram='<button type="button" title="Move earlier" style="'+knapp+(i===0?'opacity:.35;cursor:default;':'')
+      +'" '+(i===0?'disabled':'onclick="flyttKarusellbilde('+i+',-1)"')+'>\u2039</button>';
+    const bak='<button type="button" title="Move later" style="'+knapp+(i===b.length-1?'opacity:.35;cursor:default;':'')
+      +'" '+(i===b.length-1?'disabled':'onclick="flyttKarusellbilde('+i+',1)"')+'>\u203a</button>';
     return '<div style="flex:none;width:104px;"><img src="'+u+'" style="width:100%;border-radius:10px;border:1.5px solid var(--rose-m);display:block;">'
-      +'<div style="font-size:10px;color:var(--text-s);text-align:center;margin-top:3px;">'+(i+1)+'</div></div>';
+      +'<div style="font-size:10px;color:var(--text-s);text-align:center;margin-top:3px;">'+(i+1)+'</div>'
+      +'<div style="display:flex;gap:6px;justify-content:center;margin-top:4px;">'+fram+bak+'</div></div>';
   }).join('');
 }
 /* Publiseringen bruker karusellbildene når formatet er karusell, og lager dem
