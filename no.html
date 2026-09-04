@@ -101,6 +101,14 @@ input[type=range]{width:100%;accent-color:var(--rose);}
 .utkast-btn{font-family:'Sasson Montessori',sans-serif;font-size:11.5px;font-weight:700;border:1.5px solid var(--rose);background:#fff;color:var(--rose-d);border-radius:999px;padding:6px 12px;cursor:pointer;flex-shrink:0;}
 .utkast-btn.slett{border-color:var(--border);color:var(--text-s);}
 .utkast-tom{font-size:11.5px;color:var(--text-s);padding:6px 0;}
+.sl-stil{margin:6px 0 4px;}
+.sl-rad{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:5px;}
+.sl-lab{font-size:10.5px;font-weight:700;color:var(--text-s);min-width:62px;}
+.sl-pos{font-family:'Sasson Montessori',sans-serif;font-size:11px;border:1.5px solid var(--border);background:#fff;color:var(--text-s);border-radius:999px;padding:4px 10px;cursor:pointer;}
+.sl-pos.on{background:var(--rose);border-color:var(--rose);color:#fff;font-weight:700;}
+.sl-farge{width:21px;height:21px;border-radius:50%;box-shadow:0 0 0 1.5px var(--border);cursor:pointer;display:inline-block;}
+.sl-farge.on{box-shadow:0 0 0 2.5px var(--rose);}
+.sl-alle{margin-left:auto;font-family:'Sasson Montessori',sans-serif;font-size:10.5px;border:1.5px solid var(--border);background:#fff;color:var(--text-s);border-radius:999px;padding:4px 9px;cursor:pointer;}
 .slide-wrap{position:relative;margin-bottom:10px;}
 .slide-wrap.valgt textarea.slide-view{border-color:var(--rose);}
 textarea.slide-view{min-height:0;padding-top:26px;}
@@ -629,7 +637,7 @@ const SKRIVEREGLER_NO = "NORSKE SKRIVEREGLER (følg alltid): Bruk rette anførse
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Logg inn</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Logg ut</button>
-          <div class="nav-konto-ver">Versjon 20260904.0712</div>
+          <div class="nav-konto-ver">Versjon 20260904.0719</div>
           <button class="nav-konto-btn ut" onclick="closeNavMenu();hentAppenPaaNytt()">Se etter ny versjon</button>
         </div>
       </div>
@@ -730,7 +738,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    nye utgaven eller en mellomlagret gammel. Nå står den i Mer-menyen, under
    kontoen, sammen med en knapp som henter appen på nytt og tømmer
    mellomlageret. Renate 4. september 2026. */
-window.LME_VERSJON = '20260904.0712';
+window.LME_VERSJON = '20260904.0719';
 /* Den installerte appen har sitt eget mellomlager, adskilt fra nettleseren,
    og på iPhone tømmes det ikke av at du oppdaterer siden i Safari. Da kan du
    sitte med en gammel utgave uten å vite det, og feil jeg har rettet ser ut
@@ -3879,6 +3887,74 @@ function renderVisibilityScore(){
    måtte du først finne fram til den. Nå ligger alle slidene under hverandre
    som egne felter, og du skriver rett i den du vil endre.
    Renate 3. september 2026. */
+/* Karusellen tegnet alle slidene likt: samme bakgrunn, teksten alltid midt
+   på. Nå bestemmer du per slide om bakgrunnen skal være forsidebildet eller
+   en farge, og om teksten skal ligge øverst, i midten eller nederst.
+
+   Tekstfargen settes automatisk til svart eller hvit etter hvor lys
+   bakgrunnen er. Det er ikke en overstyring av et fargevalg, for her velger
+   du bakgrunn, ikke tekstfarge. Renate 4. september 2026. */
+const SLIDE_FARGER=[['Cerise','#F02478'],['Lys rosa','#F7A8C4'],['Krem','#FFF3CD'],['Sage','#9CC000'],['Brun','#5A3825'],['Sort','#1A1A1A'],['Hvit','#FFFFFF']];
+function slideStil(i){
+  if(!Array.isArray(state.slideStil)) state.slideStil=[];
+  if(!state.slideStil[i]) state.slideStil[i]={bg:'bilde',pos:'midt'};
+  const s=state.slideStil[i];
+  if(!s.bg) s.bg='bilde';
+  if(!s.pos) s.pos='midt';
+  return s;
+}
+/* Svart eller hvit tekst etter hvor lys bakgrunnen er, så teksten alltid er
+   til å lese. */
+function _lysStyrke(hex){
+  const h=String(hex||'').replace('#','');
+  if(h.length!==6) return 0;
+  const r=parseInt(h.slice(0,2),16), g=parseInt(h.slice(2,4),16), b=parseInt(h.slice(4,6),16);
+  return (0.299*r+0.587*g+0.114*b)/255;
+}
+function settSlideBg(i,v){ slideStil(i).bg=v; oppdaterSlideStil(i); }
+function settSlidePos(i,v){ slideStil(i).pos=v; oppdaterSlideStil(i); }
+function settAlleSlider(i){
+  const s=slideStil(i);
+  const n=(state.slides||[]).length;
+  for(let j=0;j<n;j++){ slideStil(j).bg=s.bg; slideStil(j).pos=s.pos; }
+  oppdaterSlideStil(-1);
+}
+let _stilTimer=null;
+function oppdaterSlideStil(i){
+  try{ tegnSlideKnapper(); }catch(e){}
+  try{ lagreArbeid(); }catch(e){}
+  /* Bildene lages på nytt bare når de allerede finnes, så du ser endringen
+     med en gang uten at det skjer noe når du ikke har laget dem ennå. */
+  if(!(state.karusellBilder&&state.karusellBilder.length)) return;
+  clearTimeout(_stilTimer);
+  _stilTimer=setTimeout(async function(){
+    await lagKarusellbilder();
+    try{ visKarusellbilder(); }catch(e){}
+  },250);
+}
+function slideKnapperHtml(i){
+  const s=slideStil(i);
+  const f=SLIDE_FARGER.map(function(c){
+    return '<span class="sl-farge'+(s.bg===c[1]?' on':'')+'" title="'+c[0]+'" style="background:'+c[1]+'" onclick="settSlideBg('+i+',\''+c[1]+'\')"></span>';
+  }).join('');
+  const pos=[['topp','Topp'],['midt','Midt'],['bunn','Bunn']].map(function(p){
+    return '<button type="button" class="sl-pos'+(s.pos===p[0]?' on':'')+'" onclick="settSlidePos('+i+',\''+p[0]+'\')">'+p[1]+'</button>';
+  }).join('');
+  return '<div class="sl-stil">'
+    +'<div class="sl-rad"><span class="sl-lab">Bakgrunn</span>'
+      +'<button type="button" class="sl-pos'+(s.bg==='bilde'?' on':'')+'" onclick="settSlideBg('+i+',\'bilde\')">Bilde</button>'
+      +f+'</div>'
+    +'<div class="sl-rad"><span class="sl-lab">Tekst</span>'+pos
+      +'<button type="button" class="sl-alle" onclick="settAlleSlider('+i+')">Bruk på alle</button></div>'
+    +'</div>';
+}
+function tegnSlideKnapper(){
+  const n=(state.slides||[]).length;
+  for(let i=0;i<n;i++){
+    const v=document.getElementById('slide-stil-'+i);
+    if(v) v.innerHTML=slideKnapperHtml(i);
+  }
+}
 function renderSlides(){
   const slides=state.slides; const i=state.currentSlide;
   const label=state.format==='story'?'Frame':'Slide';
@@ -3887,7 +3963,8 @@ function renderSlides(){
       return '<div class="slide-wrap'+(j===i?' valgt':'')+'" id="slide-wrap-'+j+'">'
         +'<span class="slide-counter">'+label+' '+(j+1)+' / '+slides.length+(j===i?' \u00b7 Vist i forhåndsvisningen':'')+'</span>'
         +'<textarea class="slide-view" id="slide-edit-'+j+'" spellcheck="true" '
-        +'oninput="lagreRedigertSlide('+j+',this.value)" onfocus="goSlide('+j+')"></textarea></div>';
+        +'oninput="lagreRedigertSlide('+j+',this.value)" onfocus="goSlide('+j+')"></textarea>'
+        +'<div id="slide-stil-'+j+'">'+slideKnapperHtml(j)+'</div></div>';
     }).join('')
     + '<div class="edit-hint">Du kan skrive rett i hver slide. Endringene følger med til forhåndsvisning, bilder og publisering.</div>';
   slides.forEach(function(t,j){
@@ -6299,7 +6376,8 @@ var _storyLibCache = [];   // siste leste liste, sa Apne/Slett kan jobbe synkron
 const ARBEID_LS='lme_arbeid_v1';
 const ARBEID_FELT=['format','topic','customTopic','extra','cta','slideCount','ageGroup','targetGroup',
   'char','tone','goal','niche','timeLevel','platforms','result','slides','currentSlide',
-  'reelHook','reelHookY','reelHookPos','hookStyle','imageUrl','imageUrlClean','hookBrent','imgAspect','history'];
+  'reelHook','reelHookY','reelHookPos','hookStyle','imageUrl','imageUrlClean','hookBrent','imgAspect',
+  'slideStil','karusellBilder','history'];
 
 function _erStortBilde(v){ return typeof v==='string' && v.slice(0,5)==='data:' && v.length>2000; }
 function _fangArbeid(){
@@ -6311,6 +6389,9 @@ function _fangArbeid(){
 function _utenBilder(d){
   const k=JSON.parse(JSON.stringify(d));
   ['imageUrl','imageUrlClean'].forEach(function(f){ if(_erStortBilde(k[f])) k[f]=null; });
+  /* Karusellbildene er store og lages på nytt på et blikk. De hører ikke
+     hjemme i localStorage eller på kontoen. */
+  delete k.karusellBilder;
   if(Array.isArray(k.history)) k.history.forEach(function(h){ if(h&&_erStortBilde(h.imageUrl)) h.imageUrl=null; });
   return k;
 }
@@ -8182,7 +8263,15 @@ async function lagKarusellbilder(){
   for(let i=0;i<slides.length;i++){
     const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
     const ctx=cv.getContext('2d');
-    _tegnBakgrunn(ctx,W,H,bg);
+    /* Hver slide har sitt eget valg: forsidebildet eller en farge. */
+    const stil=slideStil(i);
+    const brukBilde = stil.bg==='bilde' && bg;
+    let tekstFarge='#ffffff';
+    if(brukBilde){ _tegnBakgrunn(ctx,W,H,bg); }
+    else if(stil.bg!=='bilde'){
+      ctx.fillStyle=stil.bg; ctx.fillRect(0,0,W,H);
+      tekstFarge=_lysStyrke(stil.bg)>0.62?'#1A1A1A':'#ffffff';
+    } else { _tegnBakgrunn(ctx,W,H,null); }
     /* Teksten krymper til den får plass, i stedet for å renne ut av bildet. */
     const maksB=W*0.80, maksH=H*0.62;
     let fs=76, linjer=[];
@@ -8197,14 +8286,20 @@ async function lagKarusellbilder(){
     }
     ctx.textAlign='center'; ctx.textBaseline='top';
     const lh=fs*1.34, blokk=linjer.length*lh;
-    let y=(H-blokk)/2;
-    ctx.fillStyle='#ffffff';
-    ctx.shadowColor='rgba(0,0,0,.55)'; ctx.shadowBlur=fs*0.32; ctx.shadowOffsetY=fs*0.06;
+    /* Øverst, i midten eller nederst, slik du har valgt for denne sliden. */
+    let y = stil.pos==='topp' ? H*0.14
+          : stil.pos==='bunn' ? (H*0.86-blokk)
+          : (H-blokk)/2;
+    y=Math.max(H*0.06, Math.min(y, H-blokk-H*0.10));
+    ctx.fillStyle=tekstFarge;
+    /* Skygge bare når teksten ligger på et bilde. På ensfarget bakgrunn blir
+       den bare grumsete. */
+    if(brukBilde){ ctx.shadowColor='rgba(0,0,0,.55)'; ctx.shadowBlur=fs*0.32; ctx.shadowOffsetY=fs*0.06; }
     for(const l of linjer){ ctx.fillText(l,W/2,y); y+=lh; }
     ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetY=0;
     /* Sidetall, så leseren vet at det er mer å sveipe til. */
     ctx.font="600 30px 'Sasson Montessori','Playpen Sans',sans-serif";
-    ctx.fillStyle='rgba(255,255,255,.9)';
+    ctx.fillStyle=(tekstFarge==='#1A1A1A')?'rgba(26,26,26,.75)':'rgba(255,255,255,.9)';
     ctx.fillText('Slide %s av %s'.replace('%s',String(i+1)).replace('%s',String(slides.length)), W/2, H-78);
     await drawAdBadgeAsync(ctx,W,H);
     ut.push(cv.toDataURL('image/jpeg',0.9));
