@@ -647,7 +647,7 @@ const WRITING_RULES_EN = "WRITING RULES (always follow): Use straight quotes, ne
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Log in</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Log out</button>
-          <div class="nav-konto-ver">Version 20260904.1657</div>
+          <div class="nav-konto-ver">Version 20260904.1702</div>
           <div class="nav-konto-ver" id="ver-status" style="display:none;line-height:1.5;"></div>
           <button class="nav-konto-btn ut" onclick="seEtterNyVersjon()">Check for a new version</button>
         </div>
@@ -750,7 +750,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    looking at the new build or a cached old one. It now sits in the More menu,
    under the account, with a button that refetches the app and clears the
    cache. */
-window.LME_VERSJON = '20260904.1657';
+window.LME_VERSJON = '20260904.1702';
 /* The installed app has its own cache, separate from the browser, and on
    iPhone it is not cleared by refreshing the page in Safari. So you can be
    sitting on an old build without knowing, and bugs I have fixed look like
@@ -3627,6 +3627,17 @@ function buildPrompt(){
     const hookLinje = String((state&&state.reelHook)||'').trim()
       ? `The cover image already carries this hook: "${String(state.reelHook).trim()}". Do NOT repeat it, restate it or paraphrase it in any ${fl}.`
       : '';
+    /* AVSLUTNINGSSLIDEN GJENTOK SISTE SLIDE
+       Prompten ba om at siste slide skulle vaere en sterk oppfordring, og saa
+       la appen paa en avslutningsslide med den samme oppfordringen. To bilder
+       som sa det samme, hver eneste gang. Er avslutningen paa, sier prompten
+       naa at oppfordringen allerede har sitt eget bilde.
+       Renate 4. september 2026. */
+    const medAvslutning = state.format==='carousel' && state.avslutningPaa!==false;
+    const avslTekst = String((state&&state.avslutningTekst)||'').trim() || String((state&&state.cta)||'').trim();
+    const avslLinje = medAvslutning
+      ? `A separate closing image after the last ${fl} already carries the call to action${avslTekst?', which reads "'+avslTekst+'"':''}. So do NOT end on a call to action, and do not ask the reader to save, follow, comment or click in any ${fl}. Let the last ${fl} land the point itself.`
+      : `Last ${fl} = strong CTA.`;
     return `${base}
 
 Create a ${type} with exactly ${state.slideCount} ${fl}s.
@@ -3639,7 +3650,7 @@ NO REPETITION. This is the most important rule after the topic:
 - ${hookLinje}
 - Before you answer, read your ${fl}s back in order. If any two overlap in meaning, replace one of them with a genuinely new point. Repeat until every ${fl} stands on its own.
 
-Concise, and each ${fl} moves the reader one step further than the last. ${ctaLine} Last ${fl} = strong CTA.
+Concise, and each ${fl} moves the reader one step further than the last. ${medAvslutning?'':ctaLine} ${avslLinje}
 
 Return ONLY valid JSON: {"slides":["${fl} 1 text","${fl} 2 text",...]}`;
   }

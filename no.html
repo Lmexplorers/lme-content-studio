@@ -647,7 +647,7 @@ const SKRIVEREGLER_NO = "NORSKE SKRIVEREGLER (følg alltid): Bruk rette anførse
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Logg inn</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Logg ut</button>
-          <div class="nav-konto-ver">Versjon 20260904.1657</div>
+          <div class="nav-konto-ver">Versjon 20260904.1702</div>
           <div class="nav-konto-ver" id="ver-status" style="display:none;line-height:1.5;"></div>
           <button class="nav-konto-btn ut" onclick="seEtterNyVersjon()">Se etter ny versjon</button>
         </div>
@@ -750,7 +750,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    nye utgaven eller en mellomlagret gammel. Nå står den i Mer-menyen, under
    kontoen, sammen med en knapp som henter appen på nytt og tømmer
    mellomlageret. Renate 4. september 2026. */
-window.LME_VERSJON = '20260904.1657';
+window.LME_VERSJON = '20260904.1702';
 /* Den installerte appen har sitt eget mellomlager, adskilt fra nettleseren,
    og på iPhone tømmes det ikke av at du oppdaterer siden i Safari. Da kan du
    sitte med en gammel utgave uten å vite det, og feil jeg har rettet ser ut
@@ -3937,6 +3937,17 @@ ${SKRIVEREGLER_NO}${produktFakta()}\n\nIKKE skriv noen reklamemerking, ansvarsfr
     const hookLinje = String((state&&state.reelHook)||'').trim()
       ? `The cover image already carries this hook: "${String(state.reelHook).trim()}". Do NOT repeat it, restate it or paraphrase it in any ${fl}.`
       : '';
+    /* AVSLUTNINGSSLIDEN GJENTOK SISTE SLIDE
+       Prompten ba om at siste slide skulle vaere en sterk oppfordring, og saa
+       la appen paa en avslutningsslide med den samme oppfordringen. To bilder
+       som sa det samme, hver eneste gang. Er avslutningen paa, sier prompten
+       naa at oppfordringen allerede har sitt eget bilde.
+       Renate 4. september 2026. */
+    const medAvslutning = state.format==='carousel' && state.avslutningPaa!==false;
+    const avslTekst = String((state&&state.avslutningTekst)||'').trim() || String((state&&state.cta)||'').trim();
+    const avslLinje = medAvslutning
+      ? `A separate closing image after the last ${fl} already carries the call to action${avslTekst?', which reads "'+avslTekst+'"':''}. So do NOT end on a call to action, and do not ask the reader to save, follow, comment or click in any ${fl}. Let the last ${fl} land the point itself.`
+      : `Last ${fl} = strong CTA.`;
     return `${base}
 
 Create a ${type} with exactly ${state.slideCount} ${fl}s.
@@ -3949,7 +3960,7 @@ NO REPETITION. This is the most important rule after the topic:
 - ${hookLinje}
 - Before you answer, read your ${fl}s back in order. If any two overlap in meaning, replace one of them with a genuinely new point. Repeat until every ${fl} stands on its own.
 
-Concise, and each ${fl} moves the reader one step further than the last. ${ctaLine} Last ${fl} = strong CTA.
+Concise, and each ${fl} moves the reader one step further than the last. ${medAvslutning?'':ctaLine} ${avslLinje}
 
 Return ONLY valid JSON: {"slides":["${fl} 1 text","${fl} 2 text",...]}`;
   }
