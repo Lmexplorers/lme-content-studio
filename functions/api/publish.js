@@ -205,6 +205,15 @@ export async function onRequestPost(context) {
       mediaUrls.push(hosted);
     }
 
+    /* YouTube tar bare video. Sender vi et bilde, svarer de "kan ikke behandle
+       filen", og innlegget blir liggende som en feilet opplasting paa kanalen.
+       Derfor sjekker vi hva mediet faktisk er, foer vi sender.
+       Renate 4. september 2026. */
+    const kilder = (b.mediaUrls || []).filter(Boolean);
+    const erVideoFil = (u) =>
+      /^data:video\//i.test(String(u)) || /\.(mp4|mov|m4v|webm|avi)(\?|$)/i.test(String(u));
+    const harVideo = kilder.length > 0 && kilder.every(erVideoFil);
+
     // 2) Publiser til hver valgt konto.
     const results = [];
     for (const acc of accounts) {
@@ -219,6 +228,16 @@ export async function onRequestPost(context) {
       }
       if (plat === "pinterest" && !acc.boardId) {
         results.push({ accountId: acc.id, platform: plat, ok: false, error: "mangler Pinterest-tavle (boardId). Velg riktig tavle pa nytt i Innstillinger, sa hent kontoer pa nytt." });
+        continue;
+      }
+
+      if (plat === "youtube" && !harVideo) {
+        results.push({
+          accountId: acc.id, platform: plat, ok: false,
+          error: kilder.length
+            ? "YouTube tar bare video. Dette innlegget er et bilde, saa det ble ikke sendt dit. Lag en reel av bildet, eller last opp en video."
+            : "YouTube tar bare video, og innlegget har ingen videofil.",
+        });
         continue;
       }
 
