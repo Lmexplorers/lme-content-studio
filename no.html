@@ -637,7 +637,7 @@ const SKRIVEREGLER_NO = "NORSKE SKRIVEREGLER (følg alltid): Bruk rette anførse
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Logg inn</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Logg ut</button>
-          <div class="nav-konto-ver">Versjon 20260904.0719</div>
+          <div class="nav-konto-ver">Versjon 20260904.0722</div>
           <button class="nav-konto-btn ut" onclick="closeNavMenu();hentAppenPaaNytt()">Se etter ny versjon</button>
         </div>
       </div>
@@ -738,7 +738,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    nye utgaven eller en mellomlagret gammel. Nå står den i Mer-menyen, under
    kontoen, sammen med en knapp som henter appen på nytt og tømmer
    mellomlageret. Renate 4. september 2026. */
-window.LME_VERSJON = '20260904.0719';
+window.LME_VERSJON = '20260904.0722';
 /* Den installerte appen har sitt eget mellomlager, adskilt fra nettleseren,
    og på iPhone tømmes det ikke av at du oppdaterer siden i Safari. Da kan du
    sitte med en gammel utgave uten å vite det, og feil jeg har rettet ser ut
@@ -1802,6 +1802,17 @@ Workshop "…" – halvdag – for …" oninput="saveSettings()"></textarea></di
     </div>
   </div>
 
+  <div class="card">
+    <div class="card-title">Merket ditt</div>
+    <div style="font-size:11px;color:var(--text-s);line-height:1.6;margin-bottom:10px;">Last opp logoen eller merket ditt én gang. Da ligger det fast her, og du velger bare hvor det skal stå.</div>
+    <div id="merke-forhaand" style="display:none;align-items:center;gap:12px;margin-bottom:10px;"><img id="merke-bilde" alt="" style="width:64px;height:64px;object-fit:contain;background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:5px;"><button type="button" class="act-btn sage-btn" style="font-size:12px;" onclick="document.getElementById('merke-fil').click()">Bytt merke</button><button type="button" class="act-btn" style="font-size:12px;" onclick="fjernMerke()">Fjern</button></div>
+    <button type="button" class="act-btn sage-btn" id="merke-last" style="width:100%;font-size:12px;" onclick="document.getElementById('merke-fil').click()">📷 Last opp merket</button>
+    <input type="file" id="merke-fil" accept="image/*" style="display:none;" onchange="lastOppMerke(this)">
+    <div class="hk-row"><div class="hk-lab">Hvor det skal stå</div><div style="display:flex;gap:6px;flex-wrap:wrap;"><button type="button" class="sl-pos" data-merkehvor="av" onclick="settMerkeHvor('av')">Av</button><button type="button" class="sl-pos" data-merkehvor="alle" onclick="settMerkeHvor('alle')">Alle slides</button><button type="button" class="sl-pos" data-merkehvor="forste" onclick="settMerkeHvor('forste')">Kun første</button><button type="button" class="sl-pos" data-merkehvor="siste" onclick="settMerkeHvor('siste')">Kun siste</button></div></div>
+    <div class="hk-row"><div class="hk-lab">Plassering</div><div style="display:flex;gap:6px;flex-wrap:wrap;"><button type="button" class="sl-pos" data-merkeplass="ov" onclick="settMerkePlass('ov')">Øverst venstre</button><button type="button" class="sl-pos" data-merkeplass="oh" onclick="settMerkePlass('oh')">Øverst høyre</button><button type="button" class="sl-pos" data-merkeplass="nv" onclick="settMerkePlass('nv')">Nederst venstre</button><button type="button" class="sl-pos" data-merkeplass="nh" onclick="settMerkePlass('nh')">Nederst høyre</button></div></div>
+    <div class="hk-row"><div class="hk-lab">Størrelse</div><input type="range" min="6" max="22" value="12" id="merke-storrelse" oninput="settMerkeStorrelse(this.value)" style="width:100%;accent-color:var(--rose);"></div>
+    <label style="display:flex;align-items:center;gap:9px;cursor:pointer;margin-top:12px;"><input type="checkbox" id="merke-paa-bilde" onchange="settMerkePaaBilde(this.checked)" style="width:auto;"><span style="font-size:12.5px;">Legg merket på forsidebildet også</span></label>
+  </div>
   <div class="card">
     <div class="card-title">Reklamemerking</div>
     <div style="font-size:11px;color:var(--text-s);line-height:1.6;margin-bottom:10px;">Markedsføringsloven krever at reklame er tydelig merket, også når du reklamerer for ditt eget. Teksten under legges øverst i bildeteksten og som et merke på bildet, i alt du lager.</div>
@@ -3441,6 +3452,78 @@ function medReklame(tekst){
   if(forste.indexOf(merke.toLowerCase())>=0) return t;
   return merke+'\n\n'+t;
 }
+/* Merket lå bare i story-editoren, og bare på skjermen der. Nå ligger det i
+   Innstillinger, lagres med resten av innstillingene og følger med til
+   kontoen, og du velger hvor det skal stå på karusellen og forsidebildet.
+   Renate 4. september 2026. */
+function merkeBilde(){ return (typeof cfg!=='undefined' && cfg.logoImage) || ''; }
+function merkeHvor(){ return (typeof cfg!=='undefined' && cfg.merkeHvor) || 'av'; }
+function merkePlass(){ return (typeof cfg!=='undefined' && cfg.merkePlass) || 'nh'; }
+function merkeStorrelse(){ const v=(typeof cfg!=='undefined' && cfg.merkeStorrelse)||12; return Math.max(6,Math.min(22,+v||12)); }
+function merkePaaBilde(){ return !!(typeof cfg!=='undefined' && cfg.merkePaaBilde); }
+function lastOppMerke(input){
+  const f=input&&input.files&&input.files[0]; if(!f) return;
+  input.value='';
+  if(!/^image\//.test(f.type||'')) return;
+  const r=new FileReader();
+  r.onload=function(){
+    cfg.logoImage=String(r.result||'');
+    if(!cfg.merkeHvor||cfg.merkeHvor==='av') cfg.merkeHvor='alle';
+    try{ persistCfg(); }catch(e){}
+    try{ syncActiveProfile(); }catch(e){}
+    tegnMerkeUI();
+    try{ oppdaterSlideStil(-1); }catch(e){}
+  };
+  r.readAsDataURL(f);
+}
+function fjernMerke(){
+  cfg.logoImage=''; cfg.merkeHvor='av';
+  try{ persistCfg(); syncActiveProfile(); }catch(e){}
+  tegnMerkeUI();
+  try{ oppdaterSlideStil(-1); }catch(e){}
+}
+function settMerkeHvor(v){ cfg.merkeHvor=v; try{ persistCfg(); }catch(e){} tegnMerkeUI(); try{ oppdaterSlideStil(-1); }catch(e){} }
+function settMerkePlass(v){ cfg.merkePlass=v; try{ persistCfg(); }catch(e){} tegnMerkeUI(); try{ oppdaterSlideStil(-1); }catch(e){} }
+function settMerkeStorrelse(v){ cfg.merkeStorrelse=+v||12; try{ persistCfg(); }catch(e){} try{ oppdaterSlideStil(-1); }catch(e){} }
+function settMerkePaaBilde(v){ cfg.merkePaaBilde=!!v; try{ persistCfg(); }catch(e){} }
+function tegnMerkeUI(){
+  const har=!!merkeBilde();
+  const fh=document.getElementById('merke-forhaand'), last=document.getElementById('merke-last');
+  if(fh) fh.style.display=har?'flex':'none';
+  if(last) last.style.display=har?'none':'block';
+  const b=document.getElementById('merke-bilde'); if(b&&har) b.src=merkeBilde();
+  document.querySelectorAll('[data-merkehvor]').forEach(function(x){ x.classList.toggle('on', x.getAttribute('data-merkehvor')===merkeHvor()); });
+  document.querySelectorAll('[data-merkeplass]').forEach(function(x){ x.classList.toggle('on', x.getAttribute('data-merkeplass')===merkePlass()); });
+  const st=document.getElementById('merke-storrelse'); if(st) st.value=merkeStorrelse();
+  const pb=document.getElementById('merke-paa-bilde'); if(pb) pb.checked=merkePaaBilde();
+}
+/* Tegner merket i det hjørnet du har valgt, i den størrelsen du har satt,
+   målt i prosent av bildebredden. */
+async function tegnMerke(ctx,W,H,img){
+  if(!img) return;
+  const b=W*(merkeStorrelse()/100);
+  const forhold=(img.naturalHeight||img.height||1)/(img.naturalWidth||img.width||1);
+  const h=b*forhold;
+  const m=W*0.045;
+  const p=merkePlass();
+  const x=(p==='ov'||p==='nv')?m:(W-m-b);
+  const y=(p==='ov'||p==='oh')?m:(H-m-h);
+  ctx.save();
+  ctx.globalAlpha=0.96;
+  ctx.drawImage(img,x,y,b,h);
+  ctx.restore();
+}
+function merkePaaSlide(i,antall){
+  if(!merkeBilde()) return false;
+  const s=(typeof slideStil==='function')?slideStil(i):null;
+  if(s && s.merke==='av') return false;
+  if(s && s.merke==='paa') return true;
+  const h=merkeHvor();
+  if(h==='alle') return true;
+  if(h==='forste') return i===0;
+  if(h==='siste') return i===antall-1;
+  return false;
+}
 function produktFakta(){
   const d=[];
   if(cfg.brand) d.push('Merkevare: '+cfg.brand);
@@ -3911,6 +3994,7 @@ function _lysStyrke(hex){
   const r=parseInt(h.slice(0,2),16), g=parseInt(h.slice(2,4),16), b=parseInt(h.slice(4,6),16);
   return (0.299*r+0.587*g+0.114*b)/255;
 }
+function settSlideMerke(i,v){ slideStil(i).merke=v; oppdaterSlideStil(i); }
 function settSlideBg(i,v){ slideStil(i).bg=v; oppdaterSlideStil(i); }
 function settSlidePos(i,v){ slideStil(i).pos=v; oppdaterSlideStil(i); }
 function settAlleSlider(i){
@@ -3940,12 +4024,18 @@ function slideKnapperHtml(i){
   const pos=[['topp','Topp'],['midt','Midt'],['bunn','Bunn']].map(function(p){
     return '<button type="button" class="sl-pos'+(s.pos===p[0]?' on':'')+'" onclick="settSlidePos('+i+',\''+p[0]+'\')">'+p[1]+'</button>';
   }).join('');
+  /* Merket følger standardvalget i Innstillinger, men kan slås på eller av
+     for denne ene sliden. */
+  const merkeValg=[['std','Som valgt'],['paa','På'],['av','Av']].map(function(m){
+    return '<button type="button" class="sl-pos'+((s.merke||'std')===m[0]?' on':'')+'" onclick="settSlideMerke('+i+',\''+m[0]+'\')">'+m[1]+'</button>';
+  }).join('');
   return '<div class="sl-stil">'
     +'<div class="sl-rad"><span class="sl-lab">Bakgrunn</span>'
       +'<button type="button" class="sl-pos'+(s.bg==='bilde'?' on':'')+'" onclick="settSlideBg('+i+',\'bilde\')">Bilde</button>'
       +f+'</div>'
     +'<div class="sl-rad"><span class="sl-lab">Tekst</span>'+pos
       +'<button type="button" class="sl-alle" onclick="settAlleSlider('+i+')">Bruk på alle</button></div>'
+    +(merkeBilde()?('<div class="sl-rad"><span class="sl-lab">Merke</span>'+merkeValg+'</div>'):'')
     +'</div>';
 }
 function tegnSlideKnapper(){
@@ -5026,6 +5116,7 @@ function applySettingsToUI(){
   s('s-brand',cfg.brand); s('s-niche',cfg.niche); s('s-voice',cfg.voice); s('s-audience',cfg.audience);
   s('s-website',cfg.website); s('s-offers',cfg.offers); s('s-launch',cfg.launch);
   s('s-reklame-tekst',cfg.reklameTekst);
+  try{ tegnMerkeUI(); }catch(e){}
   const rp=document.getElementById('s-reklame-paa'); if(rp) rp.checked=(cfg.reklamePaa!==false);
   { const el=document.getElementById('s-team-mode'); if(el) el.value=cfg.teamMode||'solo'; }
   s('s-email',cfg.email);
@@ -8259,6 +8350,7 @@ async function lagKarusellbilder(){
   const fam="'Playpen Sans',sans-serif";
   try{ await document.fonts.load('800 60px '+fam); }catch(e){}
   const bg=await _last(state.imageUrlClean||state.imageUrl);
+  const merke=merkeBilde()?await _last(merkeBilde()):null;
   const ut=[];
   for(let i=0;i<slides.length;i++){
     const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
@@ -8302,6 +8394,7 @@ async function lagKarusellbilder(){
     ctx.fillStyle=(tekstFarge==='#1A1A1A')?'rgba(26,26,26,.75)':'rgba(255,255,255,.9)';
     ctx.fillText('Slide %s av %s'.replace('%s',String(i+1)).replace('%s',String(slides.length)), W/2, H-78);
     await drawAdBadgeAsync(ctx,W,H);
+    if(merkePaaSlide(i,slides.length)) await tegnMerke(ctx,W,H,merke);
     ut.push(cv.toDataURL('image/jpeg',0.9));
   }
   state.karusellBilder=ut;
@@ -8354,8 +8447,9 @@ async function burnHookIntoImage(srcUrl){
   /* Reklamemerket skal på uansett, også når du ikke har skrevet noen hook.
      Før returnerte denne bildet urørt med en gang hooken manglet. */
   const merke=(typeof reklamePaa==='function') && reklamePaa();
+  const harMerke=(typeof merkePaaBilde==='function') && merkePaaBilde() && merkeBilde();
   if(!srcUrl) return srcUrl;
-  if(!hk && !merke) return srcUrl;
+  if(!hk && !merke && !harMerke) return srcUrl;
   return await new Promise(function(resolve){
     const img=new Image(); img.crossOrigin='anonymous';
     img.onload=async function(){
@@ -8366,6 +8460,10 @@ async function burnHookIntoImage(srcUrl){
         ctx.drawImage(img,0,0,W,H);
         if(hk) await _drawHook(ctx,W,H,hk);
         await drawAdBadgeAsync(ctx,W,H);
+        if(merkePaaBilde() && merkeBilde()){
+          const m=await _last(merkeBilde());
+          await tegnMerke(ctx,W,H,m);
+        }
         resolve(cv.toDataURL('image/png'));
       }catch(e){ resolve(srcUrl); }
     };
