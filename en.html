@@ -622,6 +622,7 @@ const WRITING_RULES_EN = "WRITING RULES (always follow): Use straight quotes, ne
         <button class="nav-dropdown-item" onclick="showTab('editor',this);closeNavMenu()">Editor</button>
         <button class="nav-dropdown-item" onclick="showTab('pricing',this);closeNavMenu()">How it works</button>
         <button class="nav-dropdown-item" onclick="showTab('settings',this);closeNavMenu()">Settings</button>
+        <button class="nav-dropdown-item" onclick="closeNavMenu();gaaTilInstaller()">Download the app</button>
         <div class="nav-konto" id="nav-konto">
           <div class="nav-konto-lab">Account</div>
           <div class="nav-konto-epost" id="nav-konto-epost"></div>
@@ -838,6 +839,29 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
 
   <button class="wiz-launch" onclick="openWizard()">✨ Build your plan, step by step</button>
 
+  <div class="card" id="arbeid-kort">
+    <div class="card-title">Your work <span id="lagret-tid" style="font-weight:400;color:var(--text-s);font-size:10px;"></span></div>
+    <div style="font-size:11px;color:var(--text-s);line-height:1.6;margin-bottom:10px;">Everything you write saves itself, so you can close the app and carry on later. Want several things on the go at once? Save them as drafts.</div>
+    <div id="arbeid-banner" style="display:none;align-items:center;gap:8px;flex-wrap:wrap;background:var(--rose-l);border:1.5px solid var(--rose-m);border-radius:12px;padding:9px 12px;margin-bottom:10px;font-size:12px;color:var(--text);">
+      <span>Picking up where you left off.</span>
+      <button type="button" class="utkast-btn slett" style="margin-left:auto;" onclick="nyttArbeid()">Start over</button>
+    </div>
+    <button type="button" class="act-btn sage-btn" style="font-size:12px;" onclick="lagreUtkast()">Save as draft</button>
+    <div style="font-size:11px;font-weight:700;color:var(--text-s);margin:12px 0 7px;">Drafts<span id="utkast-tall"></span></div>
+    <div id="utkast-liste"></div>
+  </div>
+
+  <div class="card" id="installer-kort">
+    <div class="card-title">Download the app</div>
+    <div style="font-size:11px;color:var(--text-s);line-height:1.6;margin-bottom:10px;">Put LME Autopilot on your home screen or desktop, and it opens like a normal app, with no browser bar.</div>
+    <div id="installert-melding" style="display:none;background:var(--rose-l);border-radius:12px;padding:10px 13px;font-size:12px;color:var(--rose-d);font-weight:700;">The app is installed. You are running it now.</div>
+    <div id="installer-boks">
+      <button type="button" class="act-btn" id="installer-knapp" style="display:none;width:100%;background:var(--rose);color:#fff;border-color:var(--rose);font-weight:700;" onclick="installerAppen()">Download the app</button>
+      <div id="installer-hjelp" style="font-size:11.5px;color:var(--text-s);line-height:1.75;margin-top:10px;"></div>
+      <div style="font-size:11px;color:var(--text-s);line-height:1.6;margin-top:10px;">The app is coming to the App Store and Google Play later. This route already works today, everywhere.</div>
+    </div>
+  </div>
+
   <div class="card">
     <div class="card-title">What do you want to create content for?</div>
     <div style="font-size:12px;color:var(--text-s);margin:-2px 0 10px;">Pick your niche, and topics, hashtags and text adapt to it.</div>
@@ -851,28 +875,7 @@ function lmeAuthLogout(){ localStorage.removeItem(LME_TOKEN_KEY); renderAuth(nul
     <div class="chip-wrap" id="goal-chips"></div>
   </div>
 
-    <div class="card" id="arbeid-kort">
-    <div class="card-title">Your work <span id="lagret-tid" style="font-weight:400;color:var(--text-s);font-size:10px;"></span></div>
-    <div style="font-size:11px;color:var(--text-s);line-height:1.6;margin-bottom:10px;">Everything you write saves itself, so you can close the app and carry on later. Want several things on the go at once? Save them as drafts.</div>
-    <div id="arbeid-banner" style="display:none;align-items:center;gap:8px;flex-wrap:wrap;background:var(--rose-l);border:1.5px solid var(--rose-m);border-radius:12px;padding:9px 12px;margin-bottom:10px;font-size:12px;color:var(--text);">
-      <span>Picking up where you left off.</span>
-      <button type="button" class="utkast-btn slett" style="margin-left:auto;" onclick="nyttArbeid()">Start over</button>
-    </div>
-    <button type="button" class="act-btn sage-btn" style="font-size:12px;" onclick="lagreUtkast()">Save as draft</button>
-    <div style="font-size:11px;font-weight:700;color:var(--text-s);margin:12px 0 7px;">Drafts<span id="utkast-tall"></span></div>
-    <div id="utkast-liste"></div>
-  </div>
-  <div class="card" id="installer-kort">
-    <div class="card-title">Download the app</div>
-    <div style="font-size:11px;color:var(--text-s);line-height:1.6;margin-bottom:10px;">Put LME Autopilot on your home screen or desktop, and it opens like a normal app, with no browser bar.</div>
-    <div id="installert-melding" style="display:none;background:var(--rose-l);border-radius:12px;padding:10px 13px;font-size:12px;color:var(--rose-d);font-weight:700;">The app is installed. You are running it now.</div>
-    <div id="installer-boks">
-      <button type="button" class="act-btn" id="installer-knapp" style="display:none;width:100%;background:var(--rose);color:#fff;border-color:var(--rose);font-weight:700;" onclick="installerAppen()">Download the app</button>
-      <div id="installer-hjelp" style="font-size:11.5px;color:var(--text-s);line-height:1.75;margin-top:10px;"></div>
-      <div style="font-size:11px;color:var(--text-s);line-height:1.6;margin-top:10px;">The app is coming to the App Store and Google Play later. This route already works today, everywhere.</div>
-    </div>
-  </div>
-  <div class="card">
+    <div class="card">
     <div class="card-title">Select format</div>
     <div class="format-list" id="format-list"></div>
   </div>
@@ -5681,6 +5684,11 @@ function lagreArbeid(){
     try{ d=_fangArbeid(); }catch(e){ return; }
     const n=JSON.stringify(_utenBilder(d));
     if(n===_sisteArbeid) return;
+    /* Et tomt arbeid skal aldri overskrive et som har innhold. */
+    if(!(d.result||d.customTopic||d.reelHook||d.imageUrl)){
+      let gml=null; try{ gml=JSON.parse(localStorage.getItem(ARBEID_LS)||'null'); }catch(e){}
+      if(gml && (gml.result||gml.customTopic||gml.reelHook||gml.imageUrl)) return;
+    }
     _sisteArbeid=n;
     try{ localStorage.setItem(ARBEID_LS,n); }catch(e){}
     try{ _arbeidPut(d).catch(function(){}); }catch(e){}
@@ -5722,9 +5730,14 @@ function settArbeid(d){
   return true;
 }
 async function gjenopprettArbeid(){
+  /* Lagringen må vente til det som lå der er hentet fram, ellers rekker
+     autolagringen å skrive et tomt arbeid over det gode. Failsafen sørger
+     for at den slås på uansett, om noe skulle henge. */
+  const failsafe=setTimeout(function(){ window._arbeidKlart=true; }, 6000);
   let d=null;
   try{ d=await _arbeidGet(); }catch(e){}
   if(!d){ try{ d=JSON.parse(localStorage.getItem(ARBEID_LS)||'null'); }catch(e){} }
+  clearTimeout(failsafe);
   window._arbeidKlart=true;
   if(!d || (!d.result && !d.customTopic && !d.reelHook && !d.imageUrl)) { tegnUtkast(); return; }
   settArbeid(d);
@@ -5841,6 +5854,12 @@ function erInstallert(){
 /* Apple gir ingen installasjonsknapp, verken på iPhone, iPad eller i Safari
    på Mac. Der er oppskriften det eneste som hjelper, så vi viser den for den
    maskinen du faktisk sitter på. */
+function gaaTilInstaller(){
+  try{ showTab('create', document.querySelectorAll('.tab-btn')[0]); }catch(e){}
+  try{ tegnInstaller(); }catch(e){}
+  const k=document.getElementById('installer-kort');
+  if(k) setTimeout(function(){ k.scrollIntoView({behavior:'smooth',block:'center'}); },80);
+}
 function tegnInstaller(){
   const kort=document.getElementById('installer-kort'); if(!kort) return;
   const inst=erInstallert();
@@ -5863,8 +5882,30 @@ function tegnInstaller(){
   else if(android) hjelp.innerHTML='<b>Android:</b> tap the button above, or choose "Install app" in the three-dot menu.';
   else hjelp.innerHTML='<b>Windows:</b> in Chrome or Edge an install icon appears at the far right of the address bar. Click it, or use the button above.';
 }
+/* WHY NOTHING WAS SAVED
+   I raised IndexedDB from version 3 to 4 to add the drafts store. If the app
+   is open in several tabs and one of them is still on version 3, the upgrade
+   is blocked. With no onblocked handler the promise never settled, the wait
+   during startup hung forever, and the flag that unlocks saving was never
+   set. So nothing saved, neither to IndexedDB nor to localStorage.
+
+   Three things prevent that now: an old connection closes itself when a new
+   version knocks, blocking and slowness give up after three seconds instead
+   of hanging, and saving is switched on regardless, so localStorage works
+   even if IndexedDB fails. */
+var _idbLovnad=null, _idbSistFeil=0;
 function _idb(){
-  return new Promise(function(resolve,reject){
+  if(_idbLovnad) return _idbLovnad;
+  /* Er IndexedDB blokkert av en annen fane, svarer vi nei med en gang i tjue
+     sekunder, i stedet for å bruke tre sekunder på å vente hver eneste gang. */
+  if(_idbSistFeil && Date.now()-_idbSistFeil<20000) return Promise.reject(new Error('indexeddb_utilgjengelig'));
+  _idbLovnad=new Promise(function(resolve,reject){
+    var ferdig=false;
+    var svar=function(fn,v){ if(ferdig) return; ferdig=true; fn(v); };
+    var klokke=setTimeout(function(){
+      _idbLovnad=null; _idbSistFeil=Date.now();
+      svar(reject,new Error('indexeddb_tidsavbrudd'));
+    },3000);
     try{ const req=indexedDB.open('lme_studio',4);
       req.onupgradeneeded=function(){ const db=req.result;
         if(!db.objectStoreNames.contains('stories')) db.createObjectStore('stories',{keyPath:'id'});
@@ -5872,10 +5913,19 @@ function _idb(){
         if(!db.objectStoreNames.contains('settings')) db.createObjectStore('settings',{keyPath:'id'});
         if(!db.objectStoreNames.contains('utkast')) db.createObjectStore('utkast',{keyPath:'id'});
       };
-      req.onsuccess=function(){ resolve(req.result); };
-      req.onerror=function(){ reject(req.error); };
-    }catch(e){ reject(e); }
+      req.onsuccess=function(){
+        clearTimeout(klokke); _idbSistFeil=0;
+        const db=req.result;
+        /* Banker en nyere versjon på i en annen fane, slipper vi taket, slik
+           at den fanen ikke blir stående og vente på oss. */
+        db.onversionchange=function(){ try{ db.close(); }catch(e){} _idbLovnad=null; };
+        svar(resolve,db);
+      };
+      req.onblocked=function(){ clearTimeout(klokke); _idbLovnad=null; _idbSistFeil=Date.now(); svar(reject,new Error('indexeddb_blokkert')); };
+      req.onerror=function(){ clearTimeout(klokke); _idbLovnad=null; _idbSistFeil=Date.now(); svar(reject,req.error); };
+    }catch(e){ clearTimeout(klokke); _idbLovnad=null; _idbSistFeil=Date.now(); svar(reject,e); }
   });
+  return _idbLovnad;
 }
 // ── Settings (incl. Blotato key) backed up in IndexedDB so they survive even if localStorage is cleared on mobile ──
 function _settingsPut(obj){ return _idb().then(function(db){ return new Promise(function(res,rej){ const tx=db.transaction('settings','readwrite'); tx.objectStore('settings').put({id:'cfg', data:obj}); tx.oncomplete=function(){ res(true); }; tx.onerror=function(){ rej(tx.error); }; }); }); }
