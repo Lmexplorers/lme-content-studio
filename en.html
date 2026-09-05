@@ -647,7 +647,7 @@ const WRITING_RULES_EN = "WRITING RULES (always follow): Use straight quotes, ne
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Log in</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Log out</button>
-          <div class="nav-konto-ver">Version 20260905.0332</div>
+          <div class="nav-konto-ver">Version 20260905.0338</div>
           <div class="nav-konto-ver" id="ver-status" style="display:none;line-height:1.5;"></div>
           <button class="nav-konto-btn ut" onclick="seEtterNyVersjon()">Check for a new version</button>
         </div>
@@ -750,7 +750,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    looking at the new build or a cached old one. It now sits in the More menu,
    under the account, with a button that refetches the app and clears the
    cache. */
-window.LME_VERSJON = '20260905.0332';
+window.LME_VERSJON = '20260905.0338';
 /* The installed app has its own cache, separate from the browser, and on
    iPhone it is not cleared by refreshing the page in Safari. So you can be
    sitting on an old build without knowing, and bugs I have fixed look like
@@ -3398,7 +3398,13 @@ function brukerPlan(){
   const a=(typeof window!=='undefined' && window.lmeAccount) || {};
   return String(a.plan||'').toLowerCase();
 }
-function planUker(){ return brukerPlan()==='start' ? 4 : 13; }
+/* The plan is called "cs-start" where the subscription is stored, and "start"
+   in the older purchases. Both are the same plan, and both give 30 days. */
+function erStartPlan(){
+  const p=brukerPlan();
+  return p==='cs-start' || p==='start';
+}
+function planUker(){ return erStartPlan() ? 4 : 13; }
 function planDager(){ return planUker()===4 ? 30 : 90; }
 function strategyPrompt(){
   const niche = cfg.niche || (currentNiche()&&currentNiche().label) || 'your niche';

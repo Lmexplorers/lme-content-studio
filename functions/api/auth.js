@@ -73,9 +73,19 @@ async function putUser(env, user) {
   await env.ACCOUNTS_KV.put("user:" + user.email, JSON.stringify(user));
   return user;
 }
+/* Abonnementet fra /oppgrader lagres som user.subscription ({plan, limits}),
+   mens eldre kjop skrev user.plan. Leste vi bare user.plan, sa appen aldri
+   hvilket abonnement kunden har, og kunne ikke skille Start fra Proff.
+   Renate 5. september 2026. */
 function publicAccount(u, ekstra) {
+  const sub = (u && u.subscription) || null;
+  const aktiv = sub && (!sub.status || sub.status === "active");
   return Object.assign(
-    { email: u.email, plan: u.plan || "free", credits: u.credits || { video: 0, image: 0 } },
+    {
+      email: u.email,
+      plan: (aktiv && sub.plan) || u.plan || "free",
+      credits: u.credits || { video: 0, image: 0 },
+    },
     ekstra || {}
   );
 }

@@ -647,7 +647,7 @@ const SKRIVEREGLER_NO = "NORSKE SKRIVEREGLER (følg alltid): Bruk rette anførse
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Logg inn</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Logg ut</button>
-          <div class="nav-konto-ver">Versjon 20260905.0332</div>
+          <div class="nav-konto-ver">Versjon 20260905.0338</div>
           <div class="nav-konto-ver" id="ver-status" style="display:none;line-height:1.5;"></div>
           <button class="nav-konto-btn ut" onclick="seEtterNyVersjon()">Se etter ny versjon</button>
         </div>
@@ -750,7 +750,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    nye utgaven eller en mellomlagret gammel. Nå står den i Mer-menyen, under
    kontoen, sammen med en knapp som henter appen på nytt og tømmer
    mellomlageret. Renate 4. september 2026. */
-window.LME_VERSJON = '20260905.0332';
+window.LME_VERSJON = '20260905.0338';
 /* Den installerte appen har sitt eget mellomlager, adskilt fra nettleseren,
    og på iPhone tømmes det ikke av at du oppdaterer siden i Safari. Da kan du
    sitte med en gammel utgave uten å vite det, og feil jeg har rettet ser ut
@@ -3706,7 +3706,13 @@ function brukerPlan(){
   const a=(typeof window!=='undefined' && window.lmeAccount) || {};
   return String(a.plan||'').toLowerCase();
 }
-function planUker(){ return brukerPlan()==='start' ? 4 : 13; }
+/* Planen heter "cs-start" der abonnementet lagres, og "start" i de eldre
+   kjopene. Begge er den samme planen, og begge gir 30 dager. */
+function erStartPlan(){
+  const p=brukerPlan();
+  return p==='cs-start' || p==='start';
+}
+function planUker(){ return erStartPlan() ? 4 : 13; }
 function planDager(){ return planUker()===4 ? 30 : 90; }
 function strategyPrompt(){
   const niche = cfg.niche || (currentNiche()&&currentNiche().label) || 'din nisje';
