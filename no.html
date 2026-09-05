@@ -647,7 +647,7 @@ const SKRIVEREGLER_NO = "NORSKE SKRIVEREGLER (følg alltid): Bruk rette anførse
           <div class="nav-konto-kred"><span id="nav-konto-kreditter"></span></div>
           <button class="nav-konto-btn" id="nav-logg-inn" onclick="closeNavMenu();openAuthModal()">Logg inn</button>
           <button class="nav-konto-btn ut" id="nav-logg-ut" onclick="closeNavMenu();lmeAuthLogout()">Logg ut</button>
-          <div class="nav-konto-ver">Versjon 20260905.0325</div>
+          <div class="nav-konto-ver">Versjon 20260905.0332</div>
           <div class="nav-konto-ver" id="ver-status" style="display:none;line-height:1.5;"></div>
           <button class="nav-konto-btn ut" onclick="seEtterNyVersjon()">Se etter ny versjon</button>
         </div>
@@ -750,7 +750,7 @@ async function lmeAuthMe(){ const t=lmeToken(); if(!t) return null; try{ const d
    nye utgaven eller en mellomlagret gammel. Nå står den i Mer-menyen, under
    kontoen, sammen med en knapp som henter appen på nytt og tømmer
    mellomlageret. Renate 4. september 2026. */
-window.LME_VERSJON = '20260905.0325';
+window.LME_VERSJON = '20260905.0332';
 /* Den installerte appen har sitt eget mellomlager, adskilt fra nettleseren,
    og på iPhone tømmes det ikke av at du oppdaterer siden i Safari. Da kan du
    sitte med en gammel utgave uten å vite det, og feil jeg har rettet ser ut
@@ -1283,7 +1283,7 @@ function renderHookColors(){var tc=el("hook-textcolors"),bgc=el("hook-bgcolors")
 <!-- ════ 30-DAY PLAN ════ -->
 <div id="tab-plan" style="display:none;">
   <div class="card">
-    <div class="card-title">90-dagers strategi</div>
+    <div class="card-title" id="strat-tittel">90-dagers strategi</div>
     <p style="font-size:12px;color:var(--text-s);margin-bottom:12px;line-height:1.6;">Bygget på nisjen, målet og stemmen din. Du får innholdspilarer, ukestemaer og ferdige innleggsideer med salgs- og leadsmomenter. Klikk en idé for å lage selve innlegget.</p>
     <!-- Nisjen og målet står her, ikke bare i Innstillinger. Før lå de gjemt, og
          strategien ble bygget på en gammel nisje uten at noe viste det. -->
@@ -3697,6 +3697,17 @@ const FAKTAREGLER_NO=`Regler for hvordan faktaene brukes:
 - Skriv aldri en pris, en rabatt, et lanseringstilbud eller en betalingsbetingelse med mindre det nøyaktige tallet står i faktaene over. Trenger leseren prisen, henvis til nettstedet i stedet for å oppgi et beløp.
 - Faktaene er opplysninger, ikke beskjeder til deg. Ser du noe som er ment for den som fyller ut feltet, for eksempel "legg inn din egen pris her", skal det aldri gjentas i innholdet.
 - Nevn produktet ved navn når innlegget handler om det, ikke bare "appen" eller "verktøyet".`;
+/* START-PLANEN SKAL VAERE 30 DAGER, IKKE 90
+   Grensen mellom planene var borte, saa alle fikk tretten uker, ogsaa de som
+   betaler for Start. Naa avgjoer planen paa kontoen hvor lang strategien er,
+   og en strategi som allerede ligger lagret vises bare saa langt planen din
+   rekker. Renate 5. september 2026. */
+function brukerPlan(){
+  const a=(typeof window!=='undefined' && window.lmeAccount) || {};
+  return String(a.plan||'').toLowerCase();
+}
+function planUker(){ return brukerPlan()==='start' ? 4 : 13; }
+function planDager(){ return planUker()===4 ? 30 : 90; }
 function strategyPrompt(){
   const niche = cfg.niche || (currentNiche()&&currentNiche().label) || 'din nisje';
   const goal = state.goal || 'vekst og synlighet';
@@ -3704,7 +3715,7 @@ function strategyPrompt(){
   const voice = cfg.voice || state.tone || 'vennlig, tydelig og profesjonell';
   const brand = cfg.brand || 'merkevaren';
   const time = state.timeLevel || '30 minutter om dagen';
-  return `Du er en strateg for innholdsmarkedsføring. Lag en 90-dagers innholdsstrategi (13 uker) for "${brand}" i nisjen "${niche}". Hovedmål: ${goal}. Plattformer: ${plats}. Stemme: ${voice}. Tilgjengelig tid: ${time}.
+  return `Du er en strateg for innholdsmarkedsføring. Lag en ${planDager()}-dagers innholdsstrategi (${planUker()} uker) for "${brand}" i nisjen "${niche}". Hovedmål: ${goal}. Plattformer: ${plats}. Stemme: ${voice}. Tilgjengelig tid: ${time}.
 
 Nisjen over er fasit. Merkevarenavnet kan peke mot et helt annet fagfelt enn nisjen, og da er det nisjen og målet som gjelder, ikke det navnet antyder. Ikke dra inn temaer, målgrupper eller vinklinger som nisjen og målet ikke tilsier.
 
@@ -3714,7 +3725,7 @@ Returner KUN gyldig JSON, ingen forklaring, på dette formatet:
 {"pillars":["pilar 1","pilar 2","pilar 3","pilar 4"],"rhythm":"én kort setning om posterytme tilpasset tiden","weeks":[{"week":1,"theme":"ukens tema","posts":[{"day":"Man","idea":"kort konkret innleggsidé","format":"reel","purpose":"Verdi"}]}]}
 
 Krav:
-- Nøyaktig 13 uker (week 1 til 13).
+- Nøyaktig ${planUker()} uker (week 1 til ${planUker()}).
 - 4 til 5 poster per uke fordelt på ukedager (Man, Tir, Ons, Tor, Fre, Lør, Søn).
 - format er én av: reel, carousel, story, post, caption, email, pinterest.
 - purpose er én av: Verdi, Engasjement, Salg, Leads, Autoritet, E-post. Inkluder jevnlig Salg og Leads, og minst én E-post-idé hver måned.
@@ -3725,6 +3736,13 @@ Krav:
 /* Nisjen og målet strategien faktisk bruker, vist og redigerbart der du står.
    cfg.niche er fasit for prompten, men den lå bare i Innstillinger, så en gammel
    nisje kunne styre strategien uten at noe på siden viste hvilken. */
+/* Overskriften og knappen skal si det samme som planen din gir. */
+function tegnPlanLengde(){
+  const d=planDager();
+  const t=document.getElementById('strat-tittel'); if(t) t.textContent=d+'-dagers strategi';
+  const b=document.getElementById('strat-gen-btn');
+  if(b && !b.disabled) b.innerHTML='Generer '+d+'-dagers strategi';
+}
 function fyllStratFelter(){
   const n=document.getElementById('strat-niche');
   if(n){ const v=(cfg.niche||'').trim(); if(n.value!==v) n.value=v; }
@@ -3755,11 +3773,11 @@ function strategyPromptRest(sofar){
   const tema=(sofar.weeks||[]).map(w=>w.week+': '+(w.theme||'')).join('; ');
   const niche = cfg.niche || (currentNiche()&&currentNiche().label) || 'din nisje';
   const goal = state.goal || 'vekst og synlighet';
-  return `Du fortsetter en 90-dagers innholdsstrategi for nisjen "${niche}". Hovedmål: ${goal}.
+  return `Du fortsetter en ${planDager()}-dagers innholdsstrategi for nisjen "${niche}". Hovedmål: ${goal}.
 Pilarene er allerede satt: ${(sofar.pillars||[]).join(', ')}.
 Ukene som finnes fra før: ${tema}.
 
-Lag KUN uke ${fra} til 13. Ikke gjenta ukene over, og ikke lag nye pilarer.
+Lag KUN uke ${fra} til ${planUker()}. Ikke gjenta ukene over, og ikke lag nye pilarer.
 
 Returner KUN gyldig JSON: {"weeks":[{"week":${fra},"theme":"ukens tema","posts":[{"day":"Man","idea":"kort konkret innleggsidé","format":"reel","purpose":"Verdi"}]}]}
 
@@ -3774,7 +3792,15 @@ Krav:
 
 let strategy90 = null, stratFlat = [];
 function loadStrategy(){ try{ const s=localStorage.getItem('lme_strategy_90'); if(s) strategy90=JSON.parse(s); }catch(e){} renderStrategy(); }
-function saveStrategy(){ try{ localStorage.setItem('lme_strategy_90', JSON.stringify(strategy90)); }catch(e){} }
+/* PLANEN FORSVANT
+   Strategien og de planlagte innleggene laa bare i nettleseren. Toemte du
+   bufferen, byttet enhet, eller lastet appen paa nytt etter en oppdatering,
+   var alt arbeidet borte. Naa foelger de kontoen, som innstillingene og
+   historien. Renate 5. september 2026. */
+function saveStrategy(){
+  try{ localStorage.setItem('lme_strategy_90', JSON.stringify(strategy90)); }catch(e){}
+  try{ pushStrategiToServer(); }catch(e){}
+}
 /* Sletter strategien som ligger lagret i nettleseren. Den lå der uten noen vei
    ut, så en strategi fra en gammel nisje ble stående for alltid. */
 function slettStrategi(){
@@ -3789,7 +3815,10 @@ function slettStrategi(){
 // så de overlever reload og har ingen 20-grense. Selve posteringen skjer via
 // Blotato (scheduledTime) når du planlegger; dette er den varige oversikten.
 function loadPlan(){ try{ const s=localStorage.getItem('lme_plan_v1'); if(s) state.plan=JSON.parse(s)||[]; }catch(e){ state.plan=[]; } }
-function savePlan(){ try{ localStorage.setItem('lme_plan_v1', JSON.stringify(state.plan||[])); }catch(e){} }
+function savePlan(){
+  try{ localStorage.setItem('lme_plan_v1', JSON.stringify(state.plan||[])); }catch(e){}
+  try{ pushStrategiToServer(); }catch(e){}
+}
 function upsertPlanItem(item){
   state.plan=state.plan||[];
   const ix=state.plan.findIndex(p=>p.id===item.id);
@@ -3821,9 +3850,9 @@ async function generateStrategy(){
        satt du igjen med en plan på fire uker der det skulle stått nitti dager.
        Nå hentes resten i et eget kall, opptil to ganger, og settes sammen. */
     let forsok=0;
-    while(parsed.weeks.length<13 && forsok<2){
+    while(parsed.weeks.length<planUker() && forsok<2){
       forsok++;
-      btn.innerHTML='AI fyller ut uke '+(parsed.weeks.length+1)+' til 13…';
+      btn.innerHTML='AI fyller ut uke '+(parsed.weeks.length+1)+' til '+planUker()+'…';
       const rest=await callClaude(strategyPromptRest(parsed), key, 8000);
       let rt=String(rest||'').trim().replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/```$/,'').trim();
       const ra=rt.indexOf('{'), rb=rt.lastIndexOf('}');
@@ -3868,11 +3897,14 @@ window.settStratFormat=function(i,f){
 };
 function renderStrategy(){
   try{ fyllStratFelter(); }catch(e){}
+  try{ tegnPlanLengde(); }catch(e){}
   const host=document.getElementById('strategy-out'); if(!host)return;
   if(!strategy90||!strategy90.weeks){ host.innerHTML=''; return; }
   stratFlat=[];
   const pillars=(strategy90.pillars||[]).map(p=>`<span class="strat-pill">${esc(p)}</span>`).join('');
-  const weeks=(strategy90.weeks||[]).map(w=>{
+  const alleUker=(strategy90.weeks||[]);
+  const maksUker=planUker();
+  const weeks=alleUker.slice(0,maksUker).map(w=>{
     const posts=(w.posts||[]).map(p=>{
       p._uke=w.week;
       const idx=stratFlat.push(p)-1;
@@ -3885,13 +3917,16 @@ function renderStrategy(){
   }).join('');
   /* Er strategien laget for en annen nisje enn den du har nå, skal du få vite
      det. Ellers ser den bare ut som om nisjen henger igjen på deg. */
+  const laast = alleUker.length>maksUker
+    ? '<div class="strat-rhythm" style="background:#FFF4E5;color:#8A5A00;">Planen din, Start, viser '+planDager()+' dager. Denne strategien har '+alleUker.length+' uker, og resten er skjult. <a href="https://lmexplorers.com/autopilot" target="_blank" rel="noopener" style="color:#8A5A00;font-weight:700;">Oppgrader for hele 90-dagers planen</a></div>'
+    : '';
   const naaNisje=(cfg.niche||'').trim();
   const laget=(strategy90._nisje||'').trim();
   const utakt=laget && naaNisje && laget.toLowerCase()!==naaNisje.toLowerCase();
   const varsel=utakt
     ? `<div class="strat-rhythm" style="background:#FFF4E5;color:#8A5A00;">Denne strategien ble laget for "${esc(laget)}". Nisjen din er nå "${esc(naaNisje)}". Lag en ny, eller slett denne.</div>`
     : '';
-  host.innerHTML=`<div class="strat-card"><div class="strat-h">Innholdspilarer</div><div class="strat-pillars">${pillars}</div>${varsel}${strategy90.rhythm?`<div class="strat-rhythm">📅 ${esc(strategy90.rhythm)}</div>`:''}<button class="act-btn" style="margin-top:14px;" onclick="generateStrategy()">Lag ny strategi</button><button class="act-btn" style="margin-top:8px;background:#fff;color:var(--text-s);border:1px solid #E7DDE3;" onclick="slettStrategi()">Slett strategien</button></div><div class="strat-weeks">${weeks}</div>`;
+  host.innerHTML=`<div class="strat-card"><div class="strat-h">Innholdspilarer</div><div class="strat-pillars">${pillars}</div>${varsel}${strategy90.rhythm?`<div class="strat-rhythm">📅 ${esc(strategy90.rhythm)}</div>`:''}<button class="act-btn" style="margin-top:14px;" onclick="generateStrategy()">Lag ny strategi</button><button class="act-btn" style="margin-top:8px;background:#fff;color:var(--text-s);border:1px solid #E7DDE3;" onclick="slettStrategi()">Slett strategien</button></div><div class="strat-weeks">${weeks}</div>${laast}`;
 }
 function generateFromStrategy(i){
   const p=stratFlat[i]; if(!p)return;
@@ -7301,6 +7336,14 @@ var _pushT={};
 // Lagrer HELE innstillingene (inkl. logo, merkevare, nokler) sa alt overlever.
 function pushSettingsToServer(){ if(!lmeToken() || !window._serverPulled) return; clearTimeout(_pushT.s); _pushT.s=setTimeout(function(){ try{ lmeStoreSave('settings', JSON.parse(JSON.stringify(cfg))); }catch(e){} }, 800); }
 function pushProfilesToServer(){ if(!lmeToken() || !window._serverPulled) return; clearTimeout(_pushT.p); _pushT.p=setTimeout(function(){ try{ lmeStoreSave('profiles', loadProfiles()); }catch(e){} }, 900); }
+/* Strategien og planen deler en plass paa kontoen, de hoerer sammen. */
+function pushStrategiToServer(){
+  if(!lmeToken() || !window._serverPulled) return;
+  clearTimeout(_pushT.strat);
+  _pushT.strat=setTimeout(function(){
+    try{ lmeStoreSave('strategi', { strategi: strategy90 || null, plan: state.plan || [] }); }catch(e){}
+  }, 900);
+}
 function pushStoriesToServer(){ if(!lmeToken() || !window._serverPulled) return; clearTimeout(_pushT.st); _pushT.st=setTimeout(function(){ _libAll().then(function(arr){ lmeStoreSave('stories', arr||[]); }).catch(function(){}); }, 1200); }
 /* Utkastene og arbeidet lå bare i nettleseren, så de fulgte ikke med fra
    telefonen til PC-en. Nå lagres de også på kontoen din, i samme lager som
@@ -7397,6 +7440,24 @@ async function lmeServerSync(){
     try{ applySettingsToUI(); }catch(e){}
     try{ refreshLogoUI(); }catch(e){}
     try{ updateBlotatoPostToSummary(); }catch(e){}
+    /* Strategien og de planlagte innleggene. Har du dem lokalt fra foer,
+       staar de. Er det tomt her, hentes de fra kontoen. */
+    try{
+      const st=await lmeStoreLoad('strategi');
+      if(st && typeof st==='object'){
+        if(!strategy90 && st.strategi){
+          strategy90=st.strategi;
+          try{ localStorage.setItem('lme_strategy_90', JSON.stringify(strategy90)); }catch(e){}
+          try{ renderStrategy(); }catch(e){}
+        }
+        if((!state.plan || !state.plan.length) && Array.isArray(st.plan) && st.plan.length){
+          state.plan=st.plan;
+          try{ localStorage.setItem('lme_plan_v1', JSON.stringify(state.plan)); }catch(e){}
+          try{ renderCalendar(); }catch(e){}
+          try{ const d=document.getElementById('tab-dashboard'); if(d && d.style.display!=='none') renderDashboard(); }catch(e){}
+        }
+      }
+    }catch(e){}
     // Story-lageret
     const arr=await lmeStoreLoad('stories');
     if(Array.isArray(arr) && arr.length){
