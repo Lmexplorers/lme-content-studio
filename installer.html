@@ -74,6 +74,20 @@ p b{color:var(--text);}
     <p data-no="I Chrome, Edge og på Android får du en ekte installasjonsknapp. Appen er den samme uansett hvilken vei du går inn." data-en="In Chrome, Edge and on Android you get a real install button. The app is the same whichever way you come in.">I Chrome, Edge og på Android får du en ekte installasjonsknapp. Appen er den samme uansett hvilken vei du går inn.</p>
   </div>
 
+  <!-- Veien videre for den som laster ned uten aa ha tilgang ennaa.
+       Boksen tegnes av lme-pricing.js, den samme som staar paa
+       laaseskjermen i appen, saa teksten og adressen bare finnes ett sted.
+       Ingen priser her: de bor paa lmexplorers.com.
+       Hele kortet er merket data-lme-kjop, saa det forsvinner av seg selv
+       i butikkutgaven og i den installerte appen, der begge butikkene
+       regner en kjopslenke som omgaaelse av betalingssystemet deres.
+       Renate 15. september 2026. -->
+  <div class="kort" data-lme-kjop>
+    <h2 data-no="Har du ikke tilgang ennå?" data-en="No access yet?">Har du ikke tilgang ennå?</h2>
+    <p data-no="Appen kan lastes ned av alle, men du trenger en plan for å bruke den. Du kommer rett hit igjen etterpå." data-en="Anyone can download the app, but you need a plan to use it. You come straight back here afterwards.">Appen kan lastes ned av alle, men du trenger en plan for å bruke den. Du kommer rett hit igjen etterpå.</p>
+    <div data-lme-priser="liste" style="margin-top:12px;"></div>
+  </div>
+
   <div class="bunn"><a href="/" data-no="Til LME Autopilot" data-en="To LME Autopilot">Til LME Autopilot</a></div>
 </div>
 
@@ -227,5 +241,6 @@ function gammelKopi(t){
   if ('serviceWorker' in navigator) { try { navigator.serviceWorker.register('/sw.js'); } catch (e) {} }
 })();
 </script>
+<script src="/lme-pricing.js"></script>
 </body>
 </html>

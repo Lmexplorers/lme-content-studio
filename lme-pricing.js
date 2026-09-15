@@ -91,6 +91,14 @@
     return /\/en(\.html)?$/.test(window.location.pathname) ? "en" : "no";
   }
 
+  /* Engelsk mottaker skal lande paa engelsk. Plattformen leser ?lang=en
+     (js/i18n-auto.js), saa den engelske boksen tar det med seg.
+     Renate 15. september 2026. */
+  function med(url, lang) {
+    if (lang !== "en") return url;
+    return url + (url.indexOf("?") >= 0 ? "&" : "?") + "lang=en";
+  }
+
   function boks(lang) {
     var t = TEKST[lang];
     return (
@@ -99,7 +107,7 @@
         '<div style="font-family:\'Playpen Sans\',sans-serif;font-weight:800;font-size:18px;' +
           'color:#C81860;margin-bottom:8px;">' + t.tittel + "</div>" +
         '<p style="font-size:14px;line-height:1.6;color:#6B6470;margin:0 0 16px;">' + t.tekst + "</p>" +
-        '<a href="' + OPPGRADER + '" target="_blank" rel="noopener" ' +
+        '<a href="' + med(OPPGRADER, lang) + '" target="_blank" rel="noopener" ' +
           'style="display:inline-block;background:#F02478;color:#fff;text-decoration:none;' +
           'font-weight:700;font-size:15px;padding:13px 26px;border-radius:999px;">' + t.knapp + "</a>" +
       "</div>" +
@@ -107,7 +115,7 @@
         '<div style="font-family:\'Playpen Sans\',sans-serif;font-weight:700;font-size:15px;' +
           'color:#C81860;margin-bottom:6px;">' + t.icTittel + "</div>" +
         '<p style="font-size:13px;line-height:1.6;color:#6B6470;margin:0 0 12px;">' + t.icTekst + "</p>" +
-        '<a href="' + INNER_CIRCLE + '" target="_blank" rel="noopener" ' +
+        '<a href="' + med(INNER_CIRCLE, lang) + '" target="_blank" rel="noopener" ' +
           'style="color:#C81860;font-weight:700;font-size:13.5px;text-decoration:none;">' + t.icKnapp + "</a>" +
       "</div>"
     );
