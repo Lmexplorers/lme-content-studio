@@ -169,7 +169,10 @@ async function installerAppen(){
   tegn();
 }
 
-function lenken(){ return location.origin + location.pathname; }
+/* Språket blir med videre. Trykker en engelsk mottaker "Open in Safari",
+   eller kopierer lenken for å sende den til noen andre, skal siden lande
+   på engelsk der også. */
+function lenken(){ return location.origin + location.pathname + (LANG === 'en' ? '?lang=en' : ''); }
 
 function aapneISafari(){
   try { location.href = 'x-safari-' + lenken(); } catch (e) {}
@@ -205,9 +208,19 @@ function gammelKopi(t){
 
 (function start(){
   /* Norsk er utgangspunktet, engelsk er oversettelsen. Har du valgt engelsk
-     før, huskes det. */
+     før, huskes det.
+
+     Adressen vinner over det som er husket. Renate deler denne siden til
+     folk som skal laste ned appen, og hun trenger en engelsk adresse som
+     lander på engelsk hos en mottaker som aldri har vært her:
+     ?lang=en. Uten det sto siden på norsk til mottakeren selv fant
+     språkknappen. Renate 15. september 2026. */
   var l = null;
-  try { l = localStorage.getItem('lme_lang'); } catch (e) {}
+  try {
+    var q = new URLSearchParams(location.search).get('lang');
+    if (q === 'no' || q === 'en') l = q;
+  } catch (e) {}
+  if (!l) { try { l = localStorage.getItem('lme_lang'); } catch (e) {} }
   if (l !== 'no' && l !== 'en') l = 'no';
   tegn();
   switchLanguage(l);
