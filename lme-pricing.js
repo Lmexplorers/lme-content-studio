@@ -49,16 +49,16 @@
       tekst: "Abonnementene og engangskjøpet ligger på lmexplorers.com, sammen med Vipps og kortbetaling. Du kommer rett tilbake hit etterpå.",
       knapp: "Se planer og priser →",
       icTittel: "Mer enn verktøyene",
-      icTekst: "Inner Circle gir deg resten av LME: hele biblioteket, fellesskapet og månedlige live-samtaler med Renate.",
-      icKnapp: "Se Inner Circle →"
+      icTekst: "Medlemskapet gir deg resten av LME: hele biblioteket, fellesskapet og månedlige live-samtaler med Renate.",
+      icKnapp: "Se medlemskapet →"
     },
     en: {
       tittel: "See plans and prices",
       tekst: "The subscriptions and the one-time purchase live on lmexplorers.com, together with card payment. You come straight back here afterwards.",
       knapp: "See plans and prices →",
       icTittel: "More than the tools",
-      icTekst: "The Inner Circle gives you the rest of LME: the full library, the community and monthly live calls with Renate.",
-      icKnapp: "See the Inner Circle →"
+      icTekst: "The membership gives you the rest of LME: the full library, the community and monthly live calls with Renate.",
+      icKnapp: "See the membership →"
     }
   };
 
