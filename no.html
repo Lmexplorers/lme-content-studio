@@ -3286,7 +3286,7 @@ function dashEcoHTML(){
     {e:'🚦',t:'Traffic Engine',d:'Få mer trafikk',url:'https://lmexplorers.com/ai-traffic-engine'},
     {e:'💰',t:'Inntekt',d:'Gjør trafikk til inntekt',url:'https://lmexplorers.com/lme-inntektskalkulator'},
     {e:'📚',t:'Bookly',d:'Lag bøker og produkter',url:'https://lmexplorers.com/bookly'},
-    {e:'🌟',t:'Medlemskap',d:'Støtte, maler og vekst',url:'https://lmexplorers.com/grupper/inner-circle'},
+    {e:'🌟',t:'LME Medlemskap',d:'Støtte, maler og vekst',url:'https://lmexplorers.com/grupper/inner-circle'},
   ];
   return `<div class="dash-card"><h3>LME-økosystemet</h3><p class="dash-eco-sub">Autopilot er starten. Resten av LME hjelper deg å bli synlig, få trafikk og tjene på den.</p><div class="dash-eco">${tools.map(i=>i.here?`<div class="deco here"><span class="deco-e">${i.e}</span><span class="deco-t">${i.t}</span><span class="deco-d">${i.d}</span></div>`:`<a class="deco" href="${i.url}" target="_blank" rel="noopener"><span class="deco-e">${i.e}</span><span class="deco-t">${i.t}</span><span class="deco-d">${i.d}</span></a>`).join('')}</div></div>`;
 }
