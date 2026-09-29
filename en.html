@@ -2983,7 +2983,7 @@ function dashEcoHTML(){
     {e:'🚦',t:'Traffic Engine',d:'Drive more traffic',url:'https://lmexplorers.com/ai-traffic-engine'},
     {e:'💰',t:'Income',d:'Turn traffic into income',url:'https://lmexplorers.com/lme-inntektskalkulator'},
     {e:'📚',t:'Bookly',d:'Create books and products',url:'https://lmexplorers.com/bookly'},
-    {e:'🌟',t:'Inner Circle',d:'Support, templates and growth',url:'https://lmexplorers.com/grupper/inner-circle'},
+    {e:'🌟',t:'Membership',d:'Support, templates and growth',url:'https://lmexplorers.com/grupper/inner-circle'},
   ];
   return `<div class="dash-card"><h3>The LME ecosystem</h3><p class="dash-eco-sub">Autopilot is the start. The rest of LME helps you get found, drive traffic and earn from it.</p><div class="dash-eco">${tools.map(i=>i.here?`<div class="deco here"><span class="deco-e">${i.e}</span><span class="deco-t">${i.t}</span><span class="deco-d">${i.d}</span></div>`:`<a class="deco" href="${i.url}" target="_blank" rel="noopener"><span class="deco-e">${i.e}</span><span class="deco-t">${i.t}</span><span class="deco-d">${i.d}</span></a>`).join('')}</div></div>`;
 }

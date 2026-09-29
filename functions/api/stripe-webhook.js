@@ -27,7 +27,7 @@ export async function onRequest() {
   return new Response(
     JSON.stringify({
       error:
-        "Denne appen har ingen Stripe-webhook. Betalinger håndteres av lmexplorers.com/api/oppskrift-webhook og Inner Circle-workeren.",
+        "Denne appen har ingen Stripe-webhook. Betalinger håndteres av lmexplorers.com/api/oppskrift-webhook og medlemskapsworkeren.",
     }),
     { status: 410, headers: { "Content-Type": "application/json" } },
   );
