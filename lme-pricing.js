@@ -50,7 +50,7 @@
       knapp: "Se planer og priser →",
       icTittel: "Mer enn verktøyene",
       icTekst: "Medlemskapet gir deg resten av LME: hele biblioteket, fellesskapet og månedlige live-samtaler med Renate.",
-      icKnapp: "Se medlemskapet →"
+      icKnapp: "Se LME Medlemskap →"
     },
     en: {
       tittel: "See plans and prices",
@@ -58,7 +58,7 @@
       knapp: "See plans and prices →",
       icTittel: "More than the tools",
       icTekst: "The membership gives you the rest of LME: the full library, the community and monthly live calls with Renate.",
-      icKnapp: "See the membership →"
+      icKnapp: "See LME Membership →"
     }
   };
 
